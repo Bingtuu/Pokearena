@@ -1,13 +1,19 @@
 """ptcgdb 命令行入口（typer）。"""
 
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Annotated
 
 import typer
+from sqlalchemy import create_engine, select, update
+from sqlalchemy.orm import Session
 
 from ptcgdb.migrations import apply_migrations
 from ptcgdb.normalize import ingest_set
+from ptcgdb.orm import Card, Set
 from ptcgdb.scrapers import CircuitOpenError, HttpClient, MikMoeScraper, ScrapeRunner
 from ptcgdb.scrapers.mikmoe import BASE_URL
+from ptcgdb.validate import run_validations, write_report
 
 app = typer.Typer(help="简中 PTCG 标准环境卡牌数据库 CLI")
 scrape_app = typer.Typer(help="数据采集（mik.moe 主源，限速 ≤1 次/2 秒）")
@@ -40,6 +46,77 @@ def ingest(
         typer.echo(f"  ? {q['card_id'] or '-'} {q['field']}: {q['value']!r} — {q['note']}")
     if result.skipped:
         typer.echo(f"有卡片未入库：{result.skipped}", err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def validate(
+    set_id: str | None = typer.Option(None, "--set", help="只校验指定系列（setId）"),
+    report: Annotated[
+        Path | None, typer.Option("--report", help="报告输出路径，缺省自动生成")
+    ] = None,
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """校验：跑 FR-2.3 六条规则并落 Markdown 报告；任一规则失败退出码非零。"""
+    try:
+        results = run_validations(db_path, set_id=set_id, raw_dir=raw_dir)
+    except ValueError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    if report is None:
+        ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+        report = Path("reports") / f"validation-{ts}.md"
+    write_report(results, report, db_path=db_path, raw_dir=raw_dir)
+    for r in results:
+        mark = "✓" if r.passed else "✗"
+        typer.echo(f"{mark} {r.rule}: checked={r.checked} failures={len(r.failures)}")
+    typer.echo(f"报告：{report}")
+    if not all(r.passed for r in results):
+        typer.echo("存在失败规则，已阻断", err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def activate(
+    set_id: str | None = typer.Option(
+        None, "--set", help="只激活指定系列（setId）；缺省逐系列处理全部"
+    ),
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """激活：逐系列跑校验，全过才把该系列 cards.status draft→active；不过的保持 draft。"""
+    engine = create_engine(f"sqlite:///{db_path}")
+    blocked = False
+    with Session(engine) as session:
+        if set_id:
+            if session.get(Set, set_id) is None:
+                typer.echo(f"系列不存在: {set_id}", err=True)
+                raise typer.Exit(code=1)
+            set_ids = [set_id]
+        else:
+            set_ids = list(session.scalars(select(Set.set_id)))
+        for sid in set_ids:
+            results = run_validations(db_path, set_id=sid, raw_dir=raw_dir)
+            bad = [r for r in results if not r.passed]
+            if bad:
+                blocked = True
+                typer.echo(f"set={sid} 校验未过，保持 draft：")
+                for r in bad:
+                    typer.echo(f"  ✗ {r.rule}: {len(r.failures)} 项失败")
+                    for f in r.failures[:5]:
+                        target = f.get("card_id") or f.get("set_id") or f.get("card_ids")
+                        typer.echo(f"    - {target} {f.get('field') or ''}: {f['note']}")
+                continue
+            updated = session.execute(
+                update(Card)
+                .where(Card.set_id == sid, Card.status == "draft")
+                .values(status="active")
+            ).rowcount
+            session.commit()
+            typer.echo(f"set={sid} 校验全过，activated={updated}")
+    engine.dispose()
+    if blocked:
         raise typer.Exit(code=1)
 
 
