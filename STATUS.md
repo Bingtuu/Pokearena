@@ -33,7 +33,7 @@
 | 2026-08-01 | 数据形态为纯文本/结构化数据，不采集卡图 | ✅ 已定 |
 | 2026-08-01 | 数据存储于项目内 `data/`（原 D2） | ✅ 已定 |
 | 2026-08-01 | SQLAlchemy 2 替代 SQLModel；PRAGMA user_version 替代 Alembic | ✅ 已定（v1.3） |
-| 2026-08-01 | **Python 3.11 暂行**（本机无 3.12，`requires-python = ">=3.11"`），安装 3.12 后收紧回 PRD 口径（task 002） | ✅ 已定（暂行） |
+| 2026-08-01 | **Python 环境定为 3.14.6**（用户安装；`.venv` 已用 3.14 重建，deps/pytest/ruff/init-db 全验证通过）。`requires-python = ">=3.12"` 收回 PRD 口径。原 3.11 暂行决策作废（task 002 后记） | ✅ 已定 |
 | 2026-08-01 | **D1 = 路线 B：tcg.mik.moe 为主源**。理由：小程序接口有 JWT 登录态 + 请求/响应 AES 加密 + 签名四层防护（还原需反编译 wxapkg，超 M0 标准）；mik.moe `/api/v3/card/*` 无鉴权明文 JSON、字段完整且有意外收获（effectId 归组、regulationLegal 交叉校验、英文映射）。详见 `docs/mikmoe-api.md` 与 `tasks/done/001` | ✅ 已定 |
 
 ## 已知临近事件

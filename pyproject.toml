@@ -7,7 +7,7 @@ name = "ptcg-cn-db"
 version = "0.1.0"
 description = "简中 PTCG 标准环境卡牌数据库：本地 SQLite 卡牌库 + 数据管线 + 更新机制"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "pydantic>=2,<3",
     "sqlalchemy>=2,<3",
