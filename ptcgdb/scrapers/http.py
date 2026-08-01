@@ -22,7 +22,7 @@ from tenacity import (
 )
 
 DEFAULT_USER_AGENT = (
-    "ptcg-cn-db/0.1 (+https://github.com/Bingtuu/Pokearena; non-commercial research)"
+    "ptcg-cn-db/0.1 (+https://github.com/Bingtuu/ptcg-cn-db; non-commercial research)"
 )
 
 DEFAULT_INTERVAL = 2.0  # 正常限速：1 次/2 秒
