@@ -1,5 +1,6 @@
 """合法性引擎：快照判定、视作覆盖、同名计数（Phase 1b 实现）。"""
 
+from ptcgdb.legal.engine import effective_text, legal_at
 from ptcgdb.legal.seed import (
     BannedEntry,
     MarkOverride,
@@ -14,6 +15,8 @@ __all__ = [
     "MarkOverride",
     "SnapshotSeed",
     "WhitelistEntry",
+    "effective_text",
+    "legal_at",
     "load_seeds",
     "seed_snapshots",
 ]

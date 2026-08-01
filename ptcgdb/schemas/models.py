@@ -135,3 +135,26 @@ class LegalitySnapshot(BaseModel):
     latest_text_overrides: dict[str, str]
     source_url: str | None
     created_at: datetime
+
+
+class LegalityPool(BaseModel):
+    """legal_at 返回的合法卡池（FR-3.1 / FR-8）。"""
+
+    model_config = ConfigDict(frozen=True)
+
+    snapshot_id: str
+    format: str
+    date: date
+    card_ids: frozenset[str]
+    by_name_group: dict[str, list[str]]  # 白名单命中的组 → 该组全部入库印刷行
+
+
+class EffectiveText(BaseModel):
+    """effective_text 返回的有效文本（FR-3.3 / FR-8）。"""
+
+    model_config = ConfigDict(frozen=True)
+
+    card_id: str  # 请求的卡
+    resolved_card_id: str  # 实际文本来源卡（经 latest_text_overrides 解析）
+    text: str
+    source: str  # errata / latest_print / text_raw

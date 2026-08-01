@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M2（Phase 1b）进行中（goal 驱动）** —— task 007 完成：standard/open 双赛制环境快照种子入库（`config/legality/` + `ptcgdb legal-seed`）。下一步 task 008 合法性引擎。
+**阶段：M2（Phase 1b）进行中（goal 驱动）** —— task 007/008 完成：双赛制快照种子入库；合法性引擎落地（`legal_at`/`effective_text`，A4 构造用例 24 组全过，真实库 standard 5,320 / open 12,413 卡池抽查全对）。下一步 task 009 版本化与回滚。
 
 ## 入口
 
@@ -52,3 +52,4 @@
 - **2026-08-01**：**task 005 完成（M1-4 ✅）**。全量抓取 + 全量入库：129 系列 raw 齐（7 小时、限速 2s、零熔断），**按条目 setCode + 全局去重口径 12,420 张唯一卡全部入库 draft，skipped=0、对账 100%**。关键口径发现：附赠能量卡跨系列列表重复列出、按条目自身 setCode 归属（目录口径会产生 15 个假缺口，task 006 对账必须用去重口径）。实测驱动修复全链路：V/VMAX/VSTAR/V-UNION/TAG TEAM GX/战斗流派/Radiant/朱紫 ex/古代·未来/ACE SPEC（新增 NON_RULE_BOX_MECHANICS）+ 罕贵度词表补全（无标记/S/SSR/A/宝石包符号 ●◆★/ACE）+ eras 补 30th→特典；64 测试全绿（黄金样本逐字段断言）。全量形态调查收敛：简中暂无太晶卡样本。详见 `tasks/done/005` 完成总结。下一步 task 006：全量 validate + 校验报告 + draft→active。
 - **2026-08-01**：**task 006 完成（M1-5 ✅）→ M1（Phase 1a）完成**。FR-2.3 全量校验落地：六规则全过（12,420 张、抽样 689 张一致率 100%），**12,420 张卡全部 draft→active**，报告 `reports/validation-20260801T124141Z.md`（git 跟踪）。全量首跑修复 4 处：对账改条目 setCode+去重口径、raw 全局索引定位（跨目录能量卡）、V-UNION 同名多组按 4 件切组（CSEC 莫鲁贝可两组）、规则 1 源数据缺失豁免（SSP-195 mik description 为空，如实注明）；64 测试全绿、ruff 通过。详见 `tasks/done/006`。
 - **2026-08-01**：**启动 goal：完成 M2**（环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 基础，task 007~011，TDD，纯本地不请求主源）。**task 007 完成（M2-1 ✅）**：官方赛制页逐名核定 → 双赛制快照种子（`config/legality/*.yml`）+ `ptcgdb/legal/seed.py` upsert 入库 + CLI `legal-seed`；standard（G/H/I + 8 能量 + 44 白名单）/ open（A~I + 9 能量含妖 + 50 白名单 + 3 禁卡 + 视作覆盖 CSM2DC-339→B）入库；白名单 94 名称库内全命中。修正 PRD 数据错误：开放白名单 34→32 种（PRD 升 v1.4）；发现 J 标记 18 张 = 30thP 特典卡本体。67 测试全绿、ruff 全净（顺手修了 tools/capture 两处 E501 遗留）。详见 `tasks/done/007`。
+- **2026-08-01**：**task 008 完成（M2-2 ✅）**。合法性引擎落地：`ptcgdb/legal/engine.py`（快照选择 + FR-3.2 五步判定 + `effective_text` 勘误>最新印刷>原文三级解析），schemas 新增 `LegalityPool`/`EffectiveText`，CLI `ptcgdb legal --date --format`。A4 构造用例 24 组全过（博士的研究跨插画、妖能量双赛制、视作B 覆盖正反、禁卡优先两级、禁卡特性限定等）。真实库验证：standard 5,320 张 / open 12,413 张；open 排除恰好 7 张=禁卡表全命中（玛夏多只禁破罐破摔那张）；30thP 18 张走白名单入 standard。91 测试全绿、ruff 通过。详见 `tasks/done/008`。下一步 task 009：版本化与回滚。

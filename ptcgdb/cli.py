@@ -8,7 +8,7 @@ import typer
 from sqlalchemy import create_engine, select, update
 from sqlalchemy.orm import Session
 
-from ptcgdb.legal import seed_snapshots
+from ptcgdb.legal import legal_at, seed_snapshots
 from ptcgdb.migrations import apply_migrations
 from ptcgdb.normalize import ingest_set
 from ptcgdb.orm import Card, Set
@@ -144,9 +144,30 @@ def legal_seed(
 
 
 @app.command()
-def legal() -> None:
-    """合法性判定（未实现）。"""
-    typer.echo("not implemented")
+def legal(
+    date_: str = typer.Option(..., "--date", help="查询日期 YYYY-MM-DD"),
+    format_: str = typer.Option("standard", "--format", help="赛制（standard/open…）"),
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """合法性判定：输出指定日期+赛制的合法卡池规模与白名单命中组。"""
+    from datetime import date as date_cls
+
+    d = date_cls.fromisoformat(date_)
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        try:
+            pool = legal_at(session, d, format_)
+        except LookupError as exc:
+            typer.echo(str(exc), err=True)
+            raise typer.Exit(code=1) from exc
+    engine.dispose()
+    typer.echo(
+        f"snapshot={pool.snapshot_id} date={pool.date} format={pool.format} "
+        f"legal_cards={len(pool.card_ids)}"
+    )
+    typer.echo(f"白名单命中 {len(pool.by_name_group)} 组：")
+    for group, ids in pool.by_name_group.items():
+        typer.echo(f"  {group}: {len(ids)} 张")
 
 
 @app.command()
