@@ -127,6 +127,9 @@ def parse_cost_full(
     if body.endswith("+"):
         modifier = "+"
         body = body[:-1]
+    if not body or body == "0":
+        # 无费用招式可带追加标记（"0+"，CSM2bC 臭臭泥&阿罗拉臭臭泥GX 实测）
+        return [], modifier
     result: list[dict[str, Any]] = []
     for ch in body:
         type_name = map_energy(ch, code_map)

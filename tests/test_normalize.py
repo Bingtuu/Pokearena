@@ -102,6 +102,8 @@ def test_parse_cost_full_modifier():
         None,
     )
     assert fields.parse_cost_full("", CODE_MAP) == ([], None)
+    # 无费用招式带追加标记（"0+"，CSM2bC 实测）
+    assert fields.parse_cost_full("0+", CODE_MAP) == ([], "+")
     # "+" 在非尾部 → 未知形态，不猜测
     with pytest.raises(UnknownEnumError):
         fields.parse_cost_full("C+C", CODE_MAP)
