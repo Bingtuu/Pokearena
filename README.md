@@ -6,8 +6,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/Status-设计完成·开发启动-orange.svg?style=flat-square)](STATUS.md)
-[![PRD](https://img.shields.io/badge/PRD-v1.3-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
+[![Status](https://img.shields.io/badge/Status-M2完成·1.2万卡入库-brightgreen.svg?style=flat-square)](STATUS.md)
+[![PRD](https://img.shields.io/badge/PRD-v1.4-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
 
 [产品需求文档](docs/简中PTCG卡牌数据库_PRD与技术方案.md) · [开发进展](STATUS.md) · [工程约定](AGENTS.md)
 
@@ -17,30 +17,30 @@
 
 ## 为什么要有这个项目
 
-简中 PTCG 是一个**独立产品池**——套装结构、编号体系、赛制节奏都与国际版不同，任何国际版数据库（pokemon-tcg-data、TCGdex）都不含简中卡。而在开源世界，简中卡库是一片**完全的空白**：官方数据锁在微信小程序里，没有任何公开 API。
-
-本项目自建覆盖**简中标准赛制全部合法卡牌**的本地数据库与数据管线，作为「AI 模拟对战 + 卡组强度/胜率测试」工具链的第一块基石。
+简中 PTCG 是一个**独立产品池**——套装结构、编号体系、赛制节奏都与国际版不同，任何国际版数据库（pokemon-tcg-data、TCGdex）都不含简中卡（TCGdex 的 zh-cn 仅停留在路线图）。官方数据锁在微信小程序里（接口带 JWT+AES+签名四层防护），开源世界也一直没有可用的简中卡数据集。好在 [Cryst's Cards Database（tcg.mik.moe）](https://tcg.mik.moe/) 提供了同源的公开 JSON API——本项目以此为**主数据源**，自建覆盖**简中标准赛制全部合法卡牌**的本地数据库与数据管线，作为「AI 模拟对战 + 卡组强度/胜率测试」工具链的第一块基石。
 
 ## ✨ 亮点
 
 - **📸 快照化合法性引擎** —— 赛制标记 + 白名单 + 禁卡表 + 视作覆盖 + 能量种类全部按生效日版本化；旧快照永不删除，可回放任意历史环境（`legal_at('2026-01-01', 'standard')`）
-- **🔌 规则语义一等公民的 SDK** —— `legal_at` / `effective_text` / `validate_deck` 不是让下游自己 join 表，而是开箱即用的纯函数；`open_db` / `open_jsonl` 双后端同一接口
+- **🔌 规则语义一等公民的 SDK** —— `legal_at` / `effective_text` 不是让下游自己 join 表，而是开箱即用的纯函数（`validate_deck` 卡组校验规划在 Phase 2）；`open_db` / `open_jsonl` 双后端同一接口
 - **📦 七件套导出契约** —— `manifest + cards/sets/relations.jsonl + legality.json + 只读 SQLite + checksums`，双轨版本化（日历版本管数据，SemVer 管 schema），对齐 MTGJSON/Scryfall 惯例
-- **🔄 分级自动更新** —— L0 新卡每日增量入库、L1 赛制页变更自动生成提案、L2 勘误人工维护；新包发售 30 分钟内完成更新
-- **🛡️ 原文保真** —— `text_raw` 逐字保留绝不规范化，原文与派生字段严格分层；双源交叉校验 + 三清单日志保证数据质量
+- **🔄 分级自动更新**（Phase 1c 构建中）—— L0 新卡每日增量入库、L1 赛制页变更自动生成提案、L2 勘误人工维护；新包发售 30 分钟内完成更新
+- **🛡️ 原文保真** —— `text_raw` 逐字保留绝不规范化，原文与派生字段严格分层；DB vs raw 同源自验 + 三清单日志保证数据质量
 - **🔮 机制全覆盖且前瞻** —— ex / 太晶 / ACE SPEC / 训练家宝可梦 / V-UNION / GX，词表开放，超级进化ex 等新机制直接进库
 
 ## 🚀 快速预览
 
-> 代码正在开发中（见 [Roadmap](#-roadmap)），以下为 PRD 定义的目标接口。
+> M1/M2 已完成：129 系列 / 12,420 张卡入库，以下接口均已可用（`validate_deck` 为 Phase 2 目标接口）。
 
 **CLI**
 
 ```bash
-ptcgdb search --name 喵喵 --mark G,H,I        # 检索合法卡池
-ptcgdb get CSV1C-009                          # 点查单卡
-ptcgdb legal --date 2026-08-01 --format standard   # 某日期的环境快照
-ptcgdb export --out dist/                     # 导出七件套
+ptcgdb scrape sets && ptcgdb scrape cards      # 采集（mik.moe 主源，限速 2s/请求）
+ptcgdb ingest --set CSV10C                     # 入库（raw → draft）
+ptcgdb validate && ptcgdb activate             # FR-2.3 六规则校验 → active
+ptcgdb legal --date 2026-08-01 --format standard   # 某日期的合法卡池（standard 5,320 / open 12,413）
+ptcgdb legal-seed                              # 环境快照种子入库（config/legality/）
+ptcgdb export --out dist/                      # 导出七件套
 ```
 
 **SDK**
@@ -49,9 +49,10 @@ ptcgdb export --out dist/                     # 导出七件套
 from ptcgdb.sdk import open_db
 
 db = open_db("data/ptcg-cn.db")               # 或 open_jsonl("dist/")，同一接口
-pool = db.legal_at(date="2026-08-01", format="standard")
-report = db.validate_deck(my_deck, date="2026-08-01", format="standard")
-report.violations  # 结构化违规列表：同名超限 / 禁卡 / 不合法……
+pool = db.legal_at(date="2026-08-01", format="standard")   # -> LegalityPool
+text = db.effective_text("CSM2DC-339", date="2026-08-01")  # 勘误 > 最新印刷 > 原文
+cards = db.search_cards(name="喵喵", marks=("G", "H", "I"))
+# Phase 2：db.validate_deck(my_deck, ...) -> DeckReport（结构化违规列表）
 ```
 
 ## 🏗️ 架构
@@ -59,9 +60,9 @@ report.violations  # 结构化违规列表：同名超限 / 禁卡 / 不合法�
 ```mermaid
 flowchart TB
     subgraph SRC["📥 数据源"]
-        A["官方小程序<br/>主源 · 卡牌全量数据"]
-        B["tcg.mik.moe<br/>交叉校验 / 降级镜像"]
-        C["官网赛制页 / 公告<br/>合法性权威源"]
+        A["tcg.mik.moe<br/>主源 · 公开 JSON API（D1=路线B）"]
+        B["官网赛制页 / 公告<br/>合法性权威源"]
+        C["官方小程序<br/>四层防护不可得 · Phase 2 交叉源"]
     end
 
     subgraph PIPE["⚙️ 数据管线"]
@@ -80,13 +81,12 @@ flowchart TB
 
     A --> RAW
     B --> RAW
-    C --> RAW
     RAW --> NORM --> DB
     DB --> CLI
     DB --> DIST
     CLI --> SDK
     DIST --> SDK
-    C -.-> MON
+    B -.-> MON
     MON -.->|人工确认 → 新快照| DB
 
     classDef source fill:#dbeafe,stroke:#3b82f6,color:#1e293b;
@@ -101,13 +101,13 @@ flowchart TB
 
 ## 🗺️ Roadmap
 
-- **M0** 主数据源可行性验证（官方小程序接口）
-- **Phase 1a** schema 建库 + 全卡首批入库 + 校验报告
-- **Phase 1b** 环境快照 + 合法性引擎 + 版本化 + 导出七件套 + SDK 基础
-- **Phase 1c** L0/L1 自动更新管线
-- **Phase 2** 跨语言映射（简中↔繁中↔英文）、卡组校验器
-- **Phase 3** 效果标签层，配合规则引擎
-- **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
+- ✅ **M0** 主数据源决策（D1 = 路线 B：mik.moe 公开 API；小程序接口四层防护否决）
+- ✅ **Phase 1a** schema 建库 + 全卡首批入库（129 系列 / 12,420 张）+ 校验报告
+- ✅ **Phase 1b** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 双后端
+- ⬜ **Phase 1c** L0/L1 自动更新管线（目标：2026-09-16 新包发售前就位）
+- ⬜ **Phase 2** 跨语言映射（简中↔繁中↔英文）、卡组校验器
+- ⬜ **Phase 3** 效果标签层，配合规则引擎
+- ⬜ **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
 
 > ⚠️ 临近事件：**2026-09-16「30周年庆典」全球同步发售**（简中首次同步，新罕贵度 FUR），更新管线将迎来首次实战。
 
@@ -115,7 +115,8 @@ flowchart TB
 
 | 文档 | 内容 |
 |---|---|
-| [PRD v1.3](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计 |
+| [PRD v1.4](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计 |
+| [主源接口文档](docs/mikmoe-api.md) | tcg.mik.moe `/api/v3/card/*` 端点、字段形态、限速约定 |
 | [STATUS.md](STATUS.md) | 当前阶段、里程碑进度、决策日志 |
 | [AGENTS.md](AGENTS.md) | 工程约定与技术红线（协作者/AI 共读） |
 
