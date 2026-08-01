@@ -1,6 +1,7 @@
 # 罕贵度词表（开放词表，兼容 FUR 等新罕贵，可追加）
 # S / SSR 由 task 004 字段形态调查补入（CSM1aC 实测：S=闪光、SSR=闪光超级稀有）。
 # 无标记 由 task 005 全量调查补入（CSM1DC 构筑系列实测：卡面无罕贵度符号的普通卡）。
+# A 由 task 005 补入（CS2aC/CS2bC 实测：Amazing Rare 奇幻稀有——莱希拉姆/藏玛然特/烈空坐/盖欧卡/雷公/苍响）。
 rarities:
   - C
   - U
@@ -21,3 +22,4 @@ rarities:
   - PR
   - FUR
   - 无标记
+  - A
