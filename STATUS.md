@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M2（Phase 1b）进行中（goal 驱动）** —— task 007/008/009 完成：快照种子、合法性引擎、版本化与回滚（apply/冻结守卫/一键回滚 + 双轨版本号 + CHANGELOG 四段式）。下一步 task 010 导出七件套。
+**阶段：M2（Phase 1b）进行中（goal 驱动）** —— task 007~010 完成：快照种子、合法性引擎、版本化与回滚、导出七件套（dist/ 8 文件、checksum 全过、真实导出 12,420 卡验证）。下一步 task 011 SDK 基础（M2 收官任务）。
 
 ## 入口
 
@@ -53,4 +53,5 @@
 - **2026-08-01**：**task 006 完成（M1-5 ✅）→ M1（Phase 1a）完成**。FR-2.3 全量校验落地：六规则全过（12,420 张、抽样 689 张一致率 100%），**12,420 张卡全部 draft→active**，报告 `reports/validation-20260801T124141Z.md`（git 跟踪）。全量首跑修复 4 处：对账改条目 setCode+去重口径、raw 全局索引定位（跨目录能量卡）、V-UNION 同名多组按 4 件切组（CSEC 莫鲁贝可两组）、规则 1 源数据缺失豁免（SSP-195 mik description 为空，如实注明）；64 测试全绿、ruff 通过。详见 `tasks/done/006`。
 - **2026-08-01**：**启动 goal：完成 M2**（环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 基础，task 007~011，TDD，纯本地不请求主源）。**task 007 完成（M2-1 ✅）**：官方赛制页逐名核定 → 双赛制快照种子（`config/legality/*.yml`）+ `ptcgdb/legal/seed.py` upsert 入库 + CLI `legal-seed`；standard（G/H/I + 8 能量 + 44 白名单）/ open（A~I + 9 能量含妖 + 50 白名单 + 3 禁卡 + 视作覆盖 CSM2DC-339→B）入库；白名单 94 名称库内全命中。修正 PRD 数据错误：开放白名单 34→32 种（PRD 升 v1.4）；发现 J 标记 18 张 = 30thP 特典卡本体。67 测试全绿、ruff 全净（顺手修了 tools/capture 两处 E501 遗留）。详见 `tasks/done/007`。
 - **2026-08-01**：**task 008 完成（M2-2 ✅）**。合法性引擎落地：`ptcgdb/legal/engine.py`（快照选择 + FR-3.2 五步判定 + `effective_text` 勘误>最新印刷>原文三级解析），schemas 新增 `LegalityPool`/`EffectiveText`，CLI `ptcgdb legal --date --format`。A4 构造用例 24 组全过（博士的研究跨插画、妖能量双赛制、视作B 覆盖正反、禁卡优先两级、禁卡特性限定等）。真实库验证：standard 5,320 张 / open 12,413 张；open 排除恰好 7 张=禁卡表全命中（玛夏多只禁破罐破摔那张）；30thP 18 张走白名单入 standard。91 测试全绿、ruff 通过。详见 `tasks/done/008`。
-- **2026-08-01**：**task 009 完成（M2-3 ✅）**。版本化与回滚落地：`ptcgdb/legal/versions.py`（apply_snapshot 备份→关旧开新→自动刷新 latest_text_overrides→双轨版本号→CHANGELOG 四段式；历史快照冻结守卫；rollback 一键还原）+ CLI `legal-apply`/`rollback`。A5/A6 测试 8 个全过；真实库副本演练：模拟赛制变更 apply→历史回放不漂移→冻结守卫拦截→rollback 复原。99 测试全绿、ruff 通过。详见 `tasks/done/009`。下一步 task 010：导出七件套。
+- **2026-08-01**：**task 009 完成（M2-3 ✅）**。版本化与回滚落地：`ptcgdb/legal/versions.py`（apply_snapshot 备份→关旧开新→自动刷新 latest_text_overrides→双轨版本号→CHANGELOG 四段式；历史快照冻结守卫；rollback 一键还原）+ CLI `legal-apply`/`rollback`。A5/A6 测试 8 个全过；真实库副本演练：模拟赛制变更 apply→历史回放不漂移→冻结守卫拦截→rollback 复原。99 测试全绿、ruff 通过。详见 `tasks/done/009`。
+- **2026-08-01**：**task 010 完成（M2-4 ✅）**。导出七件套落地：`ptcgdb/export/exporter.py`（Pydantic 模型序列化、WAL checkpoint 后复制 DB、checksums 不自签、schema.md 半自动生成）+ CLI `ptcgdb export --out`。A7 测试 8 个全过；真实导出 `dist/`：12,420 卡/129 系列/2 快照/21,818 关系，checksums 全部通过。107 测试全绿、ruff 通过。详见 `tasks/done/010`。下一步 task 011：SDK 基础（M2 收官）。

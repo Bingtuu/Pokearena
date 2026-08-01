@@ -8,6 +8,7 @@ import typer
 from sqlalchemy import create_engine, select, update
 from sqlalchemy.orm import Session
 
+from ptcgdb.export.exporter import export_all
 from ptcgdb.legal import legal_at, seed_snapshots
 from ptcgdb.legal.versions import apply_snapshot
 from ptcgdb.legal.versions import rollback as rollback_db
@@ -200,9 +201,16 @@ def legal(
 
 
 @app.command()
-def export() -> None:
-    """导出七件套（未实现）。"""
-    typer.echo("not implemented")
+def export(
+    out: Annotated[Path, typer.Option("--out", help="导出目录")] = Path("dist"),
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """导出七件套（FR-7）：manifest/cards/sets/relations/legality/db/checksums/schema.md。"""
+    manifest = export_all(db_path, out)
+    typer.echo(
+        f"OK: {out}/ version={manifest['version']} "
+        f"schema_version={manifest['schema_version']} counts={manifest['counts']}"
+    )
 
 
 @app.command()
