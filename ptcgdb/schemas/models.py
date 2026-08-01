@@ -110,7 +110,7 @@ class Set(BaseModel):
     set_id: str
     name_zh: str
     era: str
-    release_date: date
+    release_date: date | None
     regulation_mark: str
     expected_count: int | None
     expected_secret_count: int | None

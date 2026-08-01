@@ -121,8 +121,11 @@ def normalize_card(
 
 
 def _build_set_row(
-    cards_doc: dict[str, Any], records: list[dict[str, Any]], era_map: dict[str, str],
+    cards_doc: dict[str, Any],
+    records: list[dict[str, Any]],
+    era_map: dict[str, str],
     questions: Questions,
+    set_id: str,
 ) -> Set:
     data = cards_doc["data"]
     series = data.get("series") or ""
@@ -132,14 +135,19 @@ def _build_set_row(
         era = "未划分"
     release_raw = data.get("releaseDate") or ""
     release_date = datetime.fromisoformat(release_raw).date() if release_raw else None
+    # mik 占位垃圾日期（特典系列实测 0001-01-01，task 005）按 NULL 处理
+    if release_date is not None and release_date.year <= 1:
+        release_date = None
     # 无赛制标记的卡（regulation_mark=None，如基本能量）不参与系列级标记汇总
     marks = sorted({r["regulation_mark"] for r in records if r["regulation_mark"] is not None})
     if len(marks) > 1:
         questions.add(
             None, "regulation_mark", marks, "系列内赛制标记不唯一，sets 行存逗号连接值"
         )
+    # set_id 用目录名（= product setId）：特典系列 product setCode 为内部分组值
+    # "PROMO"，与卡级 setCode（SMP/SSP/SVP/30thP）不一致（task 005 实测）
     return Set(
-        set_id=data["setCode"],
+        set_id=set_id,
         name_zh=data["name"],
         era=era,
         release_date=release_date,
@@ -207,7 +215,9 @@ def ingest_set(
     apply_migrations(db_path)
     engine = create_engine(f"sqlite:///{db_path}")
     with Session(engine) as session:
-        session.merge(_build_set_row(cards_doc, records, fields.load_era_map(vocab_dir), questions))
+        session.merge(
+            _build_set_row(cards_doc, records, fields.load_era_map(vocab_dir), questions, set_id)
+        )
         # 幂等：清掉本系列旧的归组/关系/卡牌 draft 行再写入
         card_ids = [r["card_id"] for r in records]
         if card_ids:

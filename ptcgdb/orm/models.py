@@ -22,7 +22,7 @@ class Set(Base):
     set_id: Mapped[str] = mapped_column(String, primary_key=True)  # 商品编号，如 CSV1C
     name_zh: Mapped[str] = mapped_column(String)  # 系列名
     era: Mapped[str] = mapped_column(String)  # 太阳&月亮/剑&盾/朱&紫/特典/未划分（开放词表）
-    release_date: Mapped[date] = mapped_column(Date)
+    release_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     regulation_mark: Mapped[str] = mapped_column(String)  # 该系列卡牌的赛制标记
     expected_count: Mapped[int | None] = mapped_column(Integer)  # 官方公布收录数（分母口径）
     expected_secret_count: Mapped[int | None] = mapped_column(Integer)  # 官方公布的编号外卡数
