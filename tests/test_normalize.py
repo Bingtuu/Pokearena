@@ -442,3 +442,50 @@ def test_ingest_golden_tag_team_gx(tmp_path):
         assert gx_attack["damage_base"] == 100
         assert gx_attack["damage_modifier"] == "+"
     engine.dispose()
+
+
+# ---- 宝可梦V 黄金样本：CSAC/001（task 005 实测 mechanic="V"）----
+
+FIXTURE_CSAC_DIR = Path(__file__).parent / "fixtures" / "raw" / "mikmoe" / "CSAC"
+
+
+def test_ingest_golden_pokemon_v(tmp_path):
+    """轰擂金刚猩V：mechanic="V" → rule_box_type=v、prize=2、species 去 V 后缀。"""
+    raw_dir = tmp_path / "raw"
+    set_dir = raw_dir / "mikmoe" / "CSAC"
+    set_dir.mkdir(parents=True)
+    shutil.copy(FIXTURE_CSAC_DIR / "001.json", set_dir / "001.json")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "卡组构筑礼盒 极巨争锋",
+                "setCode": "CSAC",
+                "setId": "CSAC",
+                "releaseDate": "2023-05-19T00:00:00+08:00",
+                "series": "Sword & Shield",
+                "mainExpansion": False,
+                "cardsNum": 32,
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+
+    db_path = tmp_path / "test.db"
+    result = ingest_set(raw_dir, "CSAC", db_path)
+    assert result.card_count == 1
+    assert result.skipped == []
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        c = session.get(Card, "CSAC-001")
+        assert c.name_full == "轰擂金刚猩V"
+        assert c.species == "轰擂金刚猩"
+        assert c.rule_box_type == "v"
+        assert c.has_rule_box is True
+        assert c.prize_cards == 2
+        assert c.deck_limit == 4
+    engine.dispose()

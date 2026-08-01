@@ -1,0 +1,129 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T06:37:58.136782+00:00",
+    "source": "mik_moe",
+    "content_hash": "591baeb0a79d25598f11b0387b1b58c2f539e7f001ef6ff7e7894ae450b8227f"
+  },
+  "code": 200,
+  "data": {
+    "name": "轰擂金刚猩V",
+    "cardType": "Pokemon",
+    "mechanic": "V",
+    "label": null,
+    "description": "【草】 森林宴会 \n选择自己牌库中最多2张【草】属性的【基础】宝可梦，放于备战区。并重洗牌库。\n\n【草】【草】【草】【无】 木槌 220\n给这只宝可梦也造成30点伤害。\n\n",
+    "yorenCode": "Y470",
+    "pokemonAttr": {
+      "energyType": "G",
+      "stage": "Basic",
+      "hp": 220,
+      "ability": [],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "R",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 3,
+      "attack": [
+        {
+          "name": "森林宴会",
+          "text": "选择自己牌库中最多2张【草】属性的【基础】宝可梦，放于备战区。并重洗牌库。",
+          "cost": "G",
+          "damage": "",
+          "isVStarPower": false
+        },
+        {
+          "name": "木槌",
+          "text": "给这只宝可梦也造成30点伤害。",
+          "cost": "GGGC",
+          "damage": "220",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": ""
+    },
+    "setCode": "CSAC",
+    "cardIndex": "001",
+    "setCardsNum": "",
+    "artist": "5ban Graphics",
+    "rarity": "无标记",
+    "releaseDate": "2023-05-19T00:00:00+08:00",
+    "regulationMark": "D",
+    "effectId": "a6fa964f5df75ead8b95823a9ee51308",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CS1bC",
+        "cardIndex": "030",
+        "cardName": "轰擂金刚猩V",
+        "rarity": "RR",
+        "effectId": "a6fa964f5df75ead8b95823a9ee51308",
+        "cardType": "Pokemon",
+        "yorenCode": "Y470",
+        "is": [
+          "V",
+          "Basic"
+        ],
+        "setCodeEn": "RCL",
+        "cardIndexEn": "17",
+        "nameEn": "Rillaboom V"
+      },
+      {
+        "setCode": "CS1bC",
+        "cardIndex": "162",
+        "cardName": "轰擂金刚猩V",
+        "rarity": "SR",
+        "effectId": "a6fa964f5df75ead8b95823a9ee51308",
+        "cardType": "Pokemon",
+        "yorenCode": "Y470",
+        "is": [
+          "V",
+          "Basic"
+        ],
+        "setCodeEn": "RCL",
+        "cardIndexEn": "17",
+        "nameEn": "Rillaboom V"
+      },
+      {
+        "setCode": "CS1bC",
+        "cardIndex": "176",
+        "cardName": "轰擂金刚猩V",
+        "rarity": "SSR",
+        "effectId": "a6fa964f5df75ead8b95823a9ee51308",
+        "cardType": "Pokemon",
+        "yorenCode": "Y470",
+        "is": [
+          "V",
+          "Basic"
+        ],
+        "setCodeEn": "RCL",
+        "cardIndexEn": "17",
+        "nameEn": "Rillaboom V"
+      },
+      {
+        "setCode": "CSAC",
+        "cardIndex": "001",
+        "cardName": "轰擂金刚猩V",
+        "rarity": "无标记",
+        "effectId": "a6fa964f5df75ead8b95823a9ee51308",
+        "cardType": "Pokemon",
+        "yorenCode": "Y470",
+        "is": [
+          "V",
+          "Basic"
+        ],
+        "setCodeEn": "RCL",
+        "cardIndexEn": "17",
+        "nameEn": "Rillaboom V"
+      }
+    ],
+    "setCodeEn": "RCL",
+    "cardIndexEn": "17",
+    "nameEn": "Rillaboom V"
+  },
+  "msg": "OK."
+}
