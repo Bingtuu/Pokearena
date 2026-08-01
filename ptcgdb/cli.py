@@ -9,6 +9,8 @@ from sqlalchemy import create_engine, select, update
 from sqlalchemy.orm import Session
 
 from ptcgdb.legal import legal_at, seed_snapshots
+from ptcgdb.legal.versions import apply_snapshot
+from ptcgdb.legal.versions import rollback as rollback_db
 from ptcgdb.migrations import apply_migrations
 from ptcgdb.normalize import ingest_set
 from ptcgdb.orm import Card, Set
@@ -131,6 +133,33 @@ def search() -> None:
 def get() -> None:
     """按 card_id 点查（未实现）。"""
     typer.echo("not implemented")
+
+
+@app.command("legal-apply")
+def legal_apply(
+    proposal: Annotated[
+        Path, typer.Option("--proposal", help="变更提案 yaml（FR-5.2 人工确认后）")
+    ],
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """应用赛制变更提案：备份 → 关旧快照开新快照 → 版本递增 → CHANGELOG。"""
+    try:
+        sid = apply_snapshot(db_path, proposal)
+    except (ValueError, LookupError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"OK: 新快照 {sid} 已生效（备份在 {db_path.parent / 'versions'}）")
+
+
+@app.command()
+def rollback(db_path: Path = DEFAULT_DB_PATH) -> None:
+    """回滚：用最新备份覆盖当前 DB（FR-6.3）。"""
+    try:
+        name = rollback_db(db_path)
+    except LookupError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"OK: 已回滚至备份 {name}")
 
 
 @app.command("legal-seed")
