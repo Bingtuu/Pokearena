@@ -1,0 +1,11 @@
+# 规则框类型词表（开放词表，可追加）
+rule_box_types:
+  - ex
+  - gx
+  - tag_team_gx
+  - radiant
+  - v
+  - vmax
+  - vstar
+  - v_union
+  - mega_ex

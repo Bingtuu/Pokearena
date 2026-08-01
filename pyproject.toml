@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ptcg-cn-db"
+version = "0.1.0"
+description = "简中 PTCG 标准环境卡牌数据库：本地 SQLite 卡牌库 + 数据管线 + 更新机制"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2,<3",
+    "sqlalchemy>=2,<3",
+    "typer>=0.9",
+    "httpx>=0.27",
+    "tenacity>=8",
+    "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+ptcgdb = "ptcgdb.cli:app"
+
+[tool.setuptools.packages.find]
+include = ["ptcgdb*"]
+
+[tool.setuptools.package-data]
+ptcgdb = ["migrations/*.sql"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

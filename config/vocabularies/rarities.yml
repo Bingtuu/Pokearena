@@ -1,0 +1,18 @@
+# 罕贵度词表（开放词表，兼容 FUR 等新罕贵，可追加）
+rarities:
+  - C
+  - U
+  - R
+  - RR
+  - RRR
+  - SR
+  - HR
+  - UR
+  - TR
+  - CHR
+  - CSR
+  - AR
+  - SAR
+  - K
+  - PR
+  - FUR

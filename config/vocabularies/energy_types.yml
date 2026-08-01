@@ -1,0 +1,15 @@
+# 属性词表（开放词表，可追加）
+# mik_code 为 tcg.mik.moe 单字母属性码（docs/mikmoe-api.md）；
+# 龙/无 的编码待多样本核证（候选 N / C），先置 null 占位。
+types:
+  - { name: 草, mik_code: G }
+  - { name: 火, mik_code: R }
+  - { name: 水, mik_code: W }
+  - { name: 雷, mik_code: L }
+  - { name: 超, mik_code: P }
+  - { name: 斗, mik_code: F }
+  - { name: 恶, mik_code: D }
+  - { name: 钢, mik_code: M }
+  - { name: 妖, mik_code: Y }
+  - { name: 龙, mik_code: null }
+  - { name: 无, mik_code: null }
