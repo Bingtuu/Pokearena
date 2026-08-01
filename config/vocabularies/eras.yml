@@ -4,3 +4,5 @@ eras:
   - { mik_series: "Sword & Shield", era: 剑&盾 }
   - { mik_series: "Scarlet & Violet", era: 朱&紫 }
   - { mik_series: "Promo", era: 特典 }
+  # task 005 补入（30thP 30周年庆典特典卡实测：series="30th"，归入特典）
+  - { mik_series: "30th", era: 特典 }
