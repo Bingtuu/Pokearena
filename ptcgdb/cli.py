@@ -178,6 +178,24 @@ def legal_errata(
 
 
 @app.command()
+def accept(
+    db_path: Path = DEFAULT_DB_PATH,
+    out_dir: Path = Path("reports"),
+    work_dir: Path = Path("data/accept-work"),
+) -> None:
+    """一键验收（PRD §10）：A1/A4/A5/A6/A7/A8 重跑 + 证据报告。真实库只读。"""
+    from ptcgdb.accept.runner import run_acceptance
+
+    report = run_acceptance(db_path, out_dir, work_dir)
+    for s in report.sections:
+        typer.echo(f"{s.aid} {'PASS' if s.passed else 'FAIL'} — {s.title}")
+    typer.echo(f"报告: {report.path}")
+    if not report.passed:
+        typer.echo("存在 FAIL 项，详见报告（需人工裁决）", err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command()
 def rollback(db_path: Path = DEFAULT_DB_PATH) -> None:
     """回滚：用最新备份覆盖当前 DB（FR-6.3）。"""
     try:
