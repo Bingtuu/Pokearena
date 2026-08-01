@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M2（Phase 1b）✅ 完成（goal 驱动）** —— task 007~011 全部完成：双赛制快照种子、合法性引擎、版本化与回滚、导出七件套、SDK 双后端（open_db/open_jsonl 一致性真实库验证通过）。121 测试全绿、ruff 全净。
+**阶段：M2 ✅ 完成 / PRD v1.4 已同步（goal 驱动）** —— task 012 完成：M1/M2 全部实测偏差并入权威文档，PRD 与代码一致。下一步 M3（L0/L1 监控管线 + 提案生成，预算 2 天，需赶在 2026-09-16 新包发售前就位）。
 
 ## 入口
 
@@ -57,3 +57,4 @@
 - **2026-08-01**：**task 009 完成（M2-3 ✅）**。版本化与回滚落地：`ptcgdb/legal/versions.py`（apply_snapshot 备份→关旧开新→自动刷新 latest_text_overrides→双轨版本号→CHANGELOG 四段式；历史快照冻结守卫；rollback 一键还原）+ CLI `legal-apply`/`rollback`。A5/A6 测试 8 个全过；真实库副本演练：模拟赛制变更 apply→历史回放不漂移→冻结守卫拦截→rollback 复原。99 测试全绿、ruff 通过。详见 `tasks/done/009`。
 - **2026-08-01**：**task 010 完成（M2-4 ✅）**。导出七件套落地：`ptcgdb/export/exporter.py`（Pydantic 模型序列化、WAL checkpoint 后复制 DB、checksums 不自签、schema.md 半自动生成）+ CLI `ptcgdb export --out`。A7 测试 8 个全过；真实导出 `dist/`：12,420 卡/129 系列/2 快照/21,818 关系，checksums 全部通过。107 测试全绿、ruff 通过。详见 `tasks/done/010`。
 - **2026-08-01**：**task 011 完成（M2-5 ✅）→ M2（Phase 1b）完成**。SDK 双后端落地：`ptcgdb.sdk`（CardDatabase ABC + DbBackend/JsonlBackend + `open_db`/`open_jsonl`；schema_version/get_card/search_cards/sets/legal_at/effective_text/snapshots，frozen Pydantic 返回）；引擎抽纯函数核供双后端复用；legality.json 增 errata 键（additive，PRD §FR-7 同步）；`apply_migrations` 幂等写 meta.schema_version。A8 契约测试 + 真实库双后端全等（standard 5,320 / open 12,413 / search 喵喵 26 张）。121 测试全绿、ruff 通过。详见 `tasks/done/011`。**M2 goal 完成，待验收（M4）与 M3 监控管线。**
+- **2026-08-01**：**task 012 完成（PRD v1.4 统一修订 ✅，goal 驱动）**。M1/M2 实测偏差 7 项全部并入 PRD：对账去重口径、attacks `cost_modifier`、PROMO setCode 主键口径、FR-2.3 规则 6/规则 1 豁免、太晶暂无样本、M2 已并入项核对、D1 决策结果全文同步（含 §7.4 规模改实测值）。一致性核验发现导出 schema `Attack` 模型缺 `cost_modifier`（导出/SDK 静默丢字段）——按 goal 停止规则报告、**用户放行并入**：补字段 + 导出断言。PRD 升 v1.4（修订记录完整），121 测试全绿、ruff 通过。详见 `tasks/done/012`。

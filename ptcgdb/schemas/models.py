@@ -24,6 +24,8 @@ class Attack(BaseModel):
 
     name: str
     cost: list[AttackCost]
+    # 追加费用标记（TAG TEAM GX "WWC+" → "+"；v1.4 增量，只加不删）
+    cost_modifier: str | None = None
     damage_base: int | None  # 卡面固定伤害；无固定伤害时为 None
     damage_modifier: str | None  # NULL / "+" / "-" / "×"
     effect_text: str

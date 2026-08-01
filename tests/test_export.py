@@ -40,7 +40,13 @@ def db_path(tmp_path):
                 evolves_from_text=None, evolves_from_id=None, evolution_chain_id=None,
                 rule_box_type=None, has_rule_box=False, is_tera=False,
                 union_position=None, prize_cards=1, deck_limit=4, is_ace_spec=False,
-                abilities=None, attacks=None, weakness=None, resistance=None,
+                abilities=None,
+                attacks=[{
+                    "name": "猛撞", "cost": [{"type": "无", "count": 1}],
+                    "cost_modifier": "+" if i == 0 else None,
+                    "damage_base": 20, "damage_modifier": None, "effect_text": "",
+                }],
+                weakness=None, resistance=None,
                 retreat_cost=1, trainer_subtype=None, provides=None,
                 is_basic_energy=False, text_raw=f"卡{i}原文", effect_tags=None,
                 name_en=None, name_ja=None, name_zh_tw=None, source="test",
@@ -106,6 +112,7 @@ def test_cards_jsonl_streamable(dist):
     assert len(rows) == 2
     assert rows[0]["card_id"] == "T1-001"
     assert rows[0]["text_raw"] == "卡0原文"  # 逐字保留
+    assert rows[0]["attacks"][0]["cost_modifier"] == "+"  # v1.4：导出/schema 不丢字段
     raw_text = (dist / "cards.jsonl").read_text(encoding="utf-8")
     assert "卡0原文" in raw_text  # UTF-8 直写，不做 ascii 转义
 
