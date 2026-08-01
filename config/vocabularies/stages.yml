@@ -1,6 +1,8 @@
 # 进化阶段词表：mik pokemonAttr.stage → PRD stage（开放词表，可追加）
 # task 004 实测取值：Basic / Stage 1 / Stage 2。
+# VMAX 由 task 005 补入（CS1DC 实测：VMAX 卡 stage="VMAX"，机制名不翻译）。
 stages:
   - { mik: Basic, stage: 基础 }
   - { mik: Stage 1, stage: 1阶 }
   - { mik: Stage 2, stage: 2阶 }
+  - { mik: VMAX, stage: VMAX }

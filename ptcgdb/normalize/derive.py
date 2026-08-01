@@ -30,6 +30,12 @@ LABEL_TAGS = {
 # 卡 mechanic="GX" + label=["TAG TEAM"]，CSM2aC/CSM2DC；PRD §7.2 prize=3）
 RULE_BOX_LABELS = {"TAG TEAM"}
 
+# mik stage → rule_box_type 覆盖（优先于 mechanic 映射；task 005 实测：
+# VMAX 卡 mechanic="V" + stage="VMAX"，CS1DC 巴大蝶VMAX 等；prize vmax=3）
+STAGE_RULE_BOX = {
+    "VMAX": "vmax",
+}
+
 # name_full 规则后缀（拆 species 用；ex/GX 后缀不同的卡规则上不同名，见 §6.2）
 RULE_SUFFIXES = ("GX", "◇", "ex", "V-UNION", "VMAX", "VSTAR", "V")
 
@@ -93,8 +99,9 @@ def derive_rule_box(
     label: list[str] | None,
     questions: Questions,
     card_id: str,
+    stage: str | None = None,
 ) -> tuple[str | None, list[str] | None]:
-    """mechanic/label → (rule_box_type, effect_tags)。未知取值记 question 不猜测。"""
+    """mechanic/label/stage → (rule_box_type, effect_tags)。未知取值记 question 不猜测。"""
     labels = label or []
     rule_box_type = None
     if mechanic:
@@ -105,6 +112,9 @@ def derive_rule_box(
     # TAG TEAM GX：mechanic="GX" + label 含 "TAG TEAM" → tag_team_gx（prize=3）
     if mechanic == "GX" and "TAG TEAM" in labels:
         rule_box_type = "tag_team_gx"
+    # stage 覆盖（VMAX：mechanic="V" + stage="VMAX" → vmax）
+    if stage and stage in STAGE_RULE_BOX:
+        rule_box_type = STAGE_RULE_BOX[stage]
     tags: list[str] = []
     for item in labels:
         if item in RULE_BOX_LABELS:

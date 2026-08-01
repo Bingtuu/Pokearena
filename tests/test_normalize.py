@@ -489,3 +489,53 @@ def test_ingest_golden_pokemon_v(tmp_path):
         assert c.prize_cards == 2
         assert c.deck_limit == 4
     engine.dispose()
+
+
+# ---- 宝可梦VMAX 黄金样本：CS1DC/003（task 005 实测 mechanic="V" + stage="VMAX"）----
+
+FIXTURE_CS1DC_DIR = Path(__file__).parent / "fixtures" / "raw" / "mikmoe" / "CS1DC"
+
+
+def test_ingest_golden_pokemon_vmax(tmp_path):
+    """巴大蝶VMAX：stage 覆盖 → rule_box_type=vmax、prize=3、stage='VMAX' 原值入库。"""
+    raw_dir = tmp_path / "raw"
+    set_dir = raw_dir / "mikmoe" / "CS1DC"
+    set_dir.mkdir(parents=True)
+    shutil.copy(FIXTURE_CS1DC_DIR / "003.json", set_dir / "003.json")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "极巨争锋 V起始卡组",
+                "setCode": "CS1DC",
+                "setId": "CS1DC",
+                "releaseDate": "2023-05-19T00:00:00+08:00",
+                "series": "Sword & Shield",
+                "mainExpansion": False,
+                "cardsNum": 226,
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+
+    db_path = tmp_path / "test.db"
+    result = ingest_set(raw_dir, "CS1DC", db_path)
+    assert result.card_count == 1
+    assert result.skipped == []
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        c = session.get(Card, "CS1DC-003")
+        assert c.name_full == "巴大蝶VMAX"
+        assert c.species == "巴大蝶"
+        assert c.stage == "VMAX"
+        assert c.rule_box_type == "vmax"
+        assert c.has_rule_box is True
+        assert c.prize_cards == 3
+        assert c.deck_limit == 4
+        assert c.hp == 300
+        assert c.evolves_from_text == "巴大蝶V"
+    engine.dispose()

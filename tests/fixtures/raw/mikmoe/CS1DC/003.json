@@ -1,0 +1,106 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T06:39:06.213098+00:00",
+    "source": "mik_moe",
+    "content_hash": "19f53fe535c141b9dc60d560d35c3e19085f6b71f5b2d9b1d536bcd0a9181b83"
+  },
+  "code": 200,
+  "data": {
+    "name": "巴大蝶VMAX",
+    "cardType": "Pokemon",
+    "mechanic": "V",
+    "label": null,
+    "description": "【草】【草】【无】 超极巨毒液疾风 150\n使对手的战斗宝可梦陷入【中毒】和【混乱】状态。\n\n",
+    "yorenCode": "Y493",
+    "pokemonAttr": {
+      "energyType": "G",
+      "stage": "VMAX",
+      "hp": 300,
+      "ability": [],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "R",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 0,
+      "attack": [
+        {
+          "name": "超极巨毒液疾风",
+          "text": "使对手的战斗宝可梦陷入【中毒】和【混乱】状态。",
+          "cost": "GGC",
+          "damage": "150",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": "巴大蝶V"
+    },
+    "setCode": "CS1DC",
+    "cardIndex": "003",
+    "setCardsNum": "",
+    "artist": "aky CG Works",
+    "rarity": "无标记",
+    "releaseDate": "2023-05-19T00:00:00+08:00",
+    "regulationMark": "D",
+    "effectId": "65b92d0b225222ce6168d0b92b03cabc",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CS1DC",
+        "cardIndex": "003",
+        "cardName": "巴大蝶VMAX",
+        "rarity": "无标记",
+        "effectId": "65b92d0b225222ce6168d0b92b03cabc",
+        "cardType": "Pokemon",
+        "yorenCode": "Y493",
+        "is": [
+          "V",
+          "VMAX"
+        ],
+        "setCodeEn": "DAA",
+        "cardIndexEn": "2",
+        "nameEn": "Butterfree VMAX"
+      },
+      {
+        "setCode": "CS1DC",
+        "cardIndex": "221",
+        "cardName": "巴大蝶VMAX",
+        "rarity": "无标记",
+        "effectId": "65b92d0b225222ce6168d0b92b03cabc",
+        "cardType": "Pokemon",
+        "yorenCode": "Y493",
+        "is": [
+          "V",
+          "VMAX"
+        ],
+        "setCodeEn": "DAA",
+        "cardIndexEn": "2",
+        "nameEn": "Butterfree VMAX"
+      },
+      {
+        "setCode": "CS1bC",
+        "cardIndex": "005",
+        "cardName": "巴大蝶VMAX",
+        "rarity": "RRR",
+        "effectId": "65b92d0b225222ce6168d0b92b03cabc",
+        "cardType": "Pokemon",
+        "yorenCode": "Y493",
+        "is": [
+          "V",
+          "VMAX"
+        ],
+        "setCodeEn": "DAA",
+        "cardIndexEn": "2",
+        "nameEn": "Butterfree VMAX"
+      }
+    ],
+    "setCodeEn": "DAA",
+    "cardIndexEn": "2",
+    "nameEn": "Butterfree VMAX"
+  },
+  "msg": "OK."
+}

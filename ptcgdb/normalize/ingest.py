@@ -54,8 +54,10 @@ def normalize_card(
     owner, species = derive.split_owner_species(name_full, ctx.owners)
     mechanic = data.get("mechanic")
     label = data.get("label") or None
+    pa = data.get("pokemonAttr") or {}
+    stage = fields.map_stage(pa.get("stage"), ctx.stage_map)
     rule_box_type, effect_tags = derive.derive_rule_box(
-        mechanic, label, ctx.questions, card_id
+        mechanic, label, ctx.questions, card_id, stage=pa.get("stage")
     )
     is_ace_spec = derive.derive_is_ace_spec(mechanic, label, name_full)
     is_basic_energy, provides = derive.derive_basic_energy(
@@ -65,7 +67,6 @@ def normalize_card(
     if rarity not in ctx.rarities:
         ctx.questions.add(card_id, "rarity", rarity, "罕贵度不在词表（开放词表，原值入库）")
 
-    pa = data.get("pokemonAttr") or {}
     abilities = [
         {"name": a.get("name") or "", "text": a.get("text") or ""}
         for a in pa.get("ability") or []
@@ -87,7 +88,7 @@ def normalize_card(
         # 空串/缺省统一存 NULL（task 005 实测：基本能量 regulationMark=""，无赛制标记）
         "regulation_mark": data.get("regulationMark") or None,
         "rarity": rarity,
-        "stage": fields.map_stage(pa.get("stage"), ctx.stage_map),
+        "stage": stage,
         "hp": pa.get("hp"),
         "types": types,
         "evolves_from_text": pa.get("evolvesFrom") or None,
