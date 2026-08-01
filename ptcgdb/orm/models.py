@@ -184,7 +184,9 @@ class ScrapeRun(Base):
 class ExternalId(Base):
     """external_ids 跨语言对齐（Phase 2）。
 
-    system ∈ {tcgdex, pokemontcg_io, jp_official, tw_official}
+    system ∈ {mik_en, tcgdex, pokemon_card_jp}（PRD v1.5）——system 本身编码
+    置信度来源路径：mik_en=英文桥直取（bridge）、tcgdex=TCGdex 同 ID 链出
+    （tcgdex-linked）、pokemon_card_jp=官方卡查核对（manual）。
     """
 
     __tablename__ = "external_ids"

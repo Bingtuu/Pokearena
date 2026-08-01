@@ -216,6 +216,25 @@ def sample(
         typer.echo(f"A3 报告: {path}")
 
 
+@app.command("map-en")
+def map_en(
+    db_path: Path = DEFAULT_DB_PATH,
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    out_dir: Path = Path("reports"),
+) -> None:
+    """EN 映射填充：mik raw 英文桥 → name_en 核实 + external_ids(mik_en)（task 022）。"""
+    from ptcgdb.mapping.en import fill_en
+    from ptcgdb.mapping.report import write_en_report
+
+    result = fill_en(db_path, raw_dir)
+    path = write_en_report(result, out_dir)
+    typer.echo(
+        f"total={result.total} filled={result.filled} already={result.already} "
+        f"no_bridge={len(result.no_bridge)}"
+    )
+    typer.echo(f"报告: {path}")
+
+
 @app.command()
 def rollback(db_path: Path = DEFAULT_DB_PATH) -> None:
     """回滚：用最新备份覆盖当前 DB（FR-6.3）。"""
