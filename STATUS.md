@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M3 (Phase 1c) ✅ 完成（goal 驱动，2026-08-01）** —— task 013~015 全部归档：L0 新卡增量管线（真实库 dry-run 零增量）、L1 赛制监控（三页基线建立、二轮零假阳性、提案与 legal-apply 端到端打通）、通知与闭环 + L2 勘误导入。测试 150 全绿。下一步 M4（验收 A1~A8 + 文档收尾）。赶在 2026-09-16 新包发售前就位 ✅。
+**阶段：M4 ✅ 完成（goal 驱动，2026-08-01）—— Phase 1 全部收官** —— task 016~018 归档：验收基建（A1 白名单分赛制核对器 + 一键验收 runner，`reports/acceptance-20260801.md` 六项全 PASS）、A2/A3 抽样比对工具（A3 自动校验真实库 5,122 项次全过，清单落 reports/）、文档收尾（AGENTS 常用命令补全，README/STATUS/PRD/CHANGELOG 状态一致）。测试 165 全绿。下一步 Phase 2（跨语言映射 / 卡组校验器）+ 技术债立项（derive 跨系列进化解析）。赶在 2026-09-16 新包发售前就位 ✅。
 
 ## 入口
 
@@ -15,7 +15,7 @@
 | 工程约定 | `AGENTS.md` |
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
 | **主源接口文档** | `docs/mikmoe-api.md`（task 001 产物，M1 采集层必读） |
-| 代码 | `ptcgdb/`（orm/schemas/migrations/cli + scrapers/normalize/validate + **legal（引擎/种子/版本化）/export/sdk**） |
+| 代码 | `ptcgdb/`（orm/schemas/migrations/cli + scrapers/normalize/validate + legal（引擎/种子/版本化）+ monitor（L0/L1/提案）+ export/sdk + accept（验收）） |
 | 数据 | `data/ptcg-cn.db`（schema user_version=3；**12,420 张去重卡 active**；2 条环境快照）、`data/raw/mikmoe/`（全量 raw + manifest）、`dist/`（导出七件套，gitignore）、`reports/`（校验报告，git 跟踪） |
 | 合法性种子 | `config/legality/`（standard/open 双赛制快照种子，官方赛制页 2026-07-16 版） |
 
@@ -25,7 +25,7 @@
 - [x] **M1 (Phase 1a)** schema + raw 层 + 首批全量入库 + 校验报告（3~4 天；**走镜像路线，按 PRD 预算 +1~2 天 → 4~6 天**）—— **2026-08-01 完成（task 002~006）**：129 系列 / 12,420 张去重卡 active，六规则全过
 - [x] **M2 (Phase 1b)** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 基础（3~4 天）—— **2026-08-01 完成（task 007~011）**：双赛制快照入库、`legal_at`/`effective_text`（A4 用例 24 组）、apply/冻结/回滚（A5/A6）、dist 七件套（A7）、SDK 双后端一致（A8）
 - [x] **M3 (Phase 1c)** L0/L1 监控管线 + 提案生成 + 通知（2 天）—— **2026-08-01 完成（task 013~015）**：L0 全链路（探测→抓取→校验→active→快照后处理，真实 dry-run 零增量）；L1 三页监控（基线建立、零假阳性、提案=SnapshotSeed 超集被 legal-apply 直接消费、needs_manual 不猜测）；桌面/webhook 通知 + 提案闭环（applied 回写）+ L2 勘误导入（`legal-errata`，effective_text 联测）
-- [ ] **M4** 验收 A1~A8 + 文档收尾（1 天）
+- [x] **M4** 验收 A1~A8 + 文档收尾（1 天）—— **2026-08-01 完成（task 016~018）**：验收 runner 一键全过（A1 standard 55/55、open 61/61；A4/A5/A6/A7/A8 证据报告六项 PASS）、A2 抽样 100 张清单 + A3 自动校验 5,122 项次全过、AGENTS/README/PRD/CHANGELOG 状态一致
 
 ## 决策日志
 
@@ -63,3 +63,9 @@
 - **2026-08-01**：**task 010 完成（M2-4 ✅）**。导出七件套落地：`ptcgdb/export/exporter.py`（Pydantic 模型序列化、WAL checkpoint 后复制 DB、checksums 不自签、schema.md 半自动生成）+ CLI `ptcgdb export --out`。A7 测试 8 个全过；真实导出 `dist/`：12,420 卡/129 系列/2 快照/21,818 关系，checksums 全部通过。107 测试全绿、ruff 通过。详见 `tasks/done/010`。
 - **2026-08-01**：**task 011 完成（M2-5 ✅）→ M2（Phase 1b）完成**。SDK 双后端落地：`ptcgdb.sdk`（CardDatabase ABC + DbBackend/JsonlBackend + `open_db`/`open_jsonl`；schema_version/get_card/search_cards/sets/legal_at/effective_text/snapshots，frozen Pydantic 返回）；引擎抽纯函数核供双后端复用；legality.json 增 errata 键（additive，PRD §FR-7 同步）；`apply_migrations` 幂等写 meta.schema_version。A8 契约测试 + 真实库双后端全等（standard 5,320 / open 12,413 / search 喵喵 26 张）。121 测试全绿、ruff 通过。详见 `tasks/done/011`。**M2 goal 完成，待验收（M4）与 M3 监控管线。**
 - **2026-08-01**：**task 012 完成（PRD v1.4 统一修订 ✅，goal 驱动）**。M1/M2 实测偏差 7 项全部并入 PRD：对账去重口径、attacks `cost_modifier`、PROMO setCode 主键口径、FR-2.3 规则 6/规则 1 豁免、太晶暂无样本、M2 已并入项核对、D1 决策结果全文同步（含 §7.4 规模改实测值）。一致性核验发现导出 schema `Attack` 模型缺 `cost_modifier`（导出/SDK 静默丢字段）——按 goal 停止规则报告、**用户放行并入**：补字段 + 导出断言。PRD 升 v1.4（修订记录完整），121 测试全绿、ruff 通过。详见 `tasks/done/012`。
+- **2026-08-01**：**task 013 完成（M3-1 ✅）**。L0 新卡增量管线全链路：总量探测（cardsNum 比对）→ 抓新卡 → 校验 → active → 快照后处理（data_version 递增、附赠能量跨系列补齐）；CLI `monitor l0 [--dry-run]`；真实库 dry-run 零增量。详见 `tasks/done/013`。
+- **2026-08-01**：**task 014 完成（M3-2 ✅）**。L1 赛制监控：官网三页正文提取 + hash 比对（基线建立、二轮零假阳性）；变更提案 = SnapshotSeed 超集，被 `legal-apply` 直接消费；不确定项 needs_manual 不猜测。PRD v1.4 续：实测订正"特别的卡牌"页为特殊机制说明页。详见 `tasks/done/014`。
+- **2026-08-01**：**task 015 完成（M3-3 ✅）→ M3（Phase 1c）完成**。通知与闭环：桌面/webhook 通知、提案 applied 回写闭环（`monitor proposals`）、L2 勘误导入（`legal-errata`，effective_text 联测）。150 测试全绿。详见 `tasks/done/015`。
+- **2026-08-01**：**task 016 完成（M4-1 ✅）**。验收基建：A1 白名单分赛制逐卡核对器（standard 55/55、open 61/61 全过）+ 一键验收 runner（A1/A4/A5/A6/A7/A8）+ CLI `ptcgdb accept`；真实库证据报告 `reports/acceptance-20260801.md` 六项全 PASS（A6 脏合入/回滚实验只在副本库，真实库只读）。详见 `tasks/done/016`。
+- **2026-08-01**：**task 017 完成（M4-2 ✅）**。A2/A3 抽样比对工具 + CLI `ptcgdb sample`：A2 随机 100 张 × 11 字段人工比对清单（seed 可复现）、A3 特殊卡 DB-vs-raw 自动校验真实库 **5,122 项次全过**（修正校验器两个错误假设：ACE SPEC 含特殊能量、化石宝可梦进化来源豁免）。发现 derive 跨系列进化解析缺口（记"已知技术债"，待立项）。165 测试全绿。详见 `tasks/done/017`。
+- **2026-08-01**：**task 018 完成（M4-3 ✅）→ M4 完成，Phase 1 全部收官**。文档收尾：AGENTS.md 常用命令补全 + 当前状态/技术栈更新（Python 3.14）、README badge/亮点/Roadmap/CLI 示例同步、PRD 状态行更新、新建 CHANGELOG.md（四段式，v20260801.0 首批发布）、进展日志补齐 task 013~018。165 测试全绿、ruff 通过。详见 `tasks/done/018`。

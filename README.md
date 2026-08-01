@@ -6,7 +6,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/Status-M2完成·1.2万卡入库-brightgreen.svg?style=flat-square)](STATUS.md)
+[![Status](https://img.shields.io/badge/Status-Phase1完成·M4验收全过-brightgreen.svg?style=flat-square)](STATUS.md)
 [![PRD](https://img.shields.io/badge/PRD-v1.4-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
 
 [产品需求文档](docs/简中PTCG卡牌数据库_PRD与技术方案.md) · [开发进展](STATUS.md) · [工程约定](AGENTS.md)
@@ -24,13 +24,13 @@
 - **📸 快照化合法性引擎** —— 赛制标记 + 白名单 + 禁卡表 + 视作覆盖 + 能量种类全部按生效日版本化；旧快照永不删除，可回放任意历史环境（`legal_at('2026-01-01', 'standard')`）
 - **🔌 规则语义一等公民的 SDK** —— `legal_at` / `effective_text` 不是让下游自己 join 表，而是开箱即用的纯函数（`validate_deck` 卡组校验规划在 Phase 2）；`open_db` / `open_jsonl` 双后端同一接口
 - **📦 七件套导出契约** —— `manifest + cards/sets/relations.jsonl + legality.json + 只读 SQLite + checksums`，双轨版本化（日历版本管数据，SemVer 管 schema），对齐 MTGJSON/Scryfall 惯例
-- **🔄 分级自动更新**（Phase 1c 构建中）—— L0 新卡每日增量入库、L1 赛制页变更自动生成提案、L2 勘误人工维护；新包发售 30 分钟内完成更新
+- **🔄 分级自动更新** —— L0 新卡每日增量入库、L1 赛制页变更自动生成提案、L2 勘误人工维护；新包发售 30 分钟内完成更新
 - **🛡️ 原文保真** —— `text_raw` 逐字保留绝不规范化，原文与派生字段严格分层；DB vs raw 同源自验 + 三清单日志保证数据质量
 - **🔮 机制全覆盖且前瞻** —— ex / 太晶 / ACE SPEC / 训练家宝可梦 / V-UNION / GX，词表开放，超级进化ex 等新机制直接进库
 
 ## 🚀 快速预览
 
-> M1/M2 已完成：129 系列 / 12,420 张卡入库，以下接口均已可用（`validate_deck` 为 Phase 2 目标接口）。
+> Phase 1（M1~M4）已完成：129 系列 / 12,420 张卡入库 + 验收 A1~A8 全过，以下接口均已可用（`validate_deck` 为 Phase 2 目标接口）。
 
 **CLI**
 
@@ -41,6 +41,8 @@ ptcgdb validate && ptcgdb activate             # FR-2.3 六规则校验 → acti
 ptcgdb legal --date 2026-08-01 --format standard   # 某日期的合法卡池（standard 5,320 / open 12,413）
 ptcgdb legal-seed                              # 环境快照种子入库（config/legality/）
 ptcgdb export --out dist/                      # 导出七件套
+ptcgdb monitor l0 --dry-run                    # L0 新卡增量探测；monitor l1 赛制页监控 → 提案
+ptcgdb accept && ptcgdb sample                 # 一键验收 A1~A8；A2/A3 抽样比对清单
 ```
 
 **SDK**
@@ -104,7 +106,7 @@ flowchart TB
 - ✅ **M0** 主数据源决策（D1 = 路线 B：mik.moe 公开 API；小程序接口四层防护否决）
 - ✅ **Phase 1a** schema 建库 + 全卡首批入库（129 系列 / 12,420 张）+ 校验报告
 - ✅ **Phase 1b** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 双后端
-- ⬜ **Phase 1c** L0/L1 自动更新管线（目标：2026-09-16 新包发售前就位）
+- ✅ **Phase 1c** L0/L1 自动更新管线 + M4 验收 A1~A8 全过（赶在 2026-09-16 新包发售前就位）
 - ⬜ **Phase 2** 跨语言映射（简中↔繁中↔英文）、卡组校验器
 - ⬜ **Phase 3** 效果标签层，配合规则引擎
 - ⬜ **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
@@ -118,6 +120,7 @@ flowchart TB
 | [PRD v1.4](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计 |
 | [主源接口文档](docs/mikmoe-api.md) | tcg.mik.moe `/api/v3/card/*` 端点、字段形态、限速约定 |
 | [STATUS.md](STATUS.md) | 当前阶段、里程碑进度、决策日志 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本变更（四段式，数据日历版本 + schema SemVer 双轨） |
 | [AGENTS.md](AGENTS.md) | 工程约定与技术红线（协作者/AI 共读） |
 
 ## 🙏 致谢与对标
