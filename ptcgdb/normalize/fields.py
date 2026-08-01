@@ -103,18 +103,38 @@ def map_energy(code: str, code_map: dict[str, str]) -> str:
 def parse_cost(cost: str | None, code_map: dict[str, str]) -> list[dict[str, Any]]:
     """cost 编码串 → [{type, count}]，按连续相同码分组、保序（PRD §7.2 示例）。
 
-    "" / "0"（无费用招式，CSM1aC 实测）→ []。
+    "" / "0"（无费用招式，CSM1aC 实测）→ []。含追加标记 "+" 的串请用
+    parse_cost_full（本函数对 "+" 抛 UnknownEnumError，不静默丢弃）。
+    """
+    items, modifier = parse_cost_full(cost, code_map)
+    if modifier is not None:
+        raise UnknownEnumError(f"cost 含追加标记 {modifier!r}，请用 parse_cost_full: {cost!r}")
+    return items
+
+
+def parse_cost_full(
+    cost: str | None, code_map: dict[str, str]
+) -> tuple[list[dict[str, Any]], str | None]:
+    """cost 编码串 → ([{type, count}] 保序, cost_modifier)。
+
+    尾部 "+" = 追加费用标记（TAG TEAM GX 实测 "WWC+"，CSM2aC：追加 3 个【水】
+    能量则追加效果，卡面文本在 effect_text）。"+" 出现在非尾部 → UnknownEnumError。
     """
     if not cost or cost == "0":
-        return []
+        return [], None
+    modifier = None
+    body = cost
+    if body.endswith("+"):
+        modifier = "+"
+        body = body[:-1]
     result: list[dict[str, Any]] = []
-    for ch in cost:
+    for ch in body:
         type_name = map_energy(ch, code_map)
         if result and result[-1]["type"] == type_name:
             result[-1]["count"] += 1
         else:
             result.append({"type": type_name, "count": 1})
-    return result
+    return result, modifier
 
 
 def parse_damage(damage: str | None) -> tuple[int | None, str | None]:
@@ -132,11 +152,17 @@ def parse_damage(damage: str | None) -> tuple[int | None, str | None]:
 def parse_attack(
     raw: dict[str, Any], code_map: dict[str, str]
 ) -> dict[str, Any]:
-    """mik pokemonAttr.attack[] 条目 → PRD §7.2 attacks 子结构。"""
+    """mik pokemonAttr.attack[] 条目 → PRD §7.2 attacks 子结构。
+
+    cost_modifier：cost 尾部追加标记（TAG TEAM GX "WWC+"，CSM2aC 实测），
+    PRD §7.2 attacks 子结构的增量字段（字段只加不删）。
+    """
     base, modifier = parse_damage(raw.get("damage"))
+    cost, cost_modifier = parse_cost_full(raw.get("cost"), code_map)
     return {
         "name": raw.get("name") or "",
-        "cost": parse_cost(raw.get("cost"), code_map),
+        "cost": cost,
+        "cost_modifier": cost_modifier,
         "damage_base": base,
         "damage_modifier": modifier,
         # 招式效果文本逐字保留，不规范化

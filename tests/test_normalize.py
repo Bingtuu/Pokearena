@@ -92,6 +92,24 @@ def test_parse_cost_unknown_code_raises():
         fields.parse_cost("Z", CODE_MAP)
 
 
+def test_parse_cost_full_modifier():
+    """追加费用标记（TAG TEAM GX "WWC+"，CSM2aC 实测）→ (cost 保序, "+")。"""
+    items, modifier = fields.parse_cost_full("WWC+", CODE_MAP)
+    assert items == [{"type": "水", "count": 2}, {"type": "无", "count": 1}]
+    assert modifier == "+"
+    assert fields.parse_cost_full("RC", CODE_MAP) == (
+        [{"type": "火", "count": 1}, {"type": "无", "count": 1}],
+        None,
+    )
+    assert fields.parse_cost_full("", CODE_MAP) == ([], None)
+    # "+" 在非尾部 → 未知形态，不猜测
+    with pytest.raises(UnknownEnumError):
+        fields.parse_cost_full("C+C", CODE_MAP)
+    # parse_cost 对含 "+" 的串抛错而非静默丢弃
+    with pytest.raises(UnknownEnumError):
+        fields.parse_cost("WWC+", CODE_MAP)
+
+
 def test_parse_damage_forms():
     assert fields.parse_damage("20") == (20, None)
     assert fields.parse_damage("20+") == (20, "+")
@@ -191,6 +209,7 @@ def test_ingest_golden_charizard_gx(ingested):
         assert c.attacks[1] == {
             "name": "红莲风暴",
             "cost": [{"type": "火", "count": 3}, {"type": "无", "count": 2}],
+            "cost_modifier": None,
             "damage_base": 300,
             "damage_modifier": None,
             "effect_text": "将附着于这只宝可梦身上的3个【火】能量，放于弃牌区。",
@@ -366,4 +385,58 @@ def test_ingest_golden_basic_energy(tmp_path):
         assert c.has_rule_box is False
         # 系列行：全部卡无赛制标记 → 空串
         assert session.get(Set, "CSM1DC").regulation_mark == ""
+    engine.dispose()
+
+
+# ---- TAG TEAM GX 黄金样本：CSM2aC/003（task 005 实测 mechanic=GX + label=TAG TEAM）----
+
+FIXTURE_CSM2AC_DIR = Path(__file__).parent / "fixtures" / "raw" / "mikmoe" / "CSM2aC"
+
+
+def test_ingest_golden_tag_team_gx(tmp_path):
+    """水箭龟&波加曼GX：tag_team_gx/prize=3/cost 追加标记无损（"WWC+" → cost_modifier="+"）。"""
+    raw_dir = tmp_path / "raw"
+    set_dir = raw_dir / "mikmoe" / "CSM2aC"
+    set_dir.mkdir(parents=True)
+    shutil.copy(FIXTURE_CSM2AC_DIR / "003.json", set_dir / "003.json")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "交相辉映 沐",
+                "setCode": "CSM2aC",
+                "setId": "CSM2aC",
+                "releaseDate": "2023-01-18T00:00:00+08:00",
+                "series": "Sun & Moon",
+                "mainExpansion": True,
+                "cardsNum": 194,  # mik 口径：含 23 张编号外 SR（172~194）
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+
+    db_path = tmp_path / "test.db"
+    result = ingest_set(raw_dir, "CSM2aC", db_path)
+    assert result.card_count == 1
+    assert result.skipped == []
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        c = session.get(Card, "CSM2aC-003")
+        assert c.name_full == "水箭龟&波加曼GX"
+        assert c.species == "水箭龟&波加曼"
+        assert c.rule_box_type == "tag_team_gx"
+        assert c.has_rule_box is True
+        assert c.prize_cards == 3
+        assert c.deck_limit == 4
+        assert c.effect_tags is None  # TAG TEAM 由 rule_box 消费，不进 effect_tags
+        gx_attack = c.attacks[1]
+        assert gx_attack["name"] == "泡沫喷射器GX"
+        assert gx_attack["cost"] == [{"type": "水", "count": 2}, {"type": "无", "count": 1}]
+        assert gx_attack["cost_modifier"] == "+"
+        assert gx_attack["damage_base"] == 100
+        assert gx_attack["damage_modifier"] == "+"
     engine.dispose()

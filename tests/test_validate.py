@@ -232,6 +232,25 @@ def test_energy_unknown_symbol_fails(db_env):
     assert any(f.get("value") == "金" for f in res.failures)
 
 
+def test_energy_cost_modifier_mismatch_fails(db_env):
+    """raw cost "RC" 无追加标记；DB 多出 cost_modifier="+" 应判不一致。"""
+    raw_dir, db_path = db_env
+    mutate_card(
+        db_path, f"{SET_ID}-003",
+        attacks=[{
+            "name": "招式003",
+            "cost": [{"type": "火", "count": 1}, {"type": "无", "count": 1}],
+            "cost_modifier": "+",
+            "damage_base": 20, "damage_modifier": None, "effect_text": "",
+        }],
+    )
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "能量成本合法且保序"
+    )
+    assert not res.passed
+    assert any(f["field"] == "attacks[0].cost_modifier" for f in res.failures)
+
+
 # ---- 规则 4：系列对账 ----
 
 

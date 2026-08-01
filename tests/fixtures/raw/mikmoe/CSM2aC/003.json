@@ -1,0 +1,135 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T06:05:52.074014+00:00",
+    "source": "mik_moe",
+    "content_hash": "871bbad4743a7cda617d1b6df99f834c67659670db451cfb26cb8f3eb6588764"
+  },
+  "code": 200,
+  "data": {
+    "name": "水箭龟&波加曼GX",
+    "cardType": "Pokemon",
+    "mechanic": "GX",
+    "label": [
+      "TAG TEAM"
+    ],
+    "description": "【水】【水】【无】 飞溅制造者 150\n若希望，可将自己手牌中最多3张【水】能量，以任意方式附着于自己的宝可梦身上。然后，将被附着能量的宝可梦的HP，各回复被附着能量张数×50伤害的数值。\n\n【水】【水】【无】【+】 泡沫喷射器GX 100+\n使对手的战斗宝可梦陷入【麻痹】状态。如果追加附有3个【水】能量的话，则追加造成150点伤害。[对战中，己方的GX招式只能使用1次。]\n\n",
+    "yorenCode": "Y317",
+    "pokemonAttr": {
+      "energyType": "W",
+      "stage": "Basic",
+      "hp": 270,
+      "ability": [],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "G",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 3,
+      "attack": [
+        {
+          "name": "飞溅制造者",
+          "text": "若希望，可将自己手牌中最多3张【水】能量，以任意方式附着于自己的宝可梦身上。然后，将被附着能量的宝可梦的HP，各回复被附着能量张数×50伤害的数值。",
+          "cost": "WWC",
+          "damage": "150",
+          "isVStarPower": false
+        },
+        {
+          "name": "泡沫喷射器GX",
+          "text": "使对手的战斗宝可梦陷入【麻痹】状态。如果追加附有3个【水】能量的话，则追加造成150点伤害。[对战中，己方的GX招式只能使用1次。]",
+          "cost": "WWC+",
+          "damage": "100+",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": ""
+    },
+    "setCode": "CSM2aC",
+    "cardIndex": "003",
+    "setCardsNum": "",
+    "artist": "Mitsuhiro Arita",
+    "rarity": "RR",
+    "releaseDate": "2023-01-18T00:00:00+08:00",
+    "regulationMark": "C",
+    "effectId": "06716665187c248d879229a286709725",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": true
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSMPcC",
+        "cardIndex": "001",
+        "cardName": "水箭龟&波加曼GX",
+        "rarity": "无标记",
+        "effectId": "06716665187c248d879229a286709725",
+        "cardType": "Pokemon",
+        "yorenCode": "Y317",
+        "is": [
+          "GX",
+          "TAG TEAM",
+          "Basic"
+        ],
+        "setCodeEn": "CEC",
+        "cardIndexEn": "38",
+        "nameEn": "Blastoise & Piplup-GX"
+      },
+      {
+        "setCode": "CSM2aC",
+        "cardIndex": "003",
+        "cardName": "水箭龟&波加曼GX",
+        "rarity": "RR",
+        "effectId": "06716665187c248d879229a286709725",
+        "cardType": "Pokemon",
+        "yorenCode": "Y317",
+        "is": [
+          "GX",
+          "TAG TEAM",
+          "Basic"
+        ],
+        "setCodeEn": "CEC",
+        "cardIndexEn": "38",
+        "nameEn": "Blastoise & Piplup-GX"
+      },
+      {
+        "setCode": "CSM2aC",
+        "cardIndex": "156",
+        "cardName": "水箭龟&波加曼GX",
+        "rarity": "SR",
+        "effectId": "06716665187c248d879229a286709725",
+        "cardType": "Pokemon",
+        "yorenCode": "Y317",
+        "is": [
+          "GX",
+          "TAG TEAM",
+          "Basic"
+        ],
+        "setCodeEn": "CEC",
+        "cardIndexEn": "38",
+        "nameEn": "Blastoise & Piplup-GX"
+      },
+      {
+        "setCode": "CSM2aC",
+        "cardIndex": "157",
+        "cardName": "水箭龟&波加曼GX",
+        "rarity": "SR",
+        "effectId": "06716665187c248d879229a286709725",
+        "cardType": "Pokemon",
+        "yorenCode": "Y317",
+        "is": [
+          "GX",
+          "TAG TEAM",
+          "Basic"
+        ],
+        "setCodeEn": "CEC",
+        "cardIndexEn": "38",
+        "nameEn": "Blastoise & Piplup-GX"
+      }
+    ],
+    "setCodeEn": "CEC",
+    "cardIndexEn": "38",
+    "nameEn": "Blastoise & Piplup-GX"
+  },
+  "msg": "OK."
+}

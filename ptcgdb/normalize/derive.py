@@ -24,6 +24,10 @@ LABEL_TAGS = {
     "Ultra Beast": "究极异兽",
 }
 
+# 被 rule_box 消费、不进 effect_tags 的 label（task 005 实测：TAG TEAM GX
+# 卡 mechanic="GX" + label=["TAG TEAM"]，CSM2aC/CSM2DC；PRD §7.2 prize=3）
+RULE_BOX_LABELS = {"TAG TEAM"}
+
 # name_full 规则后缀（拆 species 用；ex/GX 后缀不同的卡规则上不同名，见 §6.2）
 RULE_SUFFIXES = ("GX", "◇", "ex", "V-UNION", "VMAX", "VSTAR", "V")
 
@@ -89,14 +93,20 @@ def derive_rule_box(
     card_id: str,
 ) -> tuple[str | None, list[str] | None]:
     """mechanic/label → (rule_box_type, effect_tags)。未知取值记 question 不猜测。"""
+    labels = label or []
     rule_box_type = None
     if mechanic:
         try:
             rule_box_type = MECHANIC_RULE_BOX[mechanic]
         except KeyError:
             questions.add(card_id, "mechanic", mechanic, "未知 mechanic，rule_box_type 置空")
+    # TAG TEAM GX：mechanic="GX" + label 含 "TAG TEAM" → tag_team_gx（prize=3）
+    if mechanic == "GX" and "TAG TEAM" in labels:
+        rule_box_type = "tag_team_gx"
     tags: list[str] = []
-    for item in label or []:
+    for item in labels:
+        if item in RULE_BOX_LABELS:
+            continue  # 已被 rule_box 消费，不进 effect_tags
         try:
             tags.append(LABEL_TAGS[item])
         except KeyError:

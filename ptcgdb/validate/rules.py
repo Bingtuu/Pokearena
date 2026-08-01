@@ -176,7 +176,9 @@ def check_energy(
             continue
         for i, (db_atk, raw_atk) in enumerate(zip(db_attacks, raw_attacks, strict=True)):
             try:
-                expected = fields.parse_cost(raw_atk.get("cost"), vocabs.code_map)
+                expected, expected_mod = fields.parse_cost_full(
+                    raw_atk.get("cost"), vocabs.code_map
+                )
             except fields.UnknownEnumError as exc:
                 res.fail(
                     card_id=c.card_id, field=f"attacks[{i}].cost",
@@ -187,6 +189,12 @@ def check_energy(
                 res.fail(
                     card_id=c.card_id, field=f"attacks[{i}].cost",
                     db=db_atk.get("cost"), raw=expected, note="cost 顺序/分组与 raw 不一致",
+                )
+            if db_atk.get("cost_modifier") != expected_mod:
+                res.fail(
+                    card_id=c.card_id, field=f"attacks[{i}].cost_modifier",
+                    db=db_atk.get("cost_modifier"), raw=expected_mod,
+                    note="cost 追加标记与 raw 不一致",
                 )
         if c.retreat_cost != pa.get("retreatCost"):
             res.fail(
