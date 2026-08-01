@@ -1,0 +1,12 @@
+# task 023：setCodeEn(mik 英文桥) → TCGdex set id 手动覆盖。
+# 名字连接（ptcd ptcgoCode→name × TCGdex en-sets name）接不上的码在此兜底。
+# 依据（样例卡名与目标套内容相符，task 023 首跑记录）：
+#   SMP    = SM 代促销   → TCGdex smp   (Sun & Moon Promos)
+#   SP     = SWSH 代促销 → TCGdex swshp (SWSH Black Star Promos)
+#   SVP    = SV 代促销   → TCGdex svp   (Scarlet & Violet Black Star Promos)
+#   Energy/SVE = 基本能量 → TCGdex sve  (Scarlet & Violet Energy)
+SMP: smp
+SP: swshp
+SVP: svp
+Energy: sve
+SVE: sve

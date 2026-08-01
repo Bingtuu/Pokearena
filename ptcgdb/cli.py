@@ -235,6 +235,32 @@ def map_en(
     typer.echo(f"报告: {path}")
 
 
+@app.command("map-tcgdex")
+def map_tcgdex(
+    fetch: bool = typer.Option(False, "--fetch", help="重新下载 TCGdex/ptcd 数据入 raw 层"),
+    db_path: Path = DEFAULT_DB_PATH,
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    out_dir: Path = Path("reports"),
+) -> None:
+    """TCGdex 接入：EN 桥 → TCGdex ID 解析 + zh-cn 系列壳对账（task 023）。"""
+    from ptcgdb.mapping.report import write_tcgdex_report
+    from ptcgdb.mapping.tcgdex import fetch_raw, reconcile_sets, resolve_en
+
+    if fetch:
+        written = fetch_raw(raw_dir, force=True)
+        typer.echo(f"raw 更新: {', '.join(written)}")
+    result = resolve_en(db_path, raw_dir)
+    reconcile = reconcile_sets(db_path, raw_dir)
+    path = write_tcgdex_report(result, reconcile, out_dir)
+    typer.echo(
+        f"mik_en={result.total} resolved={len(result.resolved)} "
+        f"unmapped_set={sum(len(v) for v in result.unmapped_set.values())} "
+        f"missing_card={len(result.missing_card)} "
+        f"name_mismatch={len(result.name_mismatch)}"
+    )
+    typer.echo(f"报告: {path}")
+
+
 @app.command()
 def rollback(db_path: Path = DEFAULT_DB_PATH) -> None:
     """回滚：用最新备份覆盖当前 DB（FR-6.3）。"""
