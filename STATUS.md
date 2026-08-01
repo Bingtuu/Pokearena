@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M1（Phase 1a）进行中** —— task 002 完成（项目骨架 + schema + 迁移可用），下一步 **task 003（mik.moe 采集器 + raw 层）**。主源接口文档见 `docs/mikmoe-api.md`。
+**阶段：M1（Phase 1a）进行中（goal 驱动）** —— task 003 完成（采集器 + raw 层，CSM1aC 211 张实测通过）。正在进行 **task 004（normalize + 入库管线）**。主源接口文档见 `docs/mikmoe-api.md`。
 
 ## 入口
 
@@ -45,4 +45,6 @@
 
 - **2026-08-01**：PRD 迭代至 v1.3（评审修订 + 外部调研：简中赛制核查、开源对标、数据基建接口设计）；建立 AGENTS.md / STATUS.md；确立 tasks/ 任务工作循环（`tasks/README.md`）。
 - **2026-08-01**：**task 001 完成（M0 ✅）**。mitmproxy 抓包官方小程序 → 判定路线 A 不可行（JWT+加密+签名四层防护）→ 验证 tcg.mik.moe `/api/v3/card/*` JSON API 完全可行 → **D1 = 路线 B（mik.moe 主源）**。产物：`docs/mikmoe-api.md`、`tools/capture/`（可复用抓包环境）、API 样例。M1 预算调整为 4~6 天。
-- **2026-08-01**：**task 002 完成（M1-1 ✅）**。项目骨架落地：pyproject + `.venv`、`ptcgdb/` 包（11 表 ORM 与 PRD §7 逐字段一致、PRAGMA user_version 幂等迁移、frozen Pydantic 核心模型、4 个初始词表、`ptcgdb init-db`）；pytest 2 绿、ruff 通过。新决策：Python 3.11 暂行。下一步 task 003：mik.moe 采集器 + raw 层。
+- **2026-08-01**：**task 002 完成（M1-1 ✅）**。项目骨架落地：pyproject + `.venv`、`ptcgdb/` 包（11 表 ORM 与 PRD §7 逐字段一致、PRAGMA user_version 幂等迁移、frozen Pydantic 核心模型、4 个初始词表、`ptcgdb init-db`）；pytest 2 绿、ruff 通过。下一步 task 003：mik.moe 采集器 + raw 层。
+- **2026-08-01**：Python 环境收口 3.14.6（`requires-python >=3.12` 收回 PRD 口径）。**启动 goal：完成 M1**（采集→入库→校验报告，限速红线 2s/请求+熔断，按任务循环自动 commit+push）。
+- **2026-08-01**：**task 003 完成（M1-2 ✅）**。采集层全链路：限速 HTTP 层（2s/请求、退避、三路熔断）、mik.moe 三端点、append-only raw 层（sha256 manifest）、card 级断点续传、三清单+scrape_runs 落库、CLI `scrape sets/cards`。CSM1aC 211 张实测 7 分钟跑通，resume 重跑零请求；16 测试全绿（零网络）。发现并修复 product-list data 包装层偏差（文档已同步）。下一步 task 004：normalize + 入库管线。

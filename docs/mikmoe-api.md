@@ -7,7 +7,7 @@
 
 | 端点 | 请求体 | 用途 |
 |---|---|---|
-| `/api/v3/card/product-list` | `{}` | 系列清单：setId / name / releaseDate / series / mainExpansion / **cardsNum**（对账用） |
+| `/api/v3/card/product-list` | `{}` | 系列清单：**data 形态为 `{list: [...]}`**（2026-08-01 task 003 实测修正），条目含 setId / name / releaseDate / series / mainExpansion / **cardsNum**（对账用） |
 | `/api/v3/card/product-detail` | `{setId}` | 某系列全部卡牌列表（cardsNum 与返回数可对账），卡条目含 setCode / cardIndex / cardName / rarity / cardType / effectId / yorenCode / is[] / 英文映射 |
 | `/api/v3/card/card-detail` | `{setCode, cardIndex}`（cardIndex 为字符串如 `"001"`，**不是整数**） | 单卡全字段（见下） |
 | `/api/v3/card/card-basic-search` | `{searchText, exact, unique, page, pageSize}` | 卡名搜索（中文模糊搜索命中不佳，采集不依赖它） |
