@@ -13,6 +13,8 @@ from pathlib import Path
 MIGRATIONS_DIR = Path(__file__).parent
 _FILENAME_RE = re.compile(r"^(\d+)_.*\.sql$")
 
+SCHEMA_VERSION = "1.0.0"  # 结构版本 SemVer（FR-6.1）；破坏性变更升 major
+
 
 def available_migrations() -> list[tuple[int, Path]]:
     """返回 [(版本号, SQL 文件路径)]，按版本号升序。"""
@@ -37,6 +39,12 @@ def apply_migrations(db_path: str | Path) -> int:
             conn.executescript(path.read_text(encoding="utf-8"))
             conn.execute(f"PRAGMA user_version = {version}")
             conn.commit()
+        # FR-6.1：meta 表写入结构版本（幂等，不覆盖已有值）
+        conn.execute(
+            "INSERT OR IGNORE INTO meta (key, value) VALUES ('schema_version', ?)",
+            (SCHEMA_VERSION,),
+        )
+        conn.commit()
         return conn.execute("PRAGMA user_version").fetchone()[0]
     finally:
         conn.close()

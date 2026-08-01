@@ -137,6 +137,18 @@ class LegalitySnapshot(BaseModel):
     created_at: datetime
 
 
+class ErrataRecord(BaseModel):
+    """errata 官方勘误导出形状（legality.json data.errata）。"""
+
+    model_config = ConfigDict(frozen=True)
+
+    errata_id: str
+    card_id: str
+    effective_from: date
+    corrected_text: str
+    notice_url: str | None
+
+
 class LegalityPool(BaseModel):
     """legal_at 返回的合法卡池（FR-3.1 / FR-8）。"""
 

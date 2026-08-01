@@ -226,8 +226,9 @@ dist/
 ├── cards.jsonl        # 一行一卡，cards 表全字段（含 text_raw）
 ├── sets.jsonl         # 系列表全字段（下游按系列过滤必需）
 ├── relations.jsonl    # card_relations + name_groups + cards_name_group（进化链/同名/mentions/union）
-├── legality.json      # {meta, data: {snapshots: [...]}} 全部快照：标记集/能量种类/白名单/
-│                      # 禁卡表/mark_overrides/生效期（"赛制=卡池集合+规则覆写"结构，借鉴 ryuu-play[^20^]）
+├── legality.json      # {meta, data: {snapshots: [...], errata: [...]}} 全部快照：标记集/
+│                      # 能量种类/白名单/禁卡表/mark_overrides/生效期（"赛制=卡池集合+规则覆写"
+│                      # 结构，借鉴 ryuu-play[^20^]）+ 勘误表（供 JSONL 后端 effective_text）
 ├── ptcg-cn.db         # 只读 SQLite 快照（WAL checkpoint 后复制；可以 immutable 模式打开）
 ├── checksums.sha256   # 上述全部文件的 SHA-256（完整性校验）
 └── schema.md          # 字段字典：由 Pydantic 模型半自动生成（model_json_schema）+ 人工注释，

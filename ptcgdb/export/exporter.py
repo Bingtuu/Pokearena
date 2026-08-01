@@ -21,12 +21,14 @@ from ptcgdb.orm import (
     Card,
     CardNameGroup,
     CardRelation,
+    Errata,
     LegalitySnapshot,
     Meta,
     NameGroup,
     Set,
 )
 from ptcgdb.schemas.models import Card as CardSchema
+from ptcgdb.schemas.models import ErrataRecord as ErrataSchema
 from ptcgdb.schemas.models import LegalitySnapshot as SnapshotSchema
 from ptcgdb.schemas.models import Set as SetSchema
 
@@ -96,6 +98,7 @@ def export_all(db_path: Path, out_dir: Path) -> dict:
         snapshots = [
             _dump(SnapshotSchema, s) for s in session.scalars(select(LegalitySnapshot)).all()
         ]
+        errata = [_dump(ErrataSchema, e) for e in session.scalars(select(Errata)).all()]
         relations: list[dict] = []
         for r in session.scalars(select(CardRelation)).all():
             relations.append({"kind": "card_relation", **_row_dict(r)})
@@ -113,7 +116,7 @@ def export_all(db_path: Path, out_dir: Path) -> dict:
     schema_version = meta.get("schema_version", "1.0.0")
     legality = {
         "meta": {"schema_version": schema_version, "built_at": built_at},
-        "data": {"snapshots": snapshots},
+        "data": {"snapshots": snapshots, "errata": errata},
     }
     (out_dir / "legality.json").write_text(
         json.dumps(legality, ensure_ascii=False, indent=2), encoding="utf-8"

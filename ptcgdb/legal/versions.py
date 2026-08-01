@@ -19,9 +19,8 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from ptcgdb.legal.seed import SnapshotSeed
+from ptcgdb.migrations import SCHEMA_VERSION
 from ptcgdb.orm import Card, CardNameGroup, LegalitySnapshot, Meta, Set
-
-SCHEMA_VERSION = "1.0.0"
 
 
 class FrozenSnapshotError(RuntimeError):

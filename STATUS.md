@@ -5,24 +5,25 @@
 
 ## 当前状态
 
-**阶段：M2（Phase 1b）进行中（goal 驱动）** —— task 007~010 完成：快照种子、合法性引擎、版本化与回滚、导出七件套（dist/ 8 文件、checksum 全过、真实导出 12,420 卡验证）。下一步 task 011 SDK 基础（M2 收官任务）。
+**阶段：M2（Phase 1b）✅ 完成（goal 驱动）** —— task 007~011 全部完成：双赛制快照种子、合法性引擎、版本化与回滚、导出七件套、SDK 双后端（open_db/open_jsonl 一致性真实库验证通过）。121 测试全绿、ruff 全净。
 
 ## 入口
 
 | 内容 | 位置 |
 |---|---|
-| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.3） |
+| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.4） |
 | 工程约定 | `AGENTS.md` |
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
 | **主源接口文档** | `docs/mikmoe-api.md`（task 001 产物，M1 采集层必读） |
-| 代码 | `ptcgdb/`（骨架已建：orm/schemas/migrations/cli，其余子包空壳） |
-| 数据 | `data/ptcg-cn.db`（schema user_version=3；**12,420 张去重卡 active**）、`data/raw/mikmoe/`（全量 raw + manifest）、`reports/`（校验报告，git 跟踪） |
+| 代码 | `ptcgdb/`（orm/schemas/migrations/cli + scrapers/normalize/validate + **legal（引擎/种子/版本化）/export/sdk**） |
+| 数据 | `data/ptcg-cn.db`（schema user_version=3；**12,420 张去重卡 active**；2 条环境快照）、`data/raw/mikmoe/`（全量 raw + manifest）、`dist/`（导出七件套，gitignore）、`reports/`（校验报告，git 跟踪） |
+| 合法性种子 | `config/legality/`（standard/open 双赛制快照种子，官方赛制页 2026-07-16 版） |
 
 ## 里程碑（PRD 第 11 章）
 
 - [x] **M0** D1 决策 + 主源接口可行性验证（1 天）—— **2026-08-01 完成（task 001），D1 = 路线 B**
 - [x] **M1 (Phase 1a)** schema + raw 层 + 首批全量入库 + 校验报告（3~4 天；**走镜像路线，按 PRD 预算 +1~2 天 → 4~6 天**）—— **2026-08-01 完成（task 002~006）**：129 系列 / 12,420 张去重卡 active，六规则全过
-- [ ] **M2 (Phase 1b)** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 基础（3~4 天）
+- [x] **M2 (Phase 1b)** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 基础（3~4 天）—— **2026-08-01 完成（task 007~011）**：双赛制快照入库、`legal_at`/`effective_text`（A4 用例 24 组）、apply/冻结/回滚（A5/A6）、dist 七件套（A7）、SDK 双后端一致（A8）
 - [ ] **M3 (Phase 1c)** L0/L1 监控管线 + 提案生成 + 通知（2 天）
 - [ ] **M4** 验收 A1~A8 + 文档收尾（1 天）
 
@@ -54,4 +55,5 @@
 - **2026-08-01**：**启动 goal：完成 M2**（环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 基础，task 007~011，TDD，纯本地不请求主源）。**task 007 完成（M2-1 ✅）**：官方赛制页逐名核定 → 双赛制快照种子（`config/legality/*.yml`）+ `ptcgdb/legal/seed.py` upsert 入库 + CLI `legal-seed`；standard（G/H/I + 8 能量 + 44 白名单）/ open（A~I + 9 能量含妖 + 50 白名单 + 3 禁卡 + 视作覆盖 CSM2DC-339→B）入库；白名单 94 名称库内全命中。修正 PRD 数据错误：开放白名单 34→32 种（PRD 升 v1.4）；发现 J 标记 18 张 = 30thP 特典卡本体。67 测试全绿、ruff 全净（顺手修了 tools/capture 两处 E501 遗留）。详见 `tasks/done/007`。
 - **2026-08-01**：**task 008 完成（M2-2 ✅）**。合法性引擎落地：`ptcgdb/legal/engine.py`（快照选择 + FR-3.2 五步判定 + `effective_text` 勘误>最新印刷>原文三级解析），schemas 新增 `LegalityPool`/`EffectiveText`，CLI `ptcgdb legal --date --format`。A4 构造用例 24 组全过（博士的研究跨插画、妖能量双赛制、视作B 覆盖正反、禁卡优先两级、禁卡特性限定等）。真实库验证：standard 5,320 张 / open 12,413 张；open 排除恰好 7 张=禁卡表全命中（玛夏多只禁破罐破摔那张）；30thP 18 张走白名单入 standard。91 测试全绿、ruff 通过。详见 `tasks/done/008`。
 - **2026-08-01**：**task 009 完成（M2-3 ✅）**。版本化与回滚落地：`ptcgdb/legal/versions.py`（apply_snapshot 备份→关旧开新→自动刷新 latest_text_overrides→双轨版本号→CHANGELOG 四段式；历史快照冻结守卫；rollback 一键还原）+ CLI `legal-apply`/`rollback`。A5/A6 测试 8 个全过；真实库副本演练：模拟赛制变更 apply→历史回放不漂移→冻结守卫拦截→rollback 复原。99 测试全绿、ruff 通过。详见 `tasks/done/009`。
-- **2026-08-01**：**task 010 完成（M2-4 ✅）**。导出七件套落地：`ptcgdb/export/exporter.py`（Pydantic 模型序列化、WAL checkpoint 后复制 DB、checksums 不自签、schema.md 半自动生成）+ CLI `ptcgdb export --out`。A7 测试 8 个全过；真实导出 `dist/`：12,420 卡/129 系列/2 快照/21,818 关系，checksums 全部通过。107 测试全绿、ruff 通过。详见 `tasks/done/010`。下一步 task 011：SDK 基础（M2 收官）。
+- **2026-08-01**：**task 010 完成（M2-4 ✅）**。导出七件套落地：`ptcgdb/export/exporter.py`（Pydantic 模型序列化、WAL checkpoint 后复制 DB、checksums 不自签、schema.md 半自动生成）+ CLI `ptcgdb export --out`。A7 测试 8 个全过；真实导出 `dist/`：12,420 卡/129 系列/2 快照/21,818 关系，checksums 全部通过。107 测试全绿、ruff 通过。详见 `tasks/done/010`。
+- **2026-08-01**：**task 011 完成（M2-5 ✅）→ M2（Phase 1b）完成**。SDK 双后端落地：`ptcgdb.sdk`（CardDatabase ABC + DbBackend/JsonlBackend + `open_db`/`open_jsonl`；schema_version/get_card/search_cards/sets/legal_at/effective_text/snapshots，frozen Pydantic 返回）；引擎抽纯函数核供双后端复用；legality.json 增 errata 键（additive，PRD §FR-7 同步）；`apply_migrations` 幂等写 meta.schema_version。A8 契约测试 + 真实库双后端全等（standard 5,320 / open 12,413 / search 喵喵 26 张）。121 测试全绿、ruff 通过。详见 `tasks/done/011`。**M2 goal 完成，待验收（M4）与 M3 监控管线。**

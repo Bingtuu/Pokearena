@@ -60,7 +60,6 @@ def db_path(tmp_path):
             mark_overrides=[], latest_text_overrides={},
             source_url="test", created_at=datetime.now(UTC),
         ))
-        s.add(Meta(key="schema_version", value="1.0.0"))
         s.add(Meta(key="data_version", value="v20260801.1"))
         s.commit()
     engine.dispose()
@@ -127,12 +126,14 @@ def test_legality_json_structure(dist):
     data = json.loads((dist / "legality.json").read_text(encoding="utf-8"))
     assert set(data) == {"meta", "data"}
     assert data["meta"]["schema_version"] == "1.0.0"
+    assert set(data["data"]) == {"snapshots", "errata"}
     snaps = data["data"]["snapshots"]
     assert len(snaps) == 1
     s = snaps[0]
     assert s["snapshot_id"] == "standard-1"
     assert s["allowed_marks"] == ["G"]
     assert s["whitelist_cards"] == [{"name_full": "高级球"}]
+    assert isinstance(data["data"]["errata"], list)
 
 
 def test_db_copy_and_schema_md(dist, db_path):
