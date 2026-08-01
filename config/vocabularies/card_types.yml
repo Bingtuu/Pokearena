@@ -1,0 +1,11 @@
+# 卡牌大类词表：mik cardType → PRD card_type / trainer_subtype（开放词表，可追加）
+# task 004 字段形态调查实测取值：Pokemon / Supporter / Item / Tool / Stadium /
+# Special Energy（CSM1aC 无 "Energy"=基本能量样本，映射按 mik 命名约定预置）。
+card_types:
+  - { mik: Pokemon, card_type: pokemon, trainer_subtype: null }
+  - { mik: Supporter, card_type: trainer, trainer_subtype: 支援者 }
+  - { mik: Item, card_type: trainer, trainer_subtype: 物品 }
+  - { mik: Tool, card_type: trainer, trainer_subtype: 宝可梦道具 }
+  - { mik: Stadium, card_type: trainer, trainer_subtype: 竞技场 }
+  - { mik: Energy, card_type: energy, trainer_subtype: null }           # 基本能量
+  - { mik: Special Energy, card_type: energy, trainer_subtype: null }   # 特殊能量

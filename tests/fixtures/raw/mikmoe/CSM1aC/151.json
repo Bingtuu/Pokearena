@@ -1,0 +1,75 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T04:52:15.895280+00:00",
+    "source": "mik_moe",
+    "content_hash": "be425fd7600981e5f59aa0019cdaadcd345b154084ceb3ba1c77d32a1eb13ce3"
+  },
+  "code": 200,
+  "data": {
+    "name": "彩虹能量",
+    "cardType": "Special Energy",
+    "mechanic": null,
+    "label": null,
+    "description": "当将这张卡牌从手牌使出附着于宝可梦身上时，给该宝可梦身上放置1个伤害指示物。只要这张卡牌，被附着于宝可梦身上，就可被视作1个所有属性的能量。\n\n如果没有被附着于宝可梦身上，则被视作1个【无】能量。",
+    "yorenCode": "Y58",
+    "pokemonAttr": null,
+    "setCode": "CSM1aC",
+    "cardIndex": "151",
+    "setCardsNum": "",
+    "artist": "",
+    "rarity": "U",
+    "releaseDate": "2022-10-28T00:00:00+08:00",
+    "regulationMark": "A",
+    "effectId": "b6c487a13a115137614b62fdf5fe456e",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": true
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSMAC",
+        "cardIndex": "019",
+        "cardName": "彩虹能量",
+        "rarity": "无标记",
+        "effectId": "b6c487a13a115137614b62fdf5fe456e",
+        "cardType": "Special Energy",
+        "yorenCode": "Y58",
+        "is": [],
+        "setCodeEn": "SUM",
+        "cardIndexEn": "137",
+        "nameEn": "Rainbow Energy"
+      },
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "151",
+        "cardName": "彩虹能量",
+        "rarity": "U",
+        "effectId": "b6c487a13a115137614b62fdf5fe456e",
+        "cardType": "Special Energy",
+        "yorenCode": "Y58",
+        "is": [],
+        "setCodeEn": "SUM",
+        "cardIndexEn": "137",
+        "nameEn": "Rainbow Energy"
+      },
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "211",
+        "cardName": "彩虹能量",
+        "rarity": "UR",
+        "effectId": "b6c487a13a115137614b62fdf5fe456e",
+        "cardType": "Special Energy",
+        "yorenCode": "Y58",
+        "is": [],
+        "setCodeEn": "SUM",
+        "cardIndexEn": "137",
+        "nameEn": "Rainbow Energy"
+      }
+    ],
+    "setCodeEn": "SUM",
+    "cardIndexEn": "137",
+    "nameEn": "Rainbow Energy"
+  },
+  "msg": "OK."
+}

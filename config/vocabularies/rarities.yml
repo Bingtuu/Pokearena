@@ -1,4 +1,5 @@
 # 罕贵度词表（开放词表，兼容 FUR 等新罕贵，可追加）
+# S / SSR 由 task 004 字段形态调查补入（CSM1aC 实测：S=闪光、SSR=闪光超级稀有）。
 rarities:
   - C
   - U
@@ -13,6 +14,8 @@ rarities:
   - CSR
   - AR
   - SAR
+  - S
+  - SSR
   - K
   - PR
   - FUR

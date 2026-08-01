@@ -1,0 +1,88 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T04:47:17.788070+00:00",
+    "source": "mik_moe",
+    "content_hash": "05071f16acc093c1878bf341ef9845458d28a410c669c48e03163d3be0b60f13"
+  },
+  "code": 200,
+  "data": {
+    "name": "小火龙",
+    "cardType": "Pokemon",
+    "mechanic": null,
+    "label": null,
+    "description": "【火】【无】 火焰牙 20\n使对手的战斗宝可梦陷入【灼伤】状态。\n\n",
+    "yorenCode": "P004",
+    "pokemonAttr": {
+      "energyType": "R",
+      "stage": "Basic",
+      "hp": 70,
+      "ability": [],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "W",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 2,
+      "attack": [
+        {
+          "name": "火焰牙",
+          "text": "使对手的战斗宝可梦陷入【灼伤】状态。",
+          "cost": "RC",
+          "damage": "20",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": ""
+    },
+    "setCode": "CSM1aC",
+    "cardIndex": "002",
+    "setCardsNum": "",
+    "artist": "tetsuya koizumi",
+    "rarity": "C",
+    "releaseDate": "2022-10-28T00:00:00+08:00",
+    "regulationMark": "B",
+    "effectId": "1d4c895e280f6bdf3310fc7d5005ef3b",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": true
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "002",
+        "cardName": "小火龙",
+        "rarity": "C",
+        "effectId": "1d4c895e280f6bdf3310fc7d5005ef3b",
+        "cardType": "Pokemon",
+        "yorenCode": "P004",
+        "is": [
+          "Basic"
+        ],
+        "setCodeEn": "DRM",
+        "cardIndexEn": "1",
+        "nameEn": "Charmander"
+      },
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "153",
+        "cardName": "小火龙",
+        "rarity": "S",
+        "effectId": "1d4c895e280f6bdf3310fc7d5005ef3b",
+        "cardType": "Pokemon",
+        "yorenCode": "P004",
+        "is": [
+          "Basic"
+        ],
+        "setCodeEn": "DRM",
+        "cardIndexEn": "1",
+        "nameEn": "Charmander"
+      }
+    ],
+    "setCodeEn": "DRM",
+    "cardIndexEn": "1",
+    "nameEn": "Charmander"
+  },
+  "msg": "OK."
+}

@@ -1,0 +1,49 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T04:51:51.884554+00:00",
+    "source": "mik_moe",
+    "content_hash": "4bdfde63de64b7bcefabcd66e5414d448438159c0df9596f1c6d8817bb00fad0"
+  },
+  "code": 200,
+  "data": {
+    "name": "扎奥博",
+    "cardType": "Supporter",
+    "mechanic": null,
+    "label": null,
+    "description": "选择放于对手场上宝可梦身上的「宝可梦道具」「特殊能量」以及场上的「竞技场」中的1张卡牌，放于放逐区。",
+    "yorenCode": "Y46",
+    "pokemonAttr": null,
+    "setCode": "CSM1aC",
+    "cardIndex": "139",
+    "setCardsNum": "",
+    "artist": "take",
+    "rarity": "U",
+    "releaseDate": "2022-10-28T00:00:00+08:00",
+    "regulationMark": "B",
+    "effectId": "60fd4065bccc91b973f95f72cb3f3321",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": true
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "139",
+        "cardName": "扎奥博",
+        "rarity": "U",
+        "effectId": "60fd4065bccc91b973f95f72cb3f3321",
+        "cardType": "Supporter",
+        "yorenCode": "Y46",
+        "is": [],
+        "setCodeEn": "LOT",
+        "cardIndexEn": "173",
+        "nameEn": "Faba"
+      }
+    ],
+    "setCodeEn": "LOT",
+    "cardIndexEn": "173",
+    "nameEn": "Faba"
+  },
+  "msg": "OK."
+}

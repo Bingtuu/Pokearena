@@ -1,0 +1,6 @@
+# 世代（era）词表：mik product series → PRD era（开放词表，可追加，含"未划分"）
+eras:
+  - { mik_series: "Sun & Moon", era: 太阳&月亮 }
+  - { mik_series: "Sword & Shield", era: 剑&盾 }
+  - { mik_series: "Scarlet & Violet", era: 朱&紫 }
+  - { mik_series: "Promo", era: 特典 }

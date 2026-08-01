@@ -1,8 +1,10 @@
 # 规则框类型词表（开放词表，可追加）
+# prism_star 由 task 004 补入（日月时代◇卡，mik mechanic="Prism Star"）。
 rule_box_types:
   - ex
   - gx
   - tag_team_gx
+  - prism_star
   - radiant
   - v
   - vmax

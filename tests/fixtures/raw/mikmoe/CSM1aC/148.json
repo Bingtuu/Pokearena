@@ -1,0 +1,51 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T04:52:09.892430+00:00",
+    "source": "mik_moe",
+    "content_hash": "b6034ca039b6b41094496eb31e956eda979b9688d686fac69d5d2e2639f34f65"
+  },
+  "code": 200,
+  "data": {
+    "name": "火力工厂◇",
+    "cardType": "Stadium",
+    "mechanic": "Prism Star",
+    "label": null,
+    "description": "双方玩家，每次在自己的回合有1次机会，可将自己手牌中的1张【火】能量，放于弃牌区。如果成功将能量放于弃牌区的话，则从自己的牌库上方抽取3张卡牌。\n\n只要这张竞技场在场上，双方玩家从手牌使出物品或支援者时，不受其效果影响。",
+    "yorenCode": "Y55",
+    "pokemonAttr": null,
+    "setCode": "CSM1aC",
+    "cardIndex": "148",
+    "setCardsNum": "",
+    "artist": "5ban Graphics",
+    "rarity": "PR",
+    "releaseDate": "2022-10-28T00:00:00+08:00",
+    "regulationMark": "B",
+    "effectId": "3c8509e39c22e6f33344b48d360d84f2",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": true
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "148",
+        "cardName": "火力工厂◇",
+        "rarity": "PR",
+        "effectId": "3c8509e39c22e6f33344b48d360d84f2",
+        "cardType": "Stadium",
+        "yorenCode": "Y55",
+        "is": [
+          "Prism Star"
+        ],
+        "setCodeEn": "LOT",
+        "cardIndexEn": "178",
+        "nameEn": "Heat Factory Prism Star"
+      }
+    ],
+    "setCodeEn": "LOT",
+    "cardIndexEn": "178",
+    "nameEn": "Heat Factory Prism Star"
+  },
+  "msg": "OK."
+}

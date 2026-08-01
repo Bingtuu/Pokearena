@@ -5,6 +5,7 @@ from pathlib import Path
 import typer
 
 from ptcgdb.migrations import apply_migrations
+from ptcgdb.normalize import ingest_set
 from ptcgdb.scrapers import CircuitOpenError, HttpClient, MikMoeScraper, ScrapeRunner
 from ptcgdb.scrapers.mikmoe import BASE_URL
 
@@ -21,6 +22,25 @@ def init_db(db_path: Path = DEFAULT_DB_PATH) -> None:
     """建库/迁移：对数据库执行全部未应用的迁移，打印 user_version。"""
     version = apply_migrations(db_path)
     typer.echo(f"OK: {db_path} (user_version={version})")
+
+
+@app.command()
+def ingest(
+    set_id: str = typer.Option(..., "--set", help="要入库的系列（setId，如 CSM1aC）"),
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """入库：raw → sets/cards（status=draft）。raw 层只读，重跑幂等。"""
+    result = ingest_set(raw_dir, set_id, db_path)
+    typer.echo(
+        f"set={result.set_id} ingested={result.card_count} "
+        f"skipped={len(result.skipped)} questions={len(result.questions)}"
+    )
+    for q in result.questions.items:
+        typer.echo(f"  ? {q['card_id'] or '-'} {q['field']}: {q['value']!r} — {q['note']}")
+    if result.skipped:
+        typer.echo(f"有卡片未入库：{result.skipped}", err=True)
+        raise typer.Exit(code=1)
 
 
 @app.command()

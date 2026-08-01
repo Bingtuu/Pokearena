@@ -1,0 +1,136 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T04:47:21.791065+00:00",
+    "source": "mik_moe",
+    "content_hash": "7d199574b499918c69ec9f203aad6f7c7d746a9e0795483cea8222e6e59517a6"
+  },
+  "code": 200,
+  "data": {
+    "name": "喷火龙GX",
+    "cardType": "Pokemon",
+    "mechanic": "GX",
+    "label": null,
+    "description": "【无】【无】【无】 翅膀攻击 70\n\n\n【火】【火】【火】【无】【无】 红莲风暴 300\n将附着于这只宝可梦身上的3个【火】能量，放于弃牌区。\n\n【火】【无】【无】 愤怒驱逐GX \n将对手牌库上方的10张卡牌放于弃牌区。[对战中，己方的GX招式只能使用1次。]\n\n",
+    "yorenCode": "Y1",
+    "pokemonAttr": {
+      "energyType": "R",
+      "stage": "Stage 2",
+      "hp": 250,
+      "ability": [],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "W",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 2,
+      "attack": [
+        {
+          "name": "翅膀攻击",
+          "text": "",
+          "cost": "CCC",
+          "damage": "70",
+          "isVStarPower": false
+        },
+        {
+          "name": "红莲风暴",
+          "text": "将附着于这只宝可梦身上的3个【火】能量，放于弃牌区。",
+          "cost": "RRRCC",
+          "damage": "300",
+          "isVStarPower": false
+        },
+        {
+          "name": "愤怒驱逐GX",
+          "text": "将对手牌库上方的10张卡牌放于弃牌区。[对战中，己方的GX招式只能使用1次。]",
+          "cost": "RCC",
+          "damage": "",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": "火恐龙"
+    },
+    "setCode": "CSM1aC",
+    "cardIndex": "004",
+    "setCardsNum": "",
+    "artist": "5ban Graphics",
+    "rarity": "RR",
+    "releaseDate": "2022-10-28T00:00:00+08:00",
+    "regulationMark": "A",
+    "effectId": "0f8c4de93a646ed5492b956bddec1542",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": true
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSM2.1C",
+        "cardIndex": "047",
+        "cardName": "喷火龙GX",
+        "rarity": "无标记",
+        "effectId": "0f8c4de93a646ed5492b956bddec1542",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1",
+        "is": [
+          "GX",
+          "Stage 2"
+        ],
+        "setCodeEn": "BUS",
+        "cardIndexEn": "20",
+        "nameEn": "Charizard-GX"
+      },
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "004",
+        "cardName": "喷火龙GX",
+        "rarity": "RR",
+        "effectId": "0f8c4de93a646ed5492b956bddec1542",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1",
+        "is": [
+          "GX",
+          "Stage 2"
+        ],
+        "setCodeEn": "BUS",
+        "cardIndexEn": "20",
+        "nameEn": "Charizard-GX"
+      },
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "168",
+        "cardName": "喷火龙GX",
+        "rarity": "SR",
+        "effectId": "0f8c4de93a646ed5492b956bddec1542",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1",
+        "is": [
+          "GX",
+          "Stage 2"
+        ],
+        "setCodeEn": "BUS",
+        "cardIndexEn": "20",
+        "nameEn": "Charizard-GX"
+      },
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "190",
+        "cardName": "喷火龙GX",
+        "rarity": "SSR",
+        "effectId": "0f8c4de93a646ed5492b956bddec1542",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1",
+        "is": [
+          "GX",
+          "Stage 2"
+        ],
+        "setCodeEn": "BUS",
+        "cardIndexEn": "20",
+        "nameEn": "Charizard-GX"
+      }
+    ],
+    "setCodeEn": "BUS",
+    "cardIndexEn": "20",
+    "nameEn": "Charizard-GX"
+  },
+  "msg": "OK."
+}

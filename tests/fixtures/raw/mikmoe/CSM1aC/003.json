@@ -1,0 +1,94 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T04:47:19.791888+00:00",
+    "source": "mik_moe",
+    "content_hash": "598da9128816249bbc286129a1691c62f38d82cb08b3899ba717d4fc4911d2bf"
+  },
+  "code": 200,
+  "data": {
+    "name": "火恐龙",
+    "cardType": "Pokemon",
+    "mechanic": null,
+    "label": null,
+    "description": "特性: 燃烧斗志\n在自己的回合，当将这张卡牌从手牌使出并进行进化时，可使用1次。将自己牌库上方5张卡牌放于弃牌区，将其中所有的【火】能量附着于这只宝可梦身上。\n\n【火】【火】【无】 喷射火焰 80\n将附着于这只宝可梦身上的1个能量，放于弃牌区。\n\n",
+    "yorenCode": "P005",
+    "pokemonAttr": {
+      "energyType": "R",
+      "stage": "Stage 1",
+      "hp": 80,
+      "ability": [
+        {
+          "name": "燃烧斗志",
+          "text": "在自己的回合，当将这张卡牌从手牌使出并进行进化时，可使用1次。将自己牌库上方5张卡牌放于弃牌区，将其中所有的【火】能量附着于这只宝可梦身上。",
+          "isVStarPower": false
+        }
+      ],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "W",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 2,
+      "attack": [
+        {
+          "name": "喷射火焰",
+          "text": "将附着于这只宝可梦身上的1个能量，放于弃牌区。",
+          "cost": "RRC",
+          "damage": "80",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": "小火龙"
+    },
+    "setCode": "CSM1aC",
+    "cardIndex": "003",
+    "setCardsNum": "",
+    "artist": "kodama",
+    "rarity": "U",
+    "releaseDate": "2022-10-28T00:00:00+08:00",
+    "regulationMark": "B",
+    "effectId": "d6177e97dd5ccd1d183bdff1aea07b54",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": true
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "003",
+        "cardName": "火恐龙",
+        "rarity": "U",
+        "effectId": "d6177e97dd5ccd1d183bdff1aea07b54",
+        "cardType": "Pokemon",
+        "yorenCode": "P005",
+        "is": [
+          "Stage 1"
+        ],
+        "setCodeEn": "DRM",
+        "cardIndexEn": "2",
+        "nameEn": "Charmeleon"
+      },
+      {
+        "setCode": "CSM1aC",
+        "cardIndex": "154",
+        "cardName": "火恐龙",
+        "rarity": "S",
+        "effectId": "d6177e97dd5ccd1d183bdff1aea07b54",
+        "cardType": "Pokemon",
+        "yorenCode": "P005",
+        "is": [
+          "Stage 1"
+        ],
+        "setCodeEn": "DRM",
+        "cardIndexEn": "2",
+        "nameEn": "Charmeleon"
+      }
+    ],
+    "setCodeEn": "DRM",
+    "cardIndexEn": "2",
+    "nameEn": "Charmeleon"
+  },
+  "msg": "OK."
+}

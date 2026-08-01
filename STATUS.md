@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M1（Phase 1a）进行中（goal 驱动）** —— task 003 完成（采集器 + raw 层，CSM1aC 211 张实测通过）。正在进行 **task 004（normalize + 入库管线）**。主源接口文档见 `docs/mikmoe-api.md`。
+**阶段：M1（Phase 1a）进行中（goal 驱动）** —— task 004 完成（normalize + 入库管线，CSM1aC 211 张全部入库 draft）。下一步 **task 005（校验 draft→active + 校验报告）**。主源接口文档见 `docs/mikmoe-api.md`。
 
 ## 入口
 
@@ -48,3 +48,4 @@
 - **2026-08-01**：**task 002 完成（M1-1 ✅）**。项目骨架落地：pyproject + `.venv`、`ptcgdb/` 包（11 表 ORM 与 PRD §7 逐字段一致、PRAGMA user_version 幂等迁移、frozen Pydantic 核心模型、4 个初始词表、`ptcgdb init-db`）；pytest 2 绿、ruff 通过。下一步 task 003：mik.moe 采集器 + raw 层。
 - **2026-08-01**：Python 环境收口 3.14.6（`requires-python >=3.12` 收回 PRD 口径）。**启动 goal：完成 M1**（采集→入库→校验报告，限速红线 2s/请求+熔断，按任务循环自动 commit+push）。
 - **2026-08-01**：**task 003 完成（M1-2 ✅）**。采集层全链路：限速 HTTP 层（2s/请求、退避、三路熔断）、mik.moe 三端点、append-only raw 层（sha256 manifest）、card 级断点续传、三清单+scrape_runs 落库、CLI `scrape sets/cards`。CSM1aC 211 张实测 7 分钟跑通，resume 重跑零请求；16 测试全绿（零网络）。发现并修复 product-list data 包装层偏差（文档已同步）。下一步 task 004：normalize + 入库管线。
+- **2026-08-01**：**task 004 完成（M1-3 ✅）**。normalize + 入库管线落地：字段形态调查覆盖 211 张全部 distinct 取值（核证 N=龙/C=无，发现词表外罕贵度 S/SSR 已补词表）；fields/derive/ingest 三层 + `config/name_group_rules.yml`（§6.2 数据化）+ CLI `ptcgdb ingest --set`；CSM1aC 211 张全部入库 draft（skipped=0，抽查 10/10），31 测试全绿（7 张黄金样本 fixtures 逐字段断言，零网络）。疑点如实记录：特殊能量 provides 未结构化（question）、系列内赛制标记混合（sets 存 "A,B"）。下一步 task 005：校验 draft→active + 校验报告。

@@ -1,0 +1,17 @@
+# 同名归组规则（PRD §6.2，人工维护、可追加）
+#
+# group_key = 规范化完整卡名。默认 = name_full 本身。
+# same_name 命中的卡（卡面人物/插画不同但规则上视作同名）归到 base 作为 group_key：
+# 命中条件 = name_full == base，或 name_full 形如 "base（限定语）"。
+#
+# 以下差异**不**归并（规则上不同名，group_key 保持各自 name_full）：
+# - ex/GX 等规则后缀（獒教父 vs 獒教父ex）
+# - ACE SPEC 标志（大师球 vs 大师球 ACE SPEC）
+# - owner 前缀（喵喵 vs 火箭队的喵喵）
+same_name:
+  - base: 博士的研究
+    note: 官方特别规定：卡名为"博士的研究"的卡，即使人物名称或插画不同，均视作同名卡
+  - base: 老大的指令
+    note: 官方特别规定：卡名为"老大的指令"的卡，即使人物名称或插画不同，均视作同名卡
+# V-UNION：4 部件卡面同名 → 自动归同 group_key（无需规则条目）；
+# deck_limit 按部件各 1 由 rule_box_type=v_union 派生。
