@@ -1,0 +1,80 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T08:36:37.162300+00:00",
+    "source": "mik_moe",
+    "content_hash": "dfb6b7064702b3138dd7537421b104475d6b1847cc12af506ce011d5dd605db8"
+  },
+  "code": 200,
+  "data": {
+    "name": "光辉妙蛙花",
+    "cardType": "Pokemon",
+    "mechanic": "Radiant",
+    "label": null,
+    "description": "特性: 阳光绽放\n在自己的回合结束时可以使用1次。从牌库上方抽取卡牌，直到自己的手牌变为4张为止。\n\n【草】【草】【无】 危险花粉 90\n使对手的战斗宝可梦陷入【中毒】和【灼伤】和【混乱】状态。\n\n",
+    "yorenCode": "Y964",
+    "pokemonAttr": {
+      "energyType": "G",
+      "stage": "Basic",
+      "hp": 150,
+      "ability": [
+        {
+          "name": "阳光绽放",
+          "text": "在自己的回合结束时可以使用1次。从牌库上方抽取卡牌，直到自己的手牌变为4张为止。",
+          "isVStarPower": false
+        }
+      ],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "R",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 3,
+      "attack": [
+        {
+          "name": "危险花粉",
+          "text": "使对手的战斗宝可梦陷入【中毒】和【灼伤】和【混乱】状态。",
+          "cost": "GGC",
+          "damage": "90",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": ""
+    },
+    "setCode": "CS5bC",
+    "cardIndex": "004",
+    "setCardsNum": "",
+    "artist": "Kouki Saitou",
+    "rarity": "K",
+    "releaseDate": "2024-06-18T00:00:00+08:00",
+    "regulationMark": "F",
+    "effectId": "ec5d64622bc081ab7090fa5bc8cc3a0d",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CS5bC",
+        "cardIndex": "004",
+        "cardName": "光辉妙蛙花",
+        "rarity": "K",
+        "effectId": "ec5d64622bc081ab7090fa5bc8cc3a0d",
+        "cardType": "Pokemon",
+        "yorenCode": "Y964",
+        "is": [
+          "Radiant",
+          "Basic"
+        ],
+        "setCodeEn": "PGO",
+        "cardIndexEn": "4",
+        "nameEn": "Radiant Venusaur"
+      }
+    ],
+    "setCodeEn": "PGO",
+    "cardIndexEn": "4",
+    "nameEn": "Radiant Venusaur"
+  },
+  "msg": "OK."
+}

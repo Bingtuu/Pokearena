@@ -14,11 +14,13 @@ import yaml
 from ptcgdb.normalize.fields import CONFIG_DIR, Questions, UnknownEnumError
 
 # mik mechanic → PRD rule_box_type（task 004 实测：GX / Prism Star / null；
-# task 005 实测：V，CSAC 轰擂金刚猩V 等，PRD 预置 prize v=2）
+# task 005 实测：V，CSAC 轰擂金刚猩V 等，PRD 预置 prize v=2；
+# task 005 实测：Radiant=光辉宝可梦，CS5bC 光辉妙蛙花/摔角鹰人/大钢蛇，rarity=K）
 MECHANIC_RULE_BOX = {
     "GX": "gx",
     "Prism Star": "prism_star",
     "V": "v",
+    "Radiant": "radiant",
 }
 
 # mik label → effect_tags 粗粒度标签（task 004 实测：Ultra Beast=究极异兽；

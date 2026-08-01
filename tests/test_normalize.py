@@ -641,3 +641,48 @@ def test_ingest_golden_vstar(tmp_path):
         assert c.deck_limit == 4
         assert c.hp == 280
     engine.dispose()
+
+
+FIXTURE_CS5BC_DIR = Path(__file__).parent / "fixtures" / "raw" / "mikmoe" / "CS5bC"
+
+
+def test_ingest_radiant(tmp_path):
+    """光辉妙蛙花：mechanic="Radiant" → radiant/prize=1/deck_limit=1（task 005 实测）。"""
+    raw_dir = tmp_path / "raw"
+    set_dir = raw_dir / "mikmoe" / "CS5bC"
+    set_dir.mkdir(parents=True)
+    shutil.copy(FIXTURE_CS5BC_DIR / "004.json", set_dir / "004.json")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "强化扩充包 终末炎舞",
+                "setCode": "CS5bC",
+                "setId": "CS5bC",
+                "releaseDate": "2024-06-18T00:00:00+08:00",
+                "series": "Sword & Shield",
+                "mainExpansion": False,
+                "cardsNum": 178,
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+
+    db_path = tmp_path / "test.db"
+    result = ingest_set(raw_dir, "CS5bC", db_path)
+    assert result.card_count == 1
+    assert result.skipped == []
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        c = session.get(Card, "CS5bC-004")
+        assert c.name_full == "光辉妙蛙花"
+        assert c.rule_box_type == "radiant"
+        assert c.prize_cards == 1
+        assert c.deck_limit == 1
+        assert c.rarity == "K"
+        assert c.regulation_mark == "F"
+    engine.dispose()
