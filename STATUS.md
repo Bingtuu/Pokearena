@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M1（Phase 1a）进行中（goal 驱动）** —— **task 005 进行中**（后台全量抓取 ~12,473 张 / 129 系列，约 7 小时，断点续传）；**task 006 并行开发中**（validate 模块 + 校验报告 + draft→active）。主源接口文档见 `docs/mikmoe-api.md`。
+**阶段：M1（Phase 1a）进行中（goal 驱动）** —— **task 005 完成 ✅**（全量 129 系列 / 12,420 张去重卡入库 draft，对账 100%）；**task 006 进行中**（全量 validate + 校验报告 + draft→active）。主源接口文档见 `docs/mikmoe-api.md`。
 
 ## 入口
 
@@ -16,7 +16,7 @@
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
 | **主源接口文档** | `docs/mikmoe-api.md`（task 001 产物，M1 采集层必读） |
 | 代码 | `ptcgdb/`（骨架已建：orm/schemas/migrations/cli，其余子包空壳） |
-| 数据 | `data/ptcg-cn.db`（schema 已建，user_version=1）、`data/raw/capture/`（本地样例） |
+| 数据 | `data/ptcg-cn.db`（schema user_version=3；12,420 张去重卡 draft）、`data/raw/mikmoe/`（全量 raw + manifest）、`data/raw/capture/`（本地样例） |
 
 ## 里程碑（PRD 第 11 章）
 
@@ -49,3 +49,4 @@
 - **2026-08-01**：Python 环境收口 3.14.6（`requires-python >=3.12` 收回 PRD 口径）。**启动 goal：完成 M1**（采集→入库→校验报告，限速红线 2s/请求+熔断，按任务循环自动 commit+push）。
 - **2026-08-01**：**task 003 完成（M1-2 ✅）**。采集层全链路：限速 HTTP 层（2s/请求、退避、三路熔断）、mik.moe 三端点、append-only raw 层（sha256 manifest）、card 级断点续传、三清单+scrape_runs 落库、CLI `scrape sets/cards`。CSM1aC 211 张实测 7 分钟跑通，resume 重跑零请求；16 测试全绿（零网络）。发现并修复 product-list data 包装层偏差（文档已同步）。下一步 task 004：normalize + 入库管线。
 - **2026-08-01**：**task 004 完成（M1-3 ✅）**。normalize + 入库管线落地：字段形态调查覆盖 211 张全部 distinct 取值（核证 N=龙/C=无，发现词表外罕贵度 S/SSR 已补词表）；fields/derive/ingest 三层 + `config/name_group_rules.yml`（§6.2 数据化）+ CLI `ptcgdb ingest --set`；CSM1aC 211 张全部入库 draft（skipped=0，抽查 10/10），31 测试全绿（7 张黄金样本 fixtures 逐字段断言，零网络）。疑点如实记录：特殊能量 provides 未结构化（question）、系列内赛制标记混合（sets 存 "A,B"）。下一步 task 005：校验 draft→active + 校验报告。
+- **2026-08-01**：**task 005 完成（M1-4 ✅）**。全量抓取 + 全量入库：129 系列 raw 齐（7 小时、限速 2s、零熔断），**按条目 setCode + 全局去重口径 12,420 张唯一卡全部入库 draft，skipped=0、对账 100%**。关键口径发现：附赠能量卡跨系列列表重复列出、按条目自身 setCode 归属（目录口径会产生 15 个假缺口，task 006 对账必须用去重口径）。实测驱动修复全链路：V/VMAX/VSTAR/V-UNION/TAG TEAM GX/战斗流派/Radiant/朱紫 ex/古代·未来/ACE SPEC（新增 NON_RULE_BOX_MECHANICS）+ 罕贵度词表补全（无标记/S/SSR/A/宝石包符号 ●◆★/ACE）+ eras 补 30th→特典；64 测试全绿（黄金样本逐字段断言）。全量形态调查收敛：简中暂无太晶卡样本。详见 `tasks/done/005` 完成总结。下一步 task 006：全量 validate + 校验报告 + draft→active。
