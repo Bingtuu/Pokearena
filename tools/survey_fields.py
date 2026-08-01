@@ -1,6 +1,8 @@
-"""字段形态调查（一次性脚本，task 004）：扫描 raw 单卡文件统计 distinct 取值分布。
+"""字段形态调查（一次性脚本，task 004/005）：扫描 raw 单卡文件统计 distinct 取值分布。
 
-用法：.venv/Scripts/python.exe tools/survey_fields.py data/raw/mikmoe/CSM1aC
+用法：
+  .venv/Scripts/python.exe tools/survey_fields.py data/raw/mikmoe/CSM1aC   # 单系列
+  .venv/Scripts/python.exe tools/survey_fields.py data/raw/mikmoe   # 全量（根目录）
 """
 
 from __future__ import annotations
@@ -11,7 +13,14 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-set_dir = Path(sys.argv[1])
+root = Path(sys.argv[1])
+if (root / "products.json").exists():
+    set_dirs = sorted(d for d in root.iterdir() if d.is_dir())
+else:
+    set_dirs = [root]
+files = sorted(
+    p for d in set_dirs for p in d.glob("*.json") if p.name != "cards.json"
+)
 
 mechanic = Counter()
 label = Counter()
@@ -39,7 +48,6 @@ mystery_keys = Counter()
 damage_mult_samples = []
 name_forms = Counter()
 
-files = sorted(p for p in set_dir.glob("*.json") if p.name != "cards.json")
 for p in files:
     doc = json.loads(p.read_text(encoding="utf-8"))
     d = doc["data"]
@@ -134,9 +142,13 @@ dump("field keys", mystery_keys)
 dump("name suffix (last 3 chars)", name_forms)
 
 # cards.json 里 is[] 的分布（product-detail 层）
-cards_doc = json.loads((set_dir / "cards.json").read_text(encoding="utf-8"))
 is_cd = Counter()
-for c in cards_doc["data"]["cards"]:
-    for v in c.get("is") or []:
-        is_cd[v] += 1
+for d in set_dirs:
+    cj = d / "cards.json"
+    if not cj.exists():
+        continue
+    cards_doc = json.loads(cj.read_text(encoding="utf-8"))
+    for c in cards_doc["data"]["cards"]:
+        for v in c.get("is") or []:
+            is_cd[v] += 1
 dump("is[] (product-detail cards.json)", is_cd)
