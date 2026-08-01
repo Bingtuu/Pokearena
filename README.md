@@ -56,28 +56,58 @@ report.violations  # 结构化违规列表：同名超限 / 禁卡 / 不合法�
 
 ## 🏗️ 架构
 
-```
-官方小程序 ──┐
-tcg.mik.moe ─┼─▶ raw/ (append-only) ─▶ normalize (Pydantic) ─▶ SQLite (draft→active)
-赛制页/公告 ──┘                                                        │
-                                              ┌────────────────────────┤
-                                              ▼                        ▼
-                                        CLI (typer)            dist/ 七件套导出
-                                              │                        │
-                                              └──────▶ ptcgdb.sdk ◀────┘
-                                                     open_db / open_jsonl
-monitor/ 每日 cron：总量探测 + 页面 hash → 变更提案 → 人工确认 → 新快照
+```mermaid
+flowchart TB
+    subgraph SRC["📥 数据源"]
+        A["官方小程序<br/>主源 · 卡牌全量数据"]
+        B["tcg.mik.moe<br/>交叉校验 / 降级镜像"]
+        C["官网赛制页 / 公告<br/>合法性权威源"]
+    end
+
+    subgraph PIPE["⚙️ 数据管线"]
+        RAW[/"raw/ · append-only 原始层"/]
+        NORM["normalize<br/>Pydantic 校验 + 字段归一 + 派生计算"]
+        DB[("SQLite (WAL)<br/>draft → 校验 → active")]
+    end
+
+    subgraph OUT["🔌 消费层"]
+        CLI["CLI · typer"]
+        DIST["dist/ · 七件套导出<br/>manifest / jsonl / legality / checksums"]
+        SDK["ptcgdb.sdk<br/>open_db / open_jsonl 双后端"]
+    end
+
+    MON["🛰️ monitor<br/>每日 cron · 总量探测 + 页面 hash → 变更提案"]
+
+    A --> RAW
+    B --> RAW
+    C --> RAW
+    RAW --> NORM --> DB
+    DB --> CLI
+    DB --> DIST
+    CLI --> SDK
+    DIST --> SDK
+    C -.-> MON
+    MON -.->|人工确认 → 新快照| DB
+
+    classDef source fill:#dbeafe,stroke:#3b82f6,color:#1e293b;
+    classDef pipe fill:#fef3c7,stroke:#f59e0b,color:#1e293b;
+    classDef out fill:#dcfce7,stroke:#22c55e,color:#1e293b;
+    classDef mon fill:#f3e8ff,stroke:#a855f7,color:#1e293b;
+    class A,B,C source;
+    class RAW,NORM,DB pipe;
+    class CLI,DIST,SDK out;
+    class MON mon;
 ```
 
 ## 🗺️ Roadmap
 
-- [ ] **M0** 主数据源可行性验证（官方小程序接口）
-- [ ] **Phase 1a** schema 建库 + 全卡首批入库 + 校验报告
-- [ ] **Phase 1b** 环境快照 + 合法性引擎 + 版本化 + 导出七件套 + SDK 基础
-- [ ] **Phase 1c** L0/L1 自动更新管线
-- [ ] **Phase 2** 跨语言映射（简中↔繁中↔英文）、卡组校验器
-- [ ] **Phase 3** 效果标签层，配合规则引擎
-- [ ] **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
+- **M0** 主数据源可行性验证（官方小程序接口）
+- **Phase 1a** schema 建库 + 全卡首批入库 + 校验报告
+- **Phase 1b** 环境快照 + 合法性引擎 + 版本化 + 导出七件套 + SDK 基础
+- **Phase 1c** L0/L1 自动更新管线
+- **Phase 2** 跨语言映射（简中↔繁中↔英文）、卡组校验器
+- **Phase 3** 效果标签层，配合规则引擎
+- **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
 
 > ⚠️ 临近事件：**2026-09-16「30周年庆典」全球同步发售**（简中首次同步，新罕贵度 FUR），更新管线将迎来首次实战。
 

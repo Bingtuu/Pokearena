@@ -34,6 +34,7 @@
 
 ## 工作方式
 
+- **任务循环**：开发按 `tasks/` 目录的标准循环执行——先写任务文档再写代码，完工归档 `tasks/done/` 并同步 `STATUS.md`（不进 README.md）。规范见 `tasks/README.md`。
 - 变更数据模型、合法性语义、导出契约前，先改 PRD 并保持代码与 PRD 同步。
 - CHANGELOG.md 四段式：Added / Changed / Deprecated / Removed。
-- 完成一个里程碑后更新 `STATUS.md`。
+- 任务提交信息前缀 `task(NNN):`。
