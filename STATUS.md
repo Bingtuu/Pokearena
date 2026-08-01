@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M1（Phase 1a）进行中（goal 驱动）** —— **task 005 进行中（全量抓取 + 全量入库 draft）**。task 004 已完成（CSM1aC 211 张入库 draft）。后续 task 006 = 校验 draft→active + 校验报告。主源接口文档见 `docs/mikmoe-api.md`。
+**阶段：M1（Phase 1a）进行中（goal 驱动）** —— **task 005 进行中**（后台全量抓取 ~12,473 张 / 129 系列，约 7 小时，断点续传）；**task 006 并行开发中**（validate 模块 + 校验报告 + draft→active）。主源接口文档见 `docs/mikmoe-api.md`。
 
 ## 入口
 
