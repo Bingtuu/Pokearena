@@ -1,0 +1,186 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T09:11:33.029609+00:00",
+    "source": "mik_moe",
+    "content_hash": "ba07eab1de16936d22aa9ba00b34bb7b0c8c0445515b387f70aa2ec6a38879a6"
+  },
+  "code": 200,
+  "data": {
+    "name": "轰鸣月ex",
+    "cardType": "Pokemon",
+    "mechanic": "ex",
+    "label": [
+      "Ancient"
+    ],
+    "description": "【恶】【恶】【无】 发狂深挖 \n令对手的战斗宝可梦【昏厥】。然后，给这只宝可梦造成200伤害。\n\n【恶】【恶】【无】 灾厄风暴 100+\n若希望，可将场上的竞技场放于弃牌区。在这种情况下，追加造成120伤害。\n\n",
+    "yorenCode": "Y1370",
+    "pokemonAttr": {
+      "energyType": "D",
+      "stage": "Basic",
+      "hp": 230,
+      "ability": [],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "G",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 2,
+      "attack": [
+        {
+          "name": "发狂深挖",
+          "text": "令对手的战斗宝可梦【昏厥】。然后，给这只宝可梦造成200伤害。",
+          "cost": "DDC",
+          "damage": "",
+          "isVStarPower": false
+        },
+        {
+          "name": "灾厄风暴",
+          "text": "若希望，可将场上的竞技场放于弃牌区。在这种情况下，追加造成120伤害。",
+          "cost": "DDC",
+          "damage": "100+",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": ""
+    },
+    "setCode": "SVP",
+    "cardIndex": "117",
+    "setCardsNum": "",
+    "artist": "takuyoa",
+    "rarity": "无标记",
+    "releaseDate": "2025-12-06T00:00:00+08:00",
+    "regulationMark": "G",
+    "effectId": "90b0d1f117df6523fd92b9f3168d7f7e",
+    "regulationLegal": {
+      "standard": true,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSV9.5C",
+        "cardIndex": "115",
+        "cardName": "轰鸣月ex",
+        "rarity": "RR",
+        "effectId": "90b0d1f117df6523fd92b9f3168d7f7e",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1370",
+        "is": [
+          "ex",
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "PAR",
+        "cardIndexEn": "124",
+        "nameEn": "Roaring Moon ex"
+      },
+      {
+        "setCode": "CSV9.5C",
+        "cardIndex": "240",
+        "cardName": "轰鸣月ex",
+        "rarity": "SAR",
+        "effectId": "90b0d1f117df6523fd92b9f3168d7f7e",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1370",
+        "is": [
+          "ex",
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "PAR",
+        "cardIndexEn": "124",
+        "nameEn": "Roaring Moon ex"
+      },
+      {
+        "setCode": "SVP",
+        "cardIndex": "117",
+        "cardName": "轰鸣月ex",
+        "rarity": "无标记",
+        "effectId": "90b0d1f117df6523fd92b9f3168d7f7e",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1370",
+        "is": [
+          "ex",
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "PAR",
+        "cardIndexEn": "124",
+        "nameEn": "Roaring Moon ex"
+      },
+      {
+        "setCode": "CSV6C",
+        "cardIndex": "096",
+        "cardName": "轰鸣月ex",
+        "rarity": "RR",
+        "effectId": "90b0d1f117df6523fd92b9f3168d7f7e",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1370",
+        "is": [
+          "ex",
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "PAR",
+        "cardIndexEn": "124",
+        "nameEn": "Roaring Moon ex"
+      },
+      {
+        "setCode": "CSV6C",
+        "cardIndex": "144",
+        "cardName": "轰鸣月ex",
+        "rarity": "SR",
+        "effectId": "90b0d1f117df6523fd92b9f3168d7f7e",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1370",
+        "is": [
+          "ex",
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "PAR",
+        "cardIndexEn": "124",
+        "nameEn": "Roaring Moon ex"
+      },
+      {
+        "setCode": "CSV6C",
+        "cardIndex": "155",
+        "cardName": "轰鸣月ex",
+        "rarity": "SAR",
+        "effectId": "90b0d1f117df6523fd92b9f3168d7f7e",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1370",
+        "is": [
+          "ex",
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "PAR",
+        "cardIndexEn": "124",
+        "nameEn": "Roaring Moon ex"
+      },
+      {
+        "setCode": "CSV6C",
+        "cardIndex": "161",
+        "cardName": "轰鸣月ex",
+        "rarity": "UR",
+        "effectId": "90b0d1f117df6523fd92b9f3168d7f7e",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1370",
+        "is": [
+          "ex",
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "PAR",
+        "cardIndexEn": "124",
+        "nameEn": "Roaring Moon ex"
+      }
+    ],
+    "setCodeEn": "PAR",
+    "cardIndexEn": "124",
+    "nameEn": "Roaring Moon ex"
+  },
+  "msg": "OK."
+}

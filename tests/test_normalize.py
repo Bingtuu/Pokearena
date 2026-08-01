@@ -686,3 +686,60 @@ def test_ingest_radiant(tmp_path):
         assert c.rarity == "K"
         assert c.regulation_mark == "F"
     engine.dispose()
+
+
+FIXTURE_SVP_DIR = Path(__file__).parent / "fixtures" / "raw" / "mikmoe" / "SVP"
+
+
+def test_ingest_ex_and_ancient_future(tmp_path):
+    """朱紫 ex / 古代·未来 label（task 005 实测）：
+    梦幻ex mechanic="ex" → ex/prize=2；轰鸣月ex label=Ancient → 古代；
+    雄伟牙 非 ex + label=Ancient → rule_box 空 + 古代。"""
+    raw_dir = tmp_path / "raw"
+    set_dir = raw_dir / "mikmoe" / "SVP"
+    set_dir.mkdir(parents=True)
+    for n in ("003", "117", "253"):
+        shutil.copy(FIXTURE_SVP_DIR / f"{n}.json", set_dir / f"{n}.json")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "朱&紫 特典卡",
+                "setCode": "SVP",
+                "setId": "SVP",
+                "releaseDate": "2024-01-01T00:00:00+08:00",
+                "series": "Scarlet & Violet",
+                "mainExpansion": False,
+                "cardsNum": 442,
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+
+    db_path = tmp_path / "test.db"
+    result = ingest_set(raw_dir, "SVP", db_path)
+    assert result.card_count == 3
+    assert result.skipped == []
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        c = session.get(Card, "SVP-003")
+        assert c.name_full == "梦幻ex"
+        assert c.rule_box_type == "ex"
+        assert c.prize_cards == 2
+        assert c.deck_limit == 4
+
+        c = session.get(Card, "SVP-117")
+        assert c.name_full == "轰鸣月ex"
+        assert c.rule_box_type == "ex"
+        assert c.prize_cards == 2
+        assert "古代" in (c.effect_tags or "")
+
+        c = session.get(Card, "SVP-253")
+        assert c.name_full == "雄伟牙"
+        assert c.rule_box_type is None
+        assert "古代" in (c.effect_tags or "")
+    engine.dispose()

@@ -1,0 +1,243 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T09:07:42.245809+00:00",
+    "source": "mik_moe",
+    "content_hash": "b5754a2f7ee9af36e2ba33de180f20ae6400b85b820369177144cbe0f4f00cc2"
+  },
+  "code": 200,
+  "data": {
+    "name": "梦幻ex",
+    "cardType": "Pokemon",
+    "mechanic": "ex",
+    "label": null,
+    "description": "特性: 再起动\n在自己的回合可以使用1次。从牌库上方抽取卡牌，直到自己的手牌变为3张为止。\n\n【无】【无】【无】 基因侵入 \n选择对手战斗宝可梦所拥有的1个招式，作为这个招式使用。\n\n",
+    "yorenCode": "Y1191",
+    "pokemonAttr": {
+      "energyType": "P",
+      "stage": "Basic",
+      "hp": 180,
+      "ability": [
+        {
+          "name": "再起动",
+          "text": "在自己的回合可以使用1次。从牌库上方抽取卡牌，直到自己的手牌变为3张为止。",
+          "isVStarPower": false
+        }
+      ],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "D",
+        "value": "×2"
+      },
+      "resistance": {
+        "energy": "F",
+        "value": "-30"
+      },
+      "retreatCost": 0,
+      "attack": [
+        {
+          "name": "基因侵入",
+          "text": "选择对手战斗宝可梦所拥有的1个招式，作为这个招式使用。",
+          "cost": "CCC",
+          "damage": "",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": ""
+    },
+    "setCode": "SVP",
+    "cardIndex": "003",
+    "setCardsNum": "",
+    "artist": "satoma",
+    "rarity": "无标记",
+    "releaseDate": "2025-01-17T00:00:00+08:00",
+    "regulationMark": "G",
+    "effectId": "49669fcf461deacebeb5755c11ec51f1",
+    "regulationLegal": {
+      "standard": true,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSVM2cC",
+        "cardIndex": "003",
+        "cardName": "梦幻ex",
+        "rarity": "无标记",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "CSVM1bC",
+        "cardIndex": "004",
+        "cardName": "梦幻ex",
+        "rarity": "无标记",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "CSVL2C",
+        "cardIndex": "029",
+        "cardName": "梦幻ex",
+        "rarity": "无标记",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "CSVL2C",
+        "cardIndex": "127",
+        "cardName": "梦幻ex",
+        "rarity": "无标记",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "151C",
+        "cardIndex": "151",
+        "cardName": "梦幻ex",
+        "rarity": "RR",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "151C",
+        "cardIndex": "185",
+        "cardName": "梦幻ex",
+        "rarity": "SR",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "151C",
+        "cardIndex": "188",
+        "cardName": "梦幻ex",
+        "rarity": "SSR",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "151C",
+        "cardIndex": "191",
+        "cardName": "梦幻ex",
+        "rarity": "SAR",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "CSVE1C",
+        "cardIndex": "056",
+        "cardName": "梦幻ex",
+        "rarity": "无标记",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "151C",
+        "cardIndex": "192",
+        "cardName": "梦幻ex",
+        "rarity": "UR",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      },
+      {
+        "setCode": "SVP",
+        "cardIndex": "003",
+        "cardName": "梦幻ex",
+        "rarity": "无标记",
+        "effectId": "49669fcf461deacebeb5755c11ec51f1",
+        "cardType": "Pokemon",
+        "yorenCode": "Y1191",
+        "is": [
+          "ex",
+          "Basic"
+        ],
+        "setCodeEn": "MEW",
+        "cardIndexEn": "151",
+        "nameEn": "Mew ex"
+      }
+    ],
+    "setCodeEn": "MEW",
+    "cardIndexEn": "151",
+    "nameEn": "Mew ex"
+  },
+  "msg": "OK."
+}

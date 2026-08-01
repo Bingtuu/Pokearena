@@ -1,0 +1,115 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T09:16:12.420747+00:00",
+    "source": "mik_moe",
+    "content_hash": "64ff59e3024c791255f99d4575ca344c741d8f582a8bcfa5dbebc9e22c5ee1f3"
+  },
+  "code": 200,
+  "data": {
+    "name": "雄伟牙",
+    "cardType": "Pokemon",
+    "mechanic": null,
+    "label": [
+      "Ancient"
+    ],
+    "description": "【无】【无】 地基崩溃 \n将对手牌库上方1张卡牌放于弃牌区。在这个回合，如果从手牌使出了「古代」支援者的话，则额外将牌库上方3张卡牌放于弃牌区。\n\n【斗】【斗】【无】【无】 巨大之牙 160\n\n\n",
+    "yorenCode": "P0984",
+    "pokemonAttr": {
+      "energyType": "F",
+      "stage": "Basic",
+      "hp": 140,
+      "ability": [],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "P",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 3,
+      "attack": [
+        {
+          "name": "地基崩溃",
+          "text": "将对手牌库上方1张卡牌放于弃牌区。在这个回合，如果从手牌使出了「古代」支援者的话，则额外将牌库上方3张卡牌放于弃牌区。",
+          "cost": "CC",
+          "damage": "",
+          "isVStarPower": false
+        },
+        {
+          "name": "巨大之牙",
+          "text": "",
+          "cost": "FFCC",
+          "damage": "160",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": ""
+    },
+    "setCode": "SVP",
+    "cardIndex": "253",
+    "setCardsNum": "",
+    "artist": "GIDORA",
+    "rarity": "无标记",
+    "releaseDate": "2026-05-15T00:00:00+08:00",
+    "regulationMark": "H",
+    "effectId": "23706c5baababfabc76355e59709f4ec",
+    "regulationLegal": {
+      "standard": true,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSV9.5C",
+        "cardIndex": "097",
+        "cardName": "雄伟牙",
+        "rarity": "U",
+        "effectId": "23706c5baababfabc76355e59709f4ec",
+        "cardType": "Pokemon",
+        "yorenCode": "P0984",
+        "is": [
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "TEF",
+        "cardIndexEn": "97",
+        "nameEn": "Great Tusk"
+      },
+      {
+        "setCode": "SVP",
+        "cardIndex": "253",
+        "cardName": "雄伟牙",
+        "rarity": "无标记",
+        "effectId": "23706c5baababfabc76355e59709f4ec",
+        "cardType": "Pokemon",
+        "yorenCode": "P0984",
+        "is": [
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "TEF",
+        "cardIndexEn": "97",
+        "nameEn": "Great Tusk"
+      },
+      {
+        "setCode": "CSV7C",
+        "cardIndex": "131",
+        "cardName": "雄伟牙",
+        "rarity": "U",
+        "effectId": "23706c5baababfabc76355e59709f4ec",
+        "cardType": "Pokemon",
+        "yorenCode": "P0984",
+        "is": [
+          "Ancient",
+          "Basic"
+        ],
+        "setCodeEn": "TEF",
+        "cardIndexEn": "97",
+        "nameEn": "Great Tusk"
+      }
+    ],
+    "setCodeEn": "TEF",
+    "cardIndexEn": "97",
+    "nameEn": "Great Tusk"
+  },
+  "msg": "OK."
+}

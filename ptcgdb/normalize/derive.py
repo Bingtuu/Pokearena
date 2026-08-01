@@ -15,12 +15,14 @@ from ptcgdb.normalize.fields import CONFIG_DIR, Questions, UnknownEnumError
 
 # mik mechanic → PRD rule_box_type（task 004 实测：GX / Prism Star / null；
 # task 005 实测：V，CSAC 轰擂金刚猩V 等，PRD 预置 prize v=2；
-# task 005 实测：Radiant=光辉宝可梦，CS5bC 光辉妙蛙花/摔角鹰人/大钢蛇，rarity=K）
+# task 005 实测：Radiant=光辉宝可梦，CS5bC 光辉妙蛙花/摔角鹰人/大钢蛇，rarity=K；
+# task 005 实测：ex=朱紫 ex 宝可梦，SVP 梦幻ex/轰鸣月ex 等，prize=2）
 MECHANIC_RULE_BOX = {
     "GX": "gx",
     "Prism Star": "prism_star",
     "V": "v",
     "Radiant": "radiant",
+    "ex": "ex",
 }
 
 # mik label → effect_tags 粗粒度标签（task 004 实测：Ultra Beast=究极异兽；
@@ -30,6 +32,9 @@ LABEL_TAGS = {
     "Single Strike": "一击",
     "Rapid Strike": "连击",
     "Fusion Strike": "汇流",  # task 005 实测（SSP 伽勒尔 踏冰人偶V 等）
+    # task 005 实测：朱紫古代/未来（SVP 轰鸣月ex/铁辙迹ex/雄伟牙 等）
+    "Ancient": "古代",
+    "Future": "未来",
 }
 
 # 被 rule_box 消费、不进 effect_tags 的 label（task 005 实测：TAG TEAM GX
