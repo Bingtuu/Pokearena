@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：Phase 2 任务拆分完成（2026-08-01，已按调研改设计）** —— M4 已收官（验收 A1~A8 全过、166 测试全绿）。Phase 2 拆为三个里程碑：M5 数据质量收口（task 019 derive 跨系列进化解析 + 020 A2/A3 卡面人工比对）、M6 跨语言映射 EN+JP（task 021~024：EN 桥提取 raw 已有 `setCodeEn/cardIndexEn/nameEn`；JP 走 TCGdex 同 ID 多语言共构，**不做繁中**；TCGdex zh-cn 系列壳用于系列级对账）、M7 卡组校验器（task 025~026，真实卡组源 = mik.moe 赛事数据库）。任务文档已落 `tasks/`，按 goal loop 逐里程碑推进。下一步：启动 M5 goal。
+**阶段：Phase 2 任务拆分与排期完成（2026-08-01）** —— M4 已收官（验收 A1~A8 全过、166 测试全绿）；PRD v1.5 落盘（task 021：映射取消繁中/新增 JP、校验源矩阵更新）。Phase 2 四个里程碑按 goal loop 顺序推进：M5 derive 跨系列进化解析（task 019）→ M6 跨语言映射 EN+JP（022~024）→ M7 卡组校验器（025~026）→ **M8 A2/A3 卡面人工比对（020，需用户在场，早上做，收尾）**。下一步：启动 M5 goal。
 
 ## 入口
 
@@ -26,9 +26,10 @@
 - [x] **M2 (Phase 1b)** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 基础（3~4 天）—— **2026-08-01 完成（task 007~011）**：双赛制快照入库、`legal_at`/`effective_text`（A4 用例 24 组）、apply/冻结/回滚（A5/A6）、dist 七件套（A7）、SDK 双后端一致（A8）
 - [x] **M3 (Phase 1c)** L0/L1 监控管线 + 提案生成 + 通知（2 天）—— **2026-08-01 完成（task 013~015）**：L0 全链路（探测→抓取→校验→active→快照后处理，真实 dry-run 零增量）；L1 三页监控（基线建立、零假阳性、提案=SnapshotSeed 超集被 legal-apply 直接消费、needs_manual 不猜测）；桌面/webhook 通知 + 提案闭环（applied 回写）+ L2 勘误导入（`legal-errata`，effective_text 联测）
 - [x] **M4** 验收 A1~A8 + 文档收尾（1 天）—— **2026-08-01 完成（task 016~018）**：验收 runner 一键全过（A1 standard 55/55、open 61/61；A4/A5/A6/A7/A8 证据报告六项 PASS）、A2 抽样 100 张清单 + A3 自动校验 5,122 项次全过、AGENTS/README/PRD/CHANGELOG 状态一致
-- [ ] **M5 (Phase 2)** 数据质量收口：derive 跨系列进化解析 + A2/A3 卡面人工比对（task 019~020）
+- [ ] **M5 (Phase 2)** derive 跨系列进化解析（task 019）
 - [ ] **M6 (Phase 2)** 跨语言映射 EN+JP（task 021~024；v1.5 定：EN 桥 + TCGdex 同 ID 共构取 JP，不做繁中）
 - [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025~026）
+- [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场，收尾做）
 
 ## 决策日志
 
