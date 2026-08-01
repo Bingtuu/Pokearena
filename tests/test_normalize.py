@@ -177,6 +177,65 @@ def test_resolve_evolution_chain_and_fallback():
     assert records[4]["evolution_chain_id"] is None  # 非宝可梦不进链
 
 
+def _poke(card_id, name, species=None, evolves_from_text=None, evolves_from_id=None):
+    return {
+        "card_id": card_id,
+        "name_full": name,
+        "species": species or name,
+        "card_type": "pokemon",
+        "evolves_from_text": evolves_from_text,
+        "evolves_from_id": evolves_from_id,
+    }
+
+
+def test_resolve_evolution_cross_series_fallback():
+    """task 019：系列内无命中时回退全库索引；化石类库内无候选 → None + question。"""
+    questions = Questions()
+    db_cards = [
+        _poke("A-001", "伊布"),
+        _poke("A-010", "岩狗狗"),
+    ]
+    records = [
+        _poke("B-001", "叶伊布", evolves_from_text="伊布"),  # 系列内无 → 回退 A-001
+        _poke("B-002", "鬃岩狼人GX", "鬃岩狼人", evolves_from_text="岩狗狗"),
+        _poke("B-003", "宝宝暴龙", evolves_from_text="古老的颚之化石"),  # 库内无 → 豁免
+    ]
+    derive.resolve_evolution(records, questions, db_cards=db_cards)
+    assert records[0]["evolves_from_id"] == "A-001"
+    assert records[0]["evolution_chain_id"] == "A-001"
+    assert records[1]["evolves_from_id"] == "A-010"
+    assert records[1]["evolution_chain_id"] == "A-010"
+    assert records[2]["evolves_from_id"] is None
+    assert any(q["card_id"] == "B-003" for q in questions.items)
+    # 跨系列解析成功的不再记 question
+    assert not any(q["card_id"] in ("B-001", "B-002") for q in questions.items)
+
+
+def test_resolve_evolution_internal_priority_over_fallback():
+    """同名卡系列内与库内都有时，系列内优先。"""
+    questions = Questions()
+    db_cards = [_poke("A-001", "狃拉")]
+    records = [
+        _poke("B-001", "狃拉"),
+        _poke("B-002", "玛狃拉", evolves_from_text="狃拉"),
+    ]
+    derive.resolve_evolution(records, questions, db_cards=db_cards)
+    assert records[1]["evolves_from_id"] == "B-001"
+
+
+def test_resolve_evolution_chain_walk_through_fallback():
+    """链根跨系列续走：B 二段 → A 一段 → A 基础，链根 = A 基础。"""
+    questions = Questions()
+    db_cards = [
+        _poke("A-001", "海刺龙", evolves_from_id="A-002"),
+        _poke("A-002", "墨海马"),
+    ]
+    records = [_poke("B-001", "刺龙王", evolves_from_text="海刺龙")]
+    derive.resolve_evolution(records, questions, db_cards=db_cards)
+    assert records[0]["evolves_from_id"] == "A-001"
+    assert records[0]["evolution_chain_id"] == "A-002"
+
+
 # ---- 黄金样本：真实 raw → 入库逐字段断言 ----
 
 

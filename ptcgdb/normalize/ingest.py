@@ -206,15 +206,32 @@ def ingest_set(
             result.skipped.append(path.name)
 
     # 派生：进化链解析 + 同名归组（全量记录就绪后）
-    derive.resolve_evolution(records, questions)
+    # task 019：进化解析系列内无命中时回退全库索引（本系列旧行在 resolve 内排除）
+    apply_migrations(db_path)
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        db_cards = [
+            {
+                "card_id": r[0],
+                "name_full": r[1],
+                "species": r[2],
+                "card_type": r[3],
+                "evolves_from_id": r[4],
+            }
+            for r in session.execute(
+                select(
+                    Card.card_id, Card.name_full, Card.species,
+                    Card.card_type, Card.evolves_from_id,
+                )
+            )
+        ]
+    derive.resolve_evolution(records, questions, db_cards=db_cards)
     group_keys = {
         rec["card_id"]: derive.name_group_key(rec["name_full"], ctx.name_group_rules)
         for rec in records
     }
     rule_notes = {r["base"]: r.get("note") for r in ctx.name_group_rules}
 
-    apply_migrations(db_path)
-    engine = create_engine(f"sqlite:///{db_path}")
     with Session(engine) as session:
         session.merge(
             _build_set_row(cards_doc, records, fields.load_era_map(vocab_dir), questions, set_id)

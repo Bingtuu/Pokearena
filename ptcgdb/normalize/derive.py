@@ -206,13 +206,18 @@ def name_group_key(name_full: str, rules: list[dict[str, str]]) -> str:
 def resolve_evolution(
     records: list[dict[str, Any]],
     questions: Questions,
+    db_cards: list[dict[str, Any]] | None = None,
 ) -> None:
-    """在系列内解析 evolves_from_text → evolves_from_id，并派生 evolution_chain_id。
+    """解析 evolves_from_text → evolves_from_id，并派生 evolution_chain_id。
 
     records 为 normalize 后的卡牌 dict（就地修改，需含 card_id/name_full/species/
     card_type/evolves_from_text 键）。同名多印刷取编号最小者；
-    先按 name_full 精确匹配，再按 species 匹配（覆盖"阿罗拉 X ← X"形态）；
-    系列内解析不到 → None + question（跨系列/未收录情况）。
+    先按 name_full 精确匹配，再按 species 匹配（覆盖"阿罗拉 X ← X"形态）。
+
+    解析顺序（task 019）：**系列内优先**；系列内无命中时回退 db_cards（全库索引，
+    键同 records，另需 evolves_from_id 供链根续走），覆盖 SMP 促销/礼盒等
+    pre-evo 在其他系列的跨系列进化。库内也解析不到（化石等来源非收录宝可梦）
+    → None + question。
     """
     by_name: dict[str, list[dict[str, Any]]] = {}
     by_species: dict[str, list[dict[str, Any]]] = {}
@@ -220,6 +225,18 @@ def resolve_evolution(
         by_name.setdefault(rec["name_full"], []).append(rec)
         if rec["card_type"] == "pokemon" and rec.get("species"):
             by_species.setdefault(rec["species"], []).append(rec)
+
+    rec_ids = {rec["card_id"] for rec in records}
+    fb_by_name: dict[str, list[dict[str, Any]]] = {}
+    fb_by_species: dict[str, list[dict[str, Any]]] = {}
+    fb_info: dict[str, dict[str, Any]] = {}
+    for card in db_cards or []:
+        if card["card_id"] in rec_ids:
+            continue  # 本系列旧行不进入回退索引，新数据优先
+        fb_info[card["card_id"]] = card
+        fb_by_name.setdefault(card["name_full"], []).append(card)
+        if card["card_type"] == "pokemon" and card.get("species"):
+            fb_by_species.setdefault(card["species"], []).append(card)
 
     for rec in records:
         rec.setdefault("evolves_from_id", None)
@@ -231,23 +248,34 @@ def resolve_evolution(
         if candidates:
             candidates.sort(key=lambda c: c["card_id"])
             rec["evolves_from_id"] = candidates[0]["card_id"]
+            continue
+        fb_candidates = fb_by_name.get(text) or fb_by_species.get(text) or []
+        if fb_candidates:
+            fb_candidates.sort(key=lambda c: c["card_id"])
+            rec["evolves_from_id"] = fb_candidates[0]["card_id"]
         else:
             rec["evolves_from_id"] = None
             questions.add(
-                rec["card_id"], "evolves_from_text", text, "系列内未解析到进化前卡牌"
+                rec["card_id"], "evolves_from_text", text,
+                "库内未解析到进化前卡牌（系列内+全库回退均无候选）",
             )
 
     by_id = {rec["card_id"]: rec for rec in records}
+
+    def node_of(card_id: str) -> dict[str, Any] | None:
+        return by_id.get(card_id) or fb_info.get(card_id)
+
     for rec in records:
         rec.setdefault("evolution_chain_id", None)
         if rec["card_type"] != "pokemon":
             continue
         seen = set()
-        node = rec
-        while node.get("evolves_from_id") and node["card_id"] not in seen:
+        node: dict[str, Any] | None = rec
+        while node and node.get("evolves_from_id") and node["card_id"] not in seen:
             seen.add(node["card_id"])
-            node = by_id[node["evolves_from_id"]]
-        rec["evolution_chain_id"] = node["card_id"]
+            node = node_of(node["evolves_from_id"])
+        if node:
+            rec["evolution_chain_id"] = node["card_id"]
 
 
 def evolve_relations(records: list[dict[str, Any]]) -> list[tuple[str, str, str]]:

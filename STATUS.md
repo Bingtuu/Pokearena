@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：Phase 2 任务拆分与排期完成（2026-08-01）** —— M4 已收官（验收 A1~A8 全过、166 测试全绿）；PRD v1.5 落盘（task 021：映射取消繁中/新增 JP、校验源矩阵更新）。Phase 2 四个里程碑按 goal loop 顺序推进：M5 derive 跨系列进化解析（task 019）→ M6 跨语言映射 EN+JP（022~024）→ M7 卡组校验器（025~026）→ **M8 A2/A3 卡面人工比对（020，需用户在场，早上做，收尾）**。下一步：启动 M5 goal。
+**阶段：M5 ✅ 完成（goal 驱动，2026-08-02）** —— task 019 归档：derive 跨系列进化解析技术债清偿（未解析 401→5，全库回退 + 链根跨库续走，31 系列重 ingest skipped=0，FR-2.3 六规则全过，A3 复跑豁免 386→5）；169 测试全绿。下一步 M6 跨语言映射 EN+JP（task 022~024）。M8（A2/A3 人工比对，需用户在场）收尾做。
 
 ## 入口
 
@@ -26,7 +26,7 @@
 - [x] **M2 (Phase 1b)** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 基础（3~4 天）—— **2026-08-01 完成（task 007~011）**：双赛制快照入库、`legal_at`/`effective_text`（A4 用例 24 组）、apply/冻结/回滚（A5/A6）、dist 七件套（A7）、SDK 双后端一致（A8）
 - [x] **M3 (Phase 1c)** L0/L1 监控管线 + 提案生成 + 通知（2 天）—— **2026-08-01 完成（task 013~015）**：L0 全链路（探测→抓取→校验→active→快照后处理，真实 dry-run 零增量）；L1 三页监控（基线建立、零假阳性、提案=SnapshotSeed 超集被 legal-apply 直接消费、needs_manual 不猜测）；桌面/webhook 通知 + 提案闭环（applied 回写）+ L2 勘误导入（`legal-errata`，effective_text 联测）
 - [x] **M4** 验收 A1~A8 + 文档收尾（1 天）—— **2026-08-01 完成（task 016~018）**：验收 runner 一键全过（A1 standard 55/55、open 61/61；A4/A5/A6/A7/A8 证据报告六项 PASS）、A2 抽样 100 张清单 + A3 自动校验 5,122 项次全过、AGENTS/README/PRD/CHANGELOG 状态一致
-- [ ] **M5 (Phase 2)** derive 跨系列进化解析（task 019）
+- [x] **M5 (Phase 2)** derive 跨系列进化解析（task 019）—— **2026-08-02 完成**：全库回退解析，未解析 401→5（仅剩化石无收录豁免），31 系列重 ingest skipped=0，FR-2.3 六规则全过，A3 复跑 5,122 项次全过
 - [ ] **M6 (Phase 2)** 跨语言映射 EN+JP（task 021~024；v1.5 定：EN 桥 + TCGdex 同 ID 共构取 JP，不做繁中）
 - [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025~026）
 - [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场，收尾做）
@@ -49,8 +49,8 @@
 
 ## 已知技术债 / 待立项
 
-- **derive 跨系列进化解析缺口（task 017 发现）**：`resolve_evolution` 只在本系列 records 内匹配，跨系列进化（SMP 促销/礼盒卡的 pre-evo 在其他系列）解析不出——真实库 401 条未解析中除化石类合理豁免外多属此类。非数据错误，是功能增强项：建议立项做跨系列解析 + 受影响系列重 ingest。A3 报告 notes 区有完整清单（`reports/sampling-a3-20260801.md`）。
-- **A2/A3 卡面人工比对**：清单已就绪（`reports/sampling-a2-20260801.md` 100 张 / `sampling-a3-20260801.md` 50 张），需用户在场比对（小程序无 API），另约协作 session。
+- ~~derive 跨系列进化解析缺口~~：**已清偿（task 019，2026-08-02）**——`resolve_evolution` 全库回退解析，401 → 5（仅剩化石道具库内无收录的合理豁免；另修正 10 条原误判豁免：化石道具卡在 SVP 有收录）。收敛报告 `reports/task019-evolution-resolution-20260802.md`。
+- **A2/A3 卡面人工比对（M8）**：清单已就绪（`reports/sampling-a2-20260801.md` 100 张 / `sampling-a3-20260802.md` 50 张——A3 清单已随 task 019 复跑刷新），需用户在场比对（小程序无 API），另约协作 session。
 
 ## 进展日志
 
@@ -75,3 +75,4 @@
 - **2026-08-01**：**task 017 完成（M4-2 ✅）**。A2/A3 抽样比对工具 + CLI `ptcgdb sample`：A2 随机 100 张 × 11 字段人工比对清单（seed 可复现）、A3 特殊卡 DB-vs-raw 自动校验真实库 **5,122 项次全过**（修正校验器两个错误假设：ACE SPEC 含特殊能量、化石宝可梦进化来源豁免）。发现 derive 跨系列进化解析缺口（记"已知技术债"，待立项）。165 测试全绿。详见 `tasks/done/017`。
 - **2026-08-01**：**task 018 完成（M4-3 ✅）→ M4 完成，Phase 1 全部收官**。文档收尾：AGENTS.md 常用命令补全 + 当前状态/技术栈更新（Python 3.14）、README badge/亮点/Roadmap/CLI 示例同步、PRD 状态行更新、新建 CHANGELOG.md（四段式，v20260801.0 首批发布）、进展日志补齐 task 013~018。165 测试全绿、ruff 通过。详见 `tasks/done/018`。
 - **2026-08-01**：**task 021 完成（PRD v1.5 ✅）**。外部调研（校验源 + 映射源）驱动修订：跨语言映射**取消繁中、新增日文原版**——链路 = mik raw 英文桥 → EN（TCGdex 交叉校验）→ TCGdex 同 ID 多语言共构取 JP（零爬虫），pokemon-card.com 仅作抽样权威核对；校验源矩阵更新：TCGdex zh-cn 已收录全部简中系列壳（set_id 一致）但卡级 0% → 系列级跨源对账落地（FR-1.2/FR-2.3 规则 6），卡级跨源仍待实装；mik.moe 赛事数据库列为 validate_deck 真实卡组源；`external_ids.system` 枚举改 `{mik_en, tcgdex, pokemon_card_jp}`；README/AGENTS/STATUS 同步，里程碑表补 M5~M7。详见 `tasks/done/021`。
+- **2026-08-02**：**task 019 完成（M5 ✅，goal 驱动）**。derive 跨系列进化解析技术债清偿：`resolve_evolution` 加全库回退（系列内优先、无命中回退 db_cards 索引、链根跨库续走、本系列旧行排除）；真实库未解析 **401→5**——386 条跨系列全解析，另修正 10 条原误判"化石豁免"（化石道具卡 SVP 有收录，如 SSP-186 化石翼龙→SVP-015）；最终 5 条为化石道具库内无收录的合理豁免。31 系列重 ingest skipped=0，FR-2.3 六规则全过，A3 复跑（同 seed）5,122 项次全过、豁免 386→5。新增 3 单测，169 测试全绿、ruff 通过。收敛报告 `reports/task019-evolution-resolution-20260802.md`。详见 `tasks/done/019`。
