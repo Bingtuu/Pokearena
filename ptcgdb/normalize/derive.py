@@ -276,9 +276,14 @@ def union_relations(records: list[dict[str, Any]]) -> list[tuple[str, str, str]]
     rows: list[tuple[str, str, str]] = []
     for ids in groups.values():
         ids.sort()
-        hub = ids[0]
-        for cid in ids[1:]:
-            rows.append((cid, hub, "union_part_of"))
+        # 同名 >4 件 = 同系列收录了多只同名 V-UNION（task 006 CSEC 实测：
+        # 莫鲁贝可V-UNION 005-008 与 017-020 两组），V-UNION 固定 4 部件，
+        # 按 card_id 顺序每 4 件切一组；件数非 4 的倍数不切（留给规则 5 如实报缺）
+        chunks = [ids[i : i + 4] for i in range(0, len(ids), 4)] if len(ids) % 4 == 0 else [ids]
+        for chunk in chunks:
+            hub = chunk[0]
+            for cid in chunk[1:]:
+                rows.append((cid, hub, "union_part_of"))
     return rows
 
 

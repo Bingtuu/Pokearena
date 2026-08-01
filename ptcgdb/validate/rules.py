@@ -80,23 +80,73 @@ def _load_vocabs(vocab_dir: Path) -> _Vocabs:
     )
 
 
-def check_required(cards: list[Card]) -> RuleResult:
+def _raw_card_index(raw_dir: Path) -> dict[tuple[str, str], Path]:
+    """全库 raw 索引：(条目自身 setCode, cardIndex) → 卡片 json 路径。
+
+    产品附赠能量卡跨系列列表重复列出且归属原生系列（task 005 口径发现，
+    如 CSVH2C 目录的 DAR.json setCode=CSVH1C）——DB 卡的 set_id 与所在目录
+    可能不一致，规则 1/3/6 一律经此索引定位 raw，不按 set_id 目录直拼。
+    """
+    base = Path(raw_dir) / "mikmoe"
+    index: dict[tuple[str, str], Path] = {}
+    if not base.is_dir():
+        return index
+    import json
+
+    for set_dir in sorted(p for p in base.iterdir() if p.is_dir()):
+        cards_json = set_dir / "cards.json"
+        if not cards_json.exists():
+            continue
+        try:
+            entries = json.loads(cards_json.read_text(encoding="utf-8"))["data"]["cards"]
+        except (KeyError, json.JSONDecodeError):
+            continue
+        for entry in entries:
+            set_code = entry.get("setCode") or set_dir.name
+            card_index = entry.get("cardIndex")
+            if card_index is None:
+                continue
+            # 同一张卡可能被多个系列列表重复列出，先到先得（目录内容同构）
+            index.setdefault((set_code, str(card_index)), set_dir / f"{card_index}.json")
+    return index
+
+
+def check_required(
+    cards: list[Card], raw_index: dict[tuple[str, str], Path] | None = None
+) -> RuleResult:
     """规则 1：卡名/卡号/赛制标记/卡牌种类/text_raw 非空。
 
     基本能量豁免（task 005 实测）：is_basic_energy=TRUE 的卡无赛制标记、
     卡面无文字（text_raw 为空）均为数据事实——合法性走 is_basic_energy+快照
     路径（PRD FR-3.2），"卡面全部文字逐字保留"（§7.2）对无字卡面即空串。
     两项存 NULL/空不算必填缺失；其余字段对基本能量仍必填。
+
+    源数据缺失豁免（task 006 实测）：给出 raw_index 时，text_raw 为空且 raw
+    description 同样为空 = mik 源数据缺口（SSP-195 洗翠的沉重球），DB 忠实
+    反映源数据，记 note 不算失败；raw 有文字而 DB 为空才算管线丢失判失败。
     """
     res = RuleResult(rule="必填非空", checked=len(cards))
     res.note = "regulation_mark/text_raw 对 is_basic_energy=TRUE 的卡豁免（PRD FR-3.2/§7.2）"
+    source_missing: list[str] = []
     for c in cards:
         for name in REQUIRED_FIELDS:
             if name in ("regulation_mark", "text_raw") and c.is_basic_energy:
                 continue
             value = getattr(c, name)
             if value is None or (isinstance(value, str) and not value.strip()):
+                if name == "text_raw" and raw_index is not None:
+                    raw_path = raw_index.get((c.set_id, c.number))
+                    raw = read_raw(raw_path) if raw_path else None
+                    desc = ((raw or {}).get("data") or {}).get("description") or ""
+                    if raw is not None and not desc.strip():
+                        source_missing.append(c.card_id)
+                        continue
                 res.fail(card_id=c.card_id, field=name, note="必填字段为空")
+    if source_missing:
+        res.note += (
+            f"；源数据缺失豁免 {len(source_missing)} 张"
+            f"（raw description 同样为空）: {source_missing}"
+        )
     return res
 
 
@@ -142,7 +192,10 @@ def check_enums(cards: list[Card], vocabs: _Vocabs) -> RuleResult:
 
 
 def check_energy(
-    cards: list[Card], vocabs: _Vocabs, raw_dir: Path | None
+    cards: list[Card],
+    vocabs: _Vocabs,
+    raw_dir: Path | None,
+    raw_index: dict[tuple[str, str], Path] | None = None,
 ) -> RuleResult:
     """规则 3：招式 cost 能量符号在词表内；给出 raw_dir 时复核 cost 保序与 retreat_cost。
 
@@ -163,8 +216,12 @@ def check_energy(
                     )
         if raw_dir is None:
             continue
-        raw_path = Path(raw_dir) / "mikmoe" / c.set_id / f"{c.number}.json"
-        raw = read_raw(raw_path)
+        raw_path = (
+            raw_index.get((c.set_id, c.number))
+            if raw_index is not None
+            else Path(raw_dir) / "mikmoe" / c.set_id / f"{c.number}.json"
+        )
+        raw = read_raw(raw_path) if raw_path else None
         if raw is None:
             res.fail(card_id=c.card_id, field="raw", note="raw 缺失或 hash 无效，保序无法复核")
             continue
@@ -204,19 +261,51 @@ def check_energy(
     return res
 
 
-def check_reconciliation(sets: list[Set], cards: list[Card]) -> RuleResult:
-    """规则 4：系列对账，入库数 == expected_count + expected_secret_count（§7.1）。"""
+def check_reconciliation(
+    sets: list[Set], cards: list[Card], raw_dir: Path | None = None
+) -> RuleResult:
+    """规则 4：系列对账（§7.1）。
+
+    给出 raw_dir 时用实测口径（task 005 全量对账结论）：mik 会把产品附赠
+    能量卡在多个系列的 cards 列表中重复列出（条目 setCode 指向原生系列），
+    目录 cardsNum 含这些重复条目——对账期望值 = 全库 raw 按
+    (条目 setCode, cardIndex) 全局去重后、归属于该 setCode 的卡数；
+    入库数按 cards.set_id 计数。不给 raw_dir 时回退
+    expected_count + expected_secret_count 口径（单测/无 raw 场景）。
+    """
     res = RuleResult(rule="系列对账", checked=len(sets))
     counts = Counter(c.set_id for c in cards)
+    expected_by_set: dict[str, int] | None = None
+    if raw_dir is not None:
+        import json
+
+        seen: set[tuple[str, str]] = set()
+        base = Path(raw_dir) / "mikmoe"
+        for set_dir in sorted(p for p in base.iterdir() if p.is_dir()):
+            cards_json = set_dir / "cards.json"
+            if not cards_json.exists():
+                continue
+            try:
+                entries = json.loads(cards_json.read_text(encoding="utf-8"))["data"]["cards"]
+            except (KeyError, json.JSONDecodeError):
+                continue
+            for entry in entries:
+                key = (entry.get("setCode") or set_dir.name, str(entry.get("cardIndex")))
+                seen.add(key)
+        expected_by_set = dict(Counter(sc for sc, _ in seen))
+        res.note = "期望值按条目自身 setCode + (setCode, cardIndex) 全局去重（task 005 口径）"
     for s in sets:
         actual = counts.get(s.set_id, 0)
-        if s.expected_count is None:
+        if expected_by_set is not None:
+            expected = expected_by_set.get(s.set_id, 0)
+        elif s.expected_count is None:
             res.details.append(
                 {"set_id": s.set_id, "expected": None, "actual": actual, "ok": False}
             )
             res.fail(set_id=s.set_id, actual=actual, note="expected_count 未填，无法对账")
             continue
-        expected = s.expected_count + (s.expected_secret_count or 0)
+        else:
+            expected = s.expected_count + (s.expected_secret_count or 0)
         ok = actual == expected
         res.details.append(
             {"set_id": s.set_id, "expected": expected, "actual": actual, "ok": ok}
@@ -224,7 +313,7 @@ def check_reconciliation(sets: list[Set], cards: list[Card]) -> RuleResult:
         if not ok:
             res.fail(
                 set_id=s.set_id, expected=expected, actual=actual,
-                note="入库数 != expected_count + expected_secret_count",
+                note="入库数 != 期望数（条目 setCode 去重口径）",
             )
     return res
 
@@ -291,7 +380,11 @@ def check_vunion(cards: list[Card], relations: list[CardRelation]) -> RuleResult
     return res
 
 
-def check_sampling(cards: list[Card], raw_dir: Path | None) -> RuleResult:
+def check_sampling(
+    cards: list[Card],
+    raw_dir: Path | None,
+    raw_index: dict[tuple[str, str], Path] | None = None,
+) -> RuleResult:
     """规则 6：每系列 ≥5% 抽样（向上取整至少 1 张），DB vs raw 逐字段比对。
 
     抽样确定性：card_id 升序后等距取样。比对字段：卡名 + HP + 招式名，
@@ -319,7 +412,12 @@ def check_sampling(cards: list[Card], raw_dir: Path | None) -> RuleResult:
         )
         for c in sampled:
             res.checked += 1
-            raw = read_raw(Path(raw_dir) / "mikmoe" / set_id / f"{c.number}.json")
+            raw_path = (
+                raw_index.get((c.set_id, c.number))
+                if raw_index is not None
+                else Path(raw_dir) / "mikmoe" / set_id / f"{c.number}.json"
+            )
+            raw = read_raw(raw_path) if raw_path else None
             if raw is None:
                 res.fail(card_id=c.card_id, field="raw", note="raw 缺失或 hash 无效，无法比对")
                 continue
@@ -377,13 +475,14 @@ def run_validations(
                 ),
             )
             relations = list(session.scalars(rel_stmt))
+        raw_index = _raw_card_index(raw_dir) if raw_dir is not None else None
         results = [
-            check_required(cards),
+            check_required(cards, raw_index),
             check_enums(cards, vocabs),
-            check_energy(cards, vocabs, raw_dir),
-            check_reconciliation(sets, cards),
+            check_energy(cards, vocabs, raw_dir, raw_index),
+            check_reconciliation(sets, cards, raw_dir),
             check_vunion(cards, relations),
-            check_sampling(cards, raw_dir),
+            check_sampling(cards, raw_dir, raw_index),
         ]
     engine.dispose()
     return results

@@ -57,12 +57,27 @@ def card_payload(index: str, *, name: str | None = None, hp: int = 60) -> dict:
 
 
 def make_raw_dir(tmp_path: Path, count: int = CARD_COUNT, cards_num: int | None = None) -> Path:
-    """合成 raw 目录：count 张单卡 + 系列级 cards.json（cardsNum 默认=count 使对账通过）。"""
+    """合成 raw 目录：count 张单卡 + 系列级 cards.json（cardsNum 默认=count 使对账通过）。
+
+    cards 列表条目按真实 mik 形态填写（task 006：对账/raw 定位走条目
+    setCode + cardIndex 去重口径，空列表会导致期望数为 0）。
+    """
     set_dir = tmp_path / "raw" / "mikmoe" / SET_ID
     set_dir.mkdir(parents=True)
+    entries = []
     for i in range(1, count + 1):
         index = f"{i:03d}"
-        write_raw(set_dir / f"{index}.json", card_payload(index), source="mik_moe")
+        payload = card_payload(index)
+        write_raw(set_dir / f"{index}.json", payload, source="mik_moe")
+        entries.append(
+            {
+                "setCode": SET_ID,
+                "cardIndex": index,
+                "cardName": payload["data"]["name"],
+                "rarity": "C",
+                "cardType": "Pokemon",
+            }
+        )
     write_raw(
         set_dir / "cards.json",
         {
@@ -75,7 +90,7 @@ def make_raw_dir(tmp_path: Path, count: int = CARD_COUNT, cards_num: int | None 
                 "series": "Sun & Moon",
                 "mainExpansion": True,
                 "cardsNum": cards_num if cards_num is not None else count,
-                "cards": [],
+                "cards": entries,
             },
             "msg": "OK.",
         },
