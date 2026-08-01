@@ -743,3 +743,55 @@ def test_ingest_ex_and_ancient_future(tmp_path):
         assert c.rule_box_type is None
         assert "古代" in (c.effect_tags or "")
     engine.dispose()
+
+
+FIXTURE_CSV7C_DIR = Path(__file__).parent / "fixtures" / "raw" / "mikmoe" / "CSV7C"
+
+
+def test_ingest_ace_spec(tmp_path):
+    """ACE SPEC（task 005 实测）：物品/特殊能量 mechanic="ACE SPEC" →
+    is_ace_spec=True、deck_limit=1、rule_box_type=None、rarity=ACE，不报未知枚举。"""
+    raw_dir = tmp_path / "raw"
+    set_dir = raw_dir / "mikmoe" / "CSV7C"
+    set_dir.mkdir(parents=True)
+    for n in ("178", "203"):
+        shutil.copy(FIXTURE_CSV7C_DIR / f"{n}.json", set_dir / f"{n}.json")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "补充包 星晶奇迹",
+                "setCode": "CSV7C",
+                "setId": "CSV7C",
+                "releaseDate": "2025-01-01T00:00:00+08:00",
+                "series": "Scarlet & Violet",
+                "mainExpansion": True,
+                "cardsNum": 261,
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+
+    db_path = tmp_path / "test.db"
+    result = ingest_set(raw_dir, "CSV7C", db_path)
+    assert result.card_count == 2
+    assert result.skipped == []
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        c = session.get(Card, "CSV7C-178")
+        assert c.name_full == "高级香氛"
+        assert c.is_ace_spec is True
+        assert c.deck_limit == 1
+        assert c.rule_box_type is None
+        assert c.rarity == "ACE"
+
+        c = session.get(Card, "CSV7C-203")
+        assert c.name_full == "新冲天能量"
+        assert c.is_ace_spec is True
+        assert c.deck_limit == 1
+        assert c.rarity == "ACE"
+    engine.dispose()

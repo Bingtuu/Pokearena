@@ -41,6 +41,11 @@ LABEL_TAGS = {
 # 卡 mechanic="GX" + label=["TAG TEAM"]，CSM2aC/CSM2DC；PRD §7.2 prize=3）
 RULE_BOX_LABELS = {"TAG TEAM"}
 
+# 已知不产生 rule_box 的 mechanic（不报未知 question；task 005 实测：
+# ACE SPEC=物品/特殊能量卡的稀有机制，CSV7C 高级香氛/新冲天能量，rarity=ACE，
+# is_ace_spec/deck_limit=1 由 derive_is_ace_spec 生效，非宝可梦无 rule_box）
+NON_RULE_BOX_MECHANICS = {"ACE SPEC"}
+
 # mik stage → rule_box_type 覆盖（优先于 mechanic 映射；task 005 实测：
 # VMAX 卡 mechanic="V" + stage="VMAX"，CS1DC 巴大蝶VMAX 等；prize vmax=3）
 # V-UNION 卡同构：mechanic="V" + stage="V-UNION"（SSP 皮卡丘V-UNION 四部件实测）
@@ -122,7 +127,8 @@ def derive_rule_box(
         try:
             rule_box_type = MECHANIC_RULE_BOX[mechanic]
         except KeyError:
-            questions.add(card_id, "mechanic", mechanic, "未知 mechanic，rule_box_type 置空")
+            if mechanic not in NON_RULE_BOX_MECHANICS:
+                questions.add(card_id, "mechanic", mechanic, "未知 mechanic，rule_box_type 置空")
     # TAG TEAM GX：mechanic="GX" + label 含 "TAG TEAM" → tag_team_gx（prize=3）
     if mechanic == "GX" and "TAG TEAM" in labels:
         rule_box_type = "tag_team_gx"

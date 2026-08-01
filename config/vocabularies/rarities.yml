@@ -29,3 +29,5 @@ rarities:
   - ★
   - ★★
   - ★★★
+  # task 005 补入（CSV7C 实测：ACE SPEC 卡专用罕贵度）
+  - ACE

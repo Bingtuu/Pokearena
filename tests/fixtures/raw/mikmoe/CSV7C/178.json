@@ -1,0 +1,51 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T11:05:41.086700+00:00",
+    "source": "mik_moe",
+    "content_hash": "57c9524a2dede711dc369b1ce12879fedc9d85229f2bcad03d5b59e55fdd5179"
+  },
+  "code": 200,
+  "data": {
+    "name": "高级香氛",
+    "cardType": "Item",
+    "mechanic": "ACE SPEC",
+    "label": null,
+    "description": "选择自己牌库中最多3张【1阶进化】宝可梦，在给对手看过之后，加入手牌。并重洗牌库。",
+    "yorenCode": "Y1404",
+    "pokemonAttr": null,
+    "setCode": "CSV7C",
+    "cardIndex": "178",
+    "setCardsNum": "",
+    "artist": "Toyste Beach",
+    "rarity": "ACE",
+    "releaseDate": "2026-01-16T00:00:00+08:00",
+    "regulationMark": "H",
+    "effectId": "e8942749749a9d0069b3b47562ddb415",
+    "regulationLegal": {
+      "standard": true,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSV7C",
+        "cardIndex": "178",
+        "cardName": "高级香氛",
+        "rarity": "ACE",
+        "effectId": "e8942749749a9d0069b3b47562ddb415",
+        "cardType": "Item",
+        "yorenCode": "Y1404",
+        "is": [
+          "ACE SPEC"
+        ],
+        "setCodeEn": "TWM",
+        "cardIndexEn": "152",
+        "nameEn": "Hyper Aroma"
+      }
+    ],
+    "setCodeEn": "TWM",
+    "cardIndexEn": "152",
+    "nameEn": "Hyper Aroma"
+  },
+  "msg": "OK."
+}

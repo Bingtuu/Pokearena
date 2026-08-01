@@ -1,0 +1,66 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T11:06:34.168325+00:00",
+    "source": "mik_moe",
+    "content_hash": "7c8f5197d8e7f71a6a5cdd860b7b4bf0e462d6f23adcc3361bd328a78e142099"
+  },
+  "code": 200,
+  "data": {
+    "name": "新冲天能量",
+    "cardType": "Special Energy",
+    "mechanic": "ACE SPEC",
+    "label": null,
+    "description": "只要这张卡牌，被附着于宝可梦身上，就被视作1个【无】能量。\n\n如果被附着于【2阶进化】宝可梦身上的话，则被视作2个所有属性的能量。",
+    "yorenCode": "Y1429",
+    "pokemonAttr": null,
+    "setCode": "CSV7C",
+    "cardIndex": "203",
+    "setCardsNum": "",
+    "artist": "",
+    "rarity": "ACE",
+    "releaseDate": "2026-01-16T00:00:00+08:00",
+    "regulationMark": "H",
+    "effectId": "83aba7d0c92c81e8c03b3785af695c2f",
+    "regulationLegal": {
+      "standard": true,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "CSVM2bC",
+        "cardIndex": "033",
+        "cardName": "新冲天能量",
+        "rarity": "无标记",
+        "effectId": "83aba7d0c92c81e8c03b3785af695c2f",
+        "cardType": "Special Energy",
+        "yorenCode": "Y1429",
+        "is": [
+          "ACE SPEC"
+        ],
+        "setCodeEn": "TEF",
+        "cardIndexEn": "162",
+        "nameEn": "Neo Upper Energy"
+      },
+      {
+        "setCode": "CSV7C",
+        "cardIndex": "203",
+        "cardName": "新冲天能量",
+        "rarity": "ACE",
+        "effectId": "83aba7d0c92c81e8c03b3785af695c2f",
+        "cardType": "Special Energy",
+        "yorenCode": "Y1429",
+        "is": [
+          "ACE SPEC"
+        ],
+        "setCodeEn": "TEF",
+        "cardIndexEn": "162",
+        "nameEn": "Neo Upper Energy"
+      }
+    ],
+    "setCodeEn": "TEF",
+    "cardIndexEn": "162",
+    "nameEn": "Neo Upper Energy"
+  },
+  "msg": "OK."
+}
