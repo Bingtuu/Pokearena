@@ -196,6 +196,27 @@ def accept(
 
 
 @app.command()
+def sample(
+    a2: bool = typer.Option(False, "--a2", help="只生成 A2 字段抽样清单（100 张）"),
+    a3: bool = typer.Option(False, "--a3", help="只生成 A3 机制核对报告（自动校验 + 50 张清单）"),
+    seed: int = typer.Option(20260801, "--seed", help="抽样种子（同 seed 可复现）"),
+    db_path: Path = DEFAULT_DB_PATH,
+    out_dir: Path = Path("reports"),
+) -> None:
+    """A2/A3 抽样比对工具：生成人工卡面比对清单（小程序无 API，比对需人工）。"""
+    from ptcgdb.accept.sampling import write_a2_checklist, write_a3_report
+
+    if not a2 and not a3:
+        a2 = a3 = True
+    if a2:
+        path = write_a2_checklist(db_path, out_dir, seed=seed)
+        typer.echo(f"A2 清单: {path}")
+    if a3:
+        path = write_a3_report(db_path, out_dir, seed=seed)
+        typer.echo(f"A3 报告: {path}")
+
+
+@app.command()
 def rollback(db_path: Path = DEFAULT_DB_PATH) -> None:
     """回滚：用最新备份覆盖当前 DB（FR-6.3）。"""
     try:
