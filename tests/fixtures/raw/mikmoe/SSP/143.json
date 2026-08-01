@@ -1,0 +1,112 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T07:05:19.264857+00:00",
+    "source": "mik_moe",
+    "content_hash": "6d805f44a9ada3caf5a633993cfe0dfaa4896f64d20ddcea698f587c2837b90a"
+  },
+  "code": 200,
+  "data": {
+    "name": "喷火龙VSTAR",
+    "cardType": "Pokemon",
+    "mechanic": null,
+    "label": null,
+    "description": "【火】【火】【无】 爆裂火焰 130+\n如果这只宝可梦身上放置有伤害指示物的话，则追加造成100点伤害。\n\n【火】【火】【火】【无】 星耀烈焰 320\n选择附着于这只宝可梦身上的2个能量，放于弃牌区。[对战中，己方的【VSTAR】力量只能使用1次。]\n\n",
+    "yorenCode": "Y998",
+    "pokemonAttr": {
+      "energyType": "R",
+      "stage": "VSTAR",
+      "hp": 280,
+      "ability": [],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "W",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 2,
+      "attack": [
+        {
+          "name": "爆裂火焰",
+          "text": "如果这只宝可梦身上放置有伤害指示物的话，则追加造成100点伤害。",
+          "cost": "RRC",
+          "damage": "130+",
+          "isVStarPower": false
+        },
+        {
+          "name": "星耀烈焰",
+          "text": "选择附着于这只宝可梦身上的2个能量，放于弃牌区。[对战中，己方的【VSTAR】力量只能使用1次。]",
+          "cost": "RRRC",
+          "damage": "320",
+          "isVStarPower": true
+        }
+      ],
+      "evolvesFrom": "喷火龙V"
+    },
+    "setCode": "SSP",
+    "cardIndex": "143",
+    "setCardsNum": "",
+    "artist": "KIYOTAKA OSHIYAMA",
+    "rarity": "无标记",
+    "releaseDate": "2024-10-26T00:00:00+08:00",
+    "regulationMark": "F",
+    "effectId": "5d6de77c946e3492ef55bed07e2718fe",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "SSP",
+        "cardIndex": "143",
+        "cardName": "喷火龙VSTAR",
+        "rarity": "无标记",
+        "effectId": "5d6de77c946e3492ef55bed07e2718fe",
+        "cardType": "Pokemon",
+        "yorenCode": "Y998",
+        "is": [
+          "VSTAR"
+        ],
+        "setCodeEn": "SP",
+        "cardIndexEn": "262",
+        "nameEn": "Charizard VSTAR"
+      },
+      {
+        "setCode": "CS5aC",
+        "cardIndex": "005",
+        "cardName": "喷火龙VSTAR",
+        "rarity": "RRR",
+        "effectId": "5d6de77c946e3492ef55bed07e2718fe",
+        "cardType": "Pokemon",
+        "yorenCode": "Y998",
+        "is": [
+          "V",
+          "VSTAR"
+        ],
+        "setCodeEn": "SP",
+        "cardIndexEn": "262",
+        "nameEn": "Charizard VSTAR"
+      },
+      {
+        "setCode": "CS5aC",
+        "cardIndex": "158",
+        "cardName": "喷火龙VSTAR",
+        "rarity": "HR",
+        "effectId": "5d6de77c946e3492ef55bed07e2718fe",
+        "cardType": "Pokemon",
+        "yorenCode": "Y998",
+        "is": [
+          "V",
+          "VSTAR"
+        ],
+        "setCodeEn": "SP",
+        "cardIndexEn": "262",
+        "nameEn": "Charizard VSTAR"
+      }
+    ],
+    "setCodeEn": "SP",
+    "cardIndexEn": "262",
+    "nameEn": "Charizard VSTAR"
+  },
+  "msg": "OK."
+}

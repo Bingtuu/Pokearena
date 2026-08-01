@@ -327,6 +327,15 @@ def test_vunion_duplicate_position_fails(db_env):
     assert any("方位缺失" in f["note"] for f in res.failures)
 
 
+def test_vunion_all_positions_none_passes(db_env):
+    """mik 无方位字段（task 005 SSP 实测）：全 None 只查 4 部件齐全，不判失败。"""
+    _, db_path = db_env
+    add_union_cards(db_path, (None, None, None, None))  # type: ignore[arg-type]
+    res = union_rule(db_env)
+    assert res.passed
+    assert res.note and "方位数据不可得" in res.note
+
+
 # ---- 规则 6：抽样比对 ----
 
 

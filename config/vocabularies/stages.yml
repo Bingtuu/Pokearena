@@ -6,3 +6,5 @@ stages:
   - { mik: Stage 1, stage: 1阶 }
   - { mik: Stage 2, stage: 2阶 }
   - { mik: VMAX, stage: VMAX }
+  - { mik: V-UNION, stage: V-UNION }   # task 005 实测（SSP 皮卡丘V-UNION 四部件）
+  - { mik: VSTAR, stage: VSTAR }       # task 005 实测（SSP 喷火龙VSTAR/超梦VSTAR）

@@ -251,6 +251,16 @@ def ingest_set(
                     source=SOURCE,
                 )
             )
+        for card_id, related_id, rel_type in derive.union_relations(records):
+            session.add(
+                CardRelation(
+                    card_id=card_id,
+                    related_card_id=related_id,
+                    relation_type=rel_type,
+                    confidence="high",
+                    source=SOURCE,
+                )
+            )
         session.commit()
     engine.dispose()
 

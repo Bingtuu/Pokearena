@@ -539,3 +539,105 @@ def test_ingest_golden_pokemon_vmax(tmp_path):
         assert c.hp == 300
         assert c.evolves_from_text == "巴大蝶V"
     engine.dispose()
+
+
+# ---- V-UNION 黄金样本：SSP/109~112（task 005 实测 stage="V-UNION" 四部件同构）----
+
+FIXTURE_SSP_DIR = Path(__file__).parent / "fixtures" / "raw" / "mikmoe" / "SSP"
+
+
+def test_ingest_golden_v_union(tmp_path):
+    """皮卡丘V-UNION 四部件：v_union/prize=3/deck_limit=1；union_part_of 星形关系。"""
+    raw_dir = tmp_path / "raw"
+    set_dir = raw_dir / "mikmoe" / "SSP"
+    set_dir.mkdir(parents=True)
+    for n in ("109", "110", "111", "112"):
+        shutil.copy(FIXTURE_SSP_DIR / f"{n}.json", set_dir / f"{n}.json")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "四方联结礼盒",
+                "setCode": "SSP",
+                "setId": "SSP",
+                "releaseDate": "2023-09-01T00:00:00+08:00",
+                "series": "Sword & Shield",
+                "mainExpansion": False,
+                "cardsNum": 300,
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+
+    db_path = tmp_path / "test.db"
+    result = ingest_set(raw_dir, "SSP", db_path)
+    assert result.card_count == 4
+    assert result.skipped == []
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        c = session.get(Card, "SSP-109")
+        assert c.name_full == "皮卡丘V-UNION"
+        assert c.species == "皮卡丘"
+        assert c.stage == "V-UNION"
+        assert c.rule_box_type == "v_union"
+        assert c.prize_cards == 3
+        assert c.deck_limit == 1
+        assert c.union_position is None  # mik 无方位字段（task 005 实测）
+        rels = {
+            (r.card_id, r.related_card_id)
+            for r in session.query(CardRelation).filter_by(relation_type="union_part_of")
+        }
+        # 星形边：110/111/112 → 109（组内最小 card_id）
+        assert rels == {
+            ("SSP-110", "SSP-109"),
+            ("SSP-111", "SSP-109"),
+            ("SSP-112", "SSP-109"),
+        }
+    engine.dispose()
+
+
+def test_ingest_golden_vstar(tmp_path):
+    """喷火龙VSTAR：stage="VSTAR"（mechanic=None）→ vstar/prize=2。"""
+    raw_dir = tmp_path / "raw"
+    set_dir = raw_dir / "mikmoe" / "SSP"
+    set_dir.mkdir(parents=True)
+    shutil.copy(FIXTURE_SSP_DIR / "143.json", set_dir / "143.json")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "四方联结礼盒",
+                "setCode": "SSP",
+                "setId": "SSP",
+                "releaseDate": "2023-09-01T00:00:00+08:00",
+                "series": "Sword & Shield",
+                "mainExpansion": False,
+                "cardsNum": 300,
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+
+    db_path = tmp_path / "test.db"
+    result = ingest_set(raw_dir, "SSP", db_path)
+    assert result.card_count == 1
+    assert result.skipped == []
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        c = session.get(Card, "SSP-143")
+        assert c.name_full == "喷火龙VSTAR"
+        assert c.species == "喷火龙"
+        assert c.stage == "VSTAR"
+        assert c.rule_box_type == "vstar"
+        assert c.prize_cards == 2
+        assert c.deck_limit == 4
+        assert c.hp == 280
+    engine.dispose()

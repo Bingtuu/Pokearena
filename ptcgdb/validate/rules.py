@@ -233,6 +233,8 @@ def check_vunion(cards: list[Card], relations: list[CardRelation]) -> RuleResult
     """规则 5：V-UNION 4 部件齐全（union_part_of 连通分量）、方位互斥不重复。
 
     无 V-UNION 样本（rule_box_type=v_union 或 union_position 非空）时规则跳过。
+    方位校验仅在有方位数据时执行：mik 无部件方位字段（task 005 SSP 实测，
+    四部件同构），全 None 时只查 4 部件齐全并如实注明。
     """
     res = RuleResult(rule="V-UNION 完整性")
     union_cards = [c for c in cards if c.rule_box_type == "v_union" or c.union_position]
@@ -266,11 +268,17 @@ def check_vunion(cards: list[Card], relations: list[CardRelation]) -> RuleResult
         ids = [c.card_id for c in comp]
         if len(comp) != 4:
             res.fail(card_ids=ids, note=f"union_part_of 部件数={len(comp)}，应为 4")
+        positions = [c.union_position for c in comp]
+        if all(p is None for p in positions):
+            # mik 无部件方位字段（task 005 SSP 实测：四部件数据完全同构），
+            # 方位校验整体跳过并如实注明，不判失败
+            res.note = "部件方位数据不可得（mik 无此字段），方位校验跳过（task 005）"
+            continue
         seen: set[str] = set()
         for c in comp:
             pos = c.union_position
             if pos is None:
-                res.fail(card_id=c.card_id, note="union_position 未填")
+                res.fail(card_id=c.card_id, note="union_position 未填（部分部件有方位数据）")
             elif pos not in V_UNION_POSITIONS:
                 res.fail(card_id=c.card_id, value=pos, note="未知方位")
             elif pos in seen:

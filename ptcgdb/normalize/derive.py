@@ -21,9 +21,13 @@ MECHANIC_RULE_BOX = {
     "V": "v",
 }
 
-# mik label → effect_tags 粗粒度标签（task 004 实测：Ultra Beast=究极异兽）
+# mik label → effect_tags 粗粒度标签（task 004 实测：Ultra Beast=究极异兽；
+# task 005 实测：Single Strike=一击 / Rapid Strike=连击，SSP 斗笠菇V 等，剑&盾战斗流派）
 LABEL_TAGS = {
     "Ultra Beast": "究极异兽",
+    "Single Strike": "一击",
+    "Rapid Strike": "连击",
+    "Fusion Strike": "汇流",  # task 005 实测（SSP 伽勒尔 踏冰人偶V 等）
 }
 
 # 被 rule_box 消费、不进 effect_tags 的 label（task 005 实测：TAG TEAM GX
@@ -32,8 +36,11 @@ RULE_BOX_LABELS = {"TAG TEAM"}
 
 # mik stage → rule_box_type 覆盖（优先于 mechanic 映射；task 005 实测：
 # VMAX 卡 mechanic="V" + stage="VMAX"，CS1DC 巴大蝶VMAX 等；prize vmax=3）
+# V-UNION 卡同构：mechanic="V" + stage="V-UNION"（SSP 皮卡丘V-UNION 四部件实测）
 STAGE_RULE_BOX = {
     "VMAX": "vmax",
+    "V-UNION": "v_union",
+    "VSTAR": "vstar",  # task 005 实测：stage="VSTAR"（mechanic=None），SSP 喷火龙VSTAR
 }
 
 # name_full 规则后缀（拆 species 用；ex/GX 后缀不同的卡规则上不同名，见 §6.2）
@@ -241,6 +248,27 @@ def evolve_relations(records: list[dict[str, Any]]) -> list[tuple[str, str, str]
     return rows
 
 
+def union_relations(records: list[dict[str, Any]]) -> list[tuple[str, str, str]]:
+    """V-UNION 部件关系：同系列同名 rule_box_type=v_union 的卡归为一只组合体。
+
+    mik 无独立"组合体"卡行（四部件同名同内容，task 005 SSP 实测），
+    以星形边编码：每个部件 → 组内 card_id 最小者（并查集语义下连通即一体，
+    完整性校验见 validate 规则 5）。
+    """
+    groups: dict[tuple[str, str], list[str]] = {}
+    for rec in records:
+        if rec.get("rule_box_type") == "v_union":
+            key = (rec["set_id"], rec["name_full"])
+            groups.setdefault(key, []).append(rec["card_id"])
+    rows: list[tuple[str, str, str]] = []
+    for ids in groups.values():
+        ids.sort()
+        hub = ids[0]
+        for cid in ids[1:]:
+            rows.append((cid, hub, "union_part_of"))
+    return rows
+
+
 __all__ = [
     "UnknownEnumError",
     "derive_basic_energy",
@@ -254,4 +282,5 @@ __all__ = [
     "name_group_key",
     "resolve_evolution",
     "split_owner_species",
+    "union_relations",
 ]

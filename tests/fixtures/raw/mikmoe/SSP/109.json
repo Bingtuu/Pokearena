@@ -1,0 +1,143 @@
+{
+  "_meta": {
+    "fetched_at": "2026-08-01T07:04:11.259570+00:00",
+    "source": "mik_moe",
+    "content_hash": "8ea808235ddf25363522140687a171de015c271a41b7c78171e9f6688ae1168a"
+  },
+  "code": 200,
+  "data": {
+    "name": "皮卡丘V-UNION",
+    "cardType": "Pokemon",
+    "mechanic": "V",
+    "label": null,
+    "description": "【无】 同盟增辉 \n选择自己弃牌区中最多2张【雷】能量，附着于这只宝可梦身上。\n\n【雷】【无】 麻麻冲击 120\n抛掷1次硬币如果为正面，则使对手的战斗宝可梦陷入【麻痹】状态。\n\n【雷】【雷】【无】 电磁干扰 150\n在下一个对手的回合，对手无法从手牌使出物品。\n\n【雷】【雷】【无】 一同电球 250\n\n\n",
+    "yorenCode": "Y802",
+    "pokemonAttr": {
+      "energyType": "L",
+      "stage": "V-UNION",
+      "hp": 300,
+      "ability": [],
+      "ancientTrait": "",
+      "weakness": {
+        "energy": "F",
+        "value": "×2"
+      },
+      "resistance": null,
+      "retreatCost": 2,
+      "attack": [
+        {
+          "name": "同盟增辉",
+          "text": "选择自己弃牌区中最多2张【雷】能量，附着于这只宝可梦身上。",
+          "cost": "C",
+          "damage": "",
+          "isVStarPower": false
+        },
+        {
+          "name": "麻麻冲击",
+          "text": "抛掷1次硬币如果为正面，则使对手的战斗宝可梦陷入【麻痹】状态。",
+          "cost": "LC",
+          "damage": "120",
+          "isVStarPower": false
+        },
+        {
+          "name": "电磁干扰",
+          "text": "在下一个对手的回合，对手无法从手牌使出物品。",
+          "cost": "LLC",
+          "damage": "150",
+          "isVStarPower": false
+        },
+        {
+          "name": "一同电球",
+          "text": "",
+          "cost": "LLC",
+          "damage": "250",
+          "isVStarPower": false
+        }
+      ],
+      "evolvesFrom": ""
+    },
+    "setCode": "SSP",
+    "cardIndex": "109",
+    "setCardsNum": "",
+    "artist": "5ban Graphics",
+    "rarity": "无标记",
+    "releaseDate": "2024-01-19T00:00:00+08:00",
+    "regulationMark": "E",
+    "effectId": "35fcd3bdac08ed3d6be114e875633eb7",
+    "regulationLegal": {
+      "standard": false,
+      "expanded": true,
+      "smSeries": false
+    },
+    "effectSameCards": [
+      {
+        "setCode": "SSP",
+        "cardIndex": "109",
+        "cardName": "皮卡丘V-UNION",
+        "rarity": "无标记",
+        "effectId": "35fcd3bdac08ed3d6be114e875633eb7",
+        "cardType": "Pokemon",
+        "yorenCode": "Y802",
+        "is": [
+          "V",
+          "V-UNION"
+        ],
+        "setCodeEn": "SP",
+        "cardIndexEn": "139",
+        "nameEn": "Pikachu V-UNION"
+      },
+      {
+        "setCode": "SSP",
+        "cardIndex": "110",
+        "cardName": "皮卡丘V-UNION",
+        "rarity": "无标记",
+        "effectId": "35fcd3bdac08ed3d6be114e875633eb7",
+        "cardType": "Pokemon",
+        "yorenCode": "Y802",
+        "is": [
+          "V",
+          "V-UNION"
+        ],
+        "setCodeEn": "SP",
+        "cardIndexEn": "139",
+        "nameEn": "Pikachu V-UNION"
+      },
+      {
+        "setCode": "SSP",
+        "cardIndex": "111",
+        "cardName": "皮卡丘V-UNION",
+        "rarity": "无标记",
+        "effectId": "35fcd3bdac08ed3d6be114e875633eb7",
+        "cardType": "Pokemon",
+        "yorenCode": "Y802",
+        "is": [
+          "V",
+          "V-UNION"
+        ],
+        "setCodeEn": "SP",
+        "cardIndexEn": "139",
+        "nameEn": "Pikachu V-UNION"
+      },
+      {
+        "setCode": "SSP",
+        "cardIndex": "112",
+        "cardName": "皮卡丘V-UNION",
+        "rarity": "无标记",
+        "effectId": "35fcd3bdac08ed3d6be114e875633eb7",
+        "cardType": "Pokemon",
+        "yorenCode": "Y802",
+        "is": [
+          "V",
+          "V-UNION"
+        ],
+        "setCodeEn": "SP",
+        "cardIndexEn": "139",
+        "nameEn": "Pikachu V-UNION"
+      }
+    ],
+    "setCodeEn": "SP",
+    "cardIndexEn": "139",
+    "nameEn": "Pikachu V-UNION"
+  },
+  "msg": "OK."
+}
