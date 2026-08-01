@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M1（Phase 1a）进行中（goal 驱动）** —— task 004 完成（normalize + 入库管线，CSM1aC 211 张全部入库 draft）。下一步 **task 005（校验 draft→active + 校验报告）**。主源接口文档见 `docs/mikmoe-api.md`。
+**阶段：M1（Phase 1a）进行中（goal 驱动）** —— **task 005 进行中（全量抓取 + 全量入库 draft）**。task 004 已完成（CSM1aC 211 张入库 draft）。后续 task 006 = 校验 draft→active + 校验报告。主源接口文档见 `docs/mikmoe-api.md`。
 
 ## 入口
 
