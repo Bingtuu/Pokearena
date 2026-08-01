@@ -1,0 +1,61 @@
+# 标准赛制环境快照（官方赛制页 2026-07-16 版）
+# 来源：https://www.pokemon.cn/tcg-rules-regulation
+# 维护：L1 监控发现赛制页变更 → 提案 → 人工确认 → apply 生成新快照（PRD FR-5.2），本文件不手改。
+snapshot_id: standard-2026-07-16
+format: standard
+effective_from: 2026-07-16
+source_url: https://www.pokemon.cn/tcg-rules-regulation
+allowed_marks: [G, H, I]
+allowed_basic_energy_types: [草, 火, 水, 雷, 超, 斗, 恶, 钢]  # 标准 8 种，不含妖（2023-11-06 公告口径）
+whitelist_cards:
+  # —— 特典卡 18 种（30th-P）——
+  - {name_full: 妙蛙种子, note: "特典卡 PROMO_001/30th-P"}
+  - {name_full: 小火龙, note: "特典卡 PROMO_002/30th-P"}
+  - {name_full: 杰尼龟, note: "特典卡 PROMO_003/30th-P"}
+  - {name_full: 菊草叶, note: "特典卡 PROMO_004/30th-P"}
+  - {name_full: 火球鼠, note: "特典卡 PROMO_005/30th-P"}
+  - {name_full: 小锯鳄, note: "特典卡 PROMO_006/30th-P"}
+  - {name_full: 草苗龟, note: "特典卡 PROMO_010/30th-P"}
+  - {name_full: 小火焰猴, note: "特典卡 PROMO_011/30th-P"}
+  - {name_full: 波加曼, note: "特典卡 PROMO_012/30th-P"}
+  - {name_full: 藤藤蛇, note: "特典卡 PROMO_013/30th-P"}
+  - {name_full: 暖暖猪, note: "特典卡 PROMO_014/30th-P"}
+  - {name_full: 水水獭, note: "特典卡 PROMO_015/30th-P"}
+  - {name_full: 木木枭, note: "特典卡 PROMO_019/30th-P"}
+  - {name_full: 火斑喵, note: "特典卡 PROMO_020/30th-P"}
+  - {name_full: 球球海狮, note: "特典卡 PROMO_021/30th-P"}
+  - {name_full: 敲音猴, note: "特典卡 PROMO_022/30th-P"}
+  - {name_full: 炎兔儿, note: "特典卡 PROMO_023/30th-P"}
+  - {name_full: 泪眼蜥, note: "特典卡 PROMO_024/30th-P"}
+  # —— 过去系列卡牌 26 种（描述按最新卡牌为准，FR-3.3）——
+  - {name_full: 宝可梦捕捉器}
+  - {name_full: 宝可梦交替}
+  - {name_full: 宝可装置3.0}
+  - {name_full: 宝可梦中心的姐姐}
+  - {name_full: 博士的研究, note: "不同人物/插画均视同名（官方赛制页注释）"}
+  - {name_full: 裁判}
+  - {name_full: 超级球}
+  - {name_full: 巢穴球}
+  - {name_full: 反击捕捉器}
+  - {name_full: 反击增幅器}
+  - {name_full: 粉碎之锤}
+  - {name_full: 改造之锤}
+  - {name_full: 高级球}
+  - {name_full: 活力头带}
+  - {name_full: 讲究腰带}
+  - {name_full: 精灵球}
+  - {name_full: 老大的指令, note: "不同人物/插画均视同名（官方赛制页注释）"}
+  - {name_full: 能量回收}
+  - {name_full: 能量输送}
+  - {name_full: 能量再利用}
+  - {name_full: 能量转移}
+  - {name_full: 朋友手册}
+  - {name_full: 伤药}
+  - {name_full: 神奇糖果}
+  - {name_full: 西餐厨师}
+  - {name_full: 学习装置}
+  # 注：官方另列"各种基本能量卡"，由 allowed_basic_energy_types 路径判定（FR-3.2 第 5 步），不进白名单。
+banned_cards: []  # 标准赛制当前无禁卡表
+mark_overrides:
+  # 官方 2023-11-06 公告：天空之柱（CSM2D 339/342）赛制标记视作 B；库内该印刷 card_id 为 CSM2DC-339
+  - {card_id: CSM2DC-339, mark: B, note: "天空之柱赛制标记视作 B（2023-11-06 公告）"}

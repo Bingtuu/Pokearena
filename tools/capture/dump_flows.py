@@ -70,13 +70,17 @@ def main() -> int:
         key = (f.request.method, f.request.host, f.request.path.split("?")[0])
         status = f.response.status_code if f.response else "-"
         ct = (f.response.headers.get("content-type", "") if f.response else "").split(";")[0]
-        seen.setdefault(key, []).append((status, ct, len(f.response.content or b"") if f.response else 0))
+        size = len(f.response.content or b"") if f.response else 0
+        seen.setdefault(key, []).append((status, ct, size))
 
     print(f"共 {len(flows)} 条请求，去重后 {len(seen)} 个接口：\n")
     for i, ((method, host, path), hits) in enumerate(seen.items(), 1):
         statuses = {s for s, _, _ in hits}
         cts = {c for _, c, _ in hits}
-        print(f"[{i}] {method} {host}{path}  x{len(hits)}  状态={sorted(statuses)}  类型={sorted(cts)}")
+        print(
+            f"[{i}] {method} {host}{path}  x{len(hits)}  "
+            f"状态={sorted(statuses)}  类型={sorted(cts)}"
+        )
     return 0
 
 

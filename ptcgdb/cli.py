@@ -8,6 +8,7 @@ import typer
 from sqlalchemy import create_engine, select, update
 from sqlalchemy.orm import Session
 
+from ptcgdb.legal import seed_snapshots
 from ptcgdb.migrations import apply_migrations
 from ptcgdb.normalize import ingest_set
 from ptcgdb.orm import Card, Set
@@ -130,6 +131,16 @@ def search() -> None:
 def get() -> None:
     """按 card_id 点查（未实现）。"""
     typer.echo("not implemented")
+
+
+@app.command("legal-seed")
+def legal_seed(
+    config_dir: Path = Path("config/legality"),
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """环境快照种子入库：config/legality/*.yml → legality_snapshots（upsert，幂等）。"""
+    ids = seed_snapshots(db_path, config_dir)
+    typer.echo(f"OK: seeded {len(ids)} snapshots: {', '.join(ids)}")
 
 
 @app.command()
