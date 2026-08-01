@@ -145,13 +145,36 @@ def legal_apply(
     ],
     db_path: Path = DEFAULT_DB_PATH,
 ) -> None:
-    """应用赛制变更提案：备份 → 关旧快照开新快照 → 版本递增 → CHANGELOG。"""
+    """应用赛制变更提案：备份 → 关旧快照开新快照 → 版本递增 → CHANGELOG。
+
+    成功后回写提案文件 status=applied（FR-5.2 闭环）。
+    """
     try:
         sid = apply_snapshot(db_path, proposal)
     except (ValueError, LookupError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
+    from ptcgdb.monitor.proposals import mark_proposal_applied
+
+    mark_proposal_applied(proposal, sid)
     typer.echo(f"OK: 新快照 {sid} 已生效（备份在 {db_path.parent / 'versions'}）")
+    typer.echo(f"提案已标记 applied: {proposal}")
+
+
+@app.command("legal-errata")
+def legal_errata(
+    config_dir: Path = Path("config/errata"),
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """L2 勘误导入：config/errata/*.yml → errata 表（upsert 幂等，FR-5.3）。"""
+    from ptcgdb.legal.errata import import_errata
+
+    result = import_errata(db_path, config_dir)
+    typer.echo(f"OK: imported={len(result.imported)}: {', '.join(result.imported)}")
+    for w in result.warnings:
+        typer.echo(f"  ! {w}", err=True)
+    if result.warnings and not result.imported:
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -270,9 +293,20 @@ def scrape_cards(
     _run_scrape("cards", raw_dir, db_path, force, set_id)
 
 
+def _make_notifier(notify: bool, webhook: str | None):
+    """--notify/--no-notify + --webhook 组装 on_event 通知回调。"""
+    from ptcgdb.monitor.notify import Notifier, make_event_handler
+
+    if not notify and not webhook:
+        return None
+    return make_event_handler(Notifier(desktop=notify, webhook_url=webhook))
+
+
 @monitor_app.command("l0")
 def monitor_l0(
     dry_run: bool = typer.Option(False, "--dry-run", help="只探测增量（只读，零额外请求）"),
+    notify: bool = typer.Option(True, "--notify/--no-notify", help="重要事件桌面通知"),
+    webhook: str | None = typer.Option(None, "--webhook", help="webhook URL（可选）"),
     raw_dir: Path = DEFAULT_RAW_DIR,
     db_path: Path = DEFAULT_DB_PATH,
 ) -> None:
@@ -281,7 +315,10 @@ def monitor_l0(
 
     try:
         with HttpClient(BASE_URL) as http:
-            result = run_l0(db_path, raw_dir, MikMoeScraper(http), dry_run=dry_run)
+            result = run_l0(
+                db_path, raw_dir, MikMoeScraper(http), dry_run=dry_run,
+                on_event=_make_notifier(notify, webhook),
+            )
     except CircuitOpenError as exc:
         typer.echo(f"熔断中止：{exc}", err=True)
         raise typer.Exit(code=1) from exc
@@ -308,6 +345,8 @@ def monitor_l0(
 @monitor_app.command("l1")
 def monitor_l1(
     baseline: bool = typer.Option(False, "--baseline", help="只建基线快照，不比对不出提案"),
+    notify: bool = typer.Option(True, "--notify/--no-notify", help="重要事件桌面通知"),
+    webhook: str | None = typer.Option(None, "--webhook", help="webhook URL（可选）"),
     db_path: Path = DEFAULT_DB_PATH,
     store_dir: Path = Path("data/monitor/l1"),
     proposals_dir: Path = Path("data/proposals"),
@@ -317,6 +356,13 @@ def monitor_l1(
 
     from ptcgdb.monitor.l1 import PAGE_TARGETS, run_l1
     from ptcgdb.scrapers.http import RateLimiter
+
+    notifier = _make_notifier(notify, webhook)
+
+    def on_event(e: str, p: dict) -> None:
+        typer.echo(f"[{e}] {p}")
+        if notifier is not None:
+            notifier(e, p)
 
     limiter = RateLimiter()  # 官网只读低频：≤1 次/2 秒
     ua = (
@@ -336,7 +382,7 @@ def monitor_l1(
         try:
             result = run_l1(
                 fetch, db_path, store_dir, proposals_dir, baseline=baseline,
-                on_event=lambda e, p: typer.echo(f"[{e}] {p}"),
+                on_event=on_event,
             )
         except (RuntimeError, httpx.HTTPError) as exc:
             typer.echo(f"L1 抓取失败：{exc}", err=True)
@@ -351,6 +397,26 @@ def monitor_l1(
         typer.echo("提案待人工确认：", err=True)
         for p in result.proposals:
             typer.echo(f"  - {p}", err=True)
+
+
+@monitor_app.command("proposals")
+def monitor_proposals(
+    proposals_dir: Path = Path("data/proposals"),
+) -> None:
+    """列出待审/已审提案（FR-5.2 闭环：确认后用 legal-apply --proposal 应用）。"""
+    from ptcgdb.monitor.proposals import list_proposals
+
+    rows = list_proposals(proposals_dir)
+    if not rows:
+        typer.echo(f"无提案（{proposals_dir}）")
+        return
+    for r in rows:
+        typer.echo(
+            f"[{r['status']}] {r['snapshot_id']}（{r['format']}，检测于 {r['detected_at']}）\n"
+            f"    {r['path']}"
+        )
+        for err in r["parse_errors"]:
+            typer.echo(f"    ! {err}")
 
 
 if __name__ == "__main__":
