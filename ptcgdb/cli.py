@@ -305,5 +305,53 @@ def monitor_l0(
         raise typer.Exit(code=1)
 
 
+@monitor_app.command("l1")
+def monitor_l1(
+    baseline: bool = typer.Option(False, "--baseline", help="只建基线快照，不比对不出提案"),
+    db_path: Path = DEFAULT_DB_PATH,
+    store_dir: Path = Path("data/monitor/l1"),
+    proposals_dir: Path = Path("data/proposals"),
+) -> None:
+    """L1 赛制监控：官网三页正文提取 + hash 比对 → 变更生成提案（≤3 次请求，限速 2s）。"""
+    import httpx
+
+    from ptcgdb.monitor.l1 import PAGE_TARGETS, run_l1
+    from ptcgdb.scrapers.http import RateLimiter
+
+    limiter = RateLimiter()  # 官网只读低频：≤1 次/2 秒
+    ua = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+    )
+
+    with httpx.Client(headers={"User-Agent": ua}, follow_redirects=True, timeout=30.0) as client:
+        def fetch(url: str) -> str:
+            limiter.wait()
+            resp = client.get(url)
+            if resp.status_code != 200:
+                raise RuntimeError(f"HTTP {resp.status_code}: {url}")
+            limiter.report_success()
+            return resp.text
+
+        try:
+            result = run_l1(
+                fetch, db_path, store_dir, proposals_dir, baseline=baseline,
+                on_event=lambda e, p: typer.echo(f"[{e}] {p}"),
+            )
+        except (RuntimeError, httpx.HTTPError) as exc:
+            typer.echo(f"L1 抓取失败：{exc}", err=True)
+            raise typer.Exit(code=1) from exc
+
+    typer.echo(
+        f"pages={len(PAGE_TARGETS)} baseline={result.baselines} "
+        f"unchanged={result.unchanged} noop={result.noop} "
+        f"proposals={len(result.proposals)} news={len(result.news)}"
+    )
+    if result.proposals:
+        typer.echo("提案待人工确认：", err=True)
+        for p in result.proposals:
+            typer.echo(f"  - {p}", err=True)
+
+
 if __name__ == "__main__":
     app()
