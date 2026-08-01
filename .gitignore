@@ -1,0 +1,16 @@
+# 数据与产物（卡牌文本有版权，不进入仓库、不公开分发）
+data/
+dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# 系统
+.DS_Store
+Thumbs.db
