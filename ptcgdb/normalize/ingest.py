@@ -84,7 +84,8 @@ def normalize_card(
         "species": species if card_type == "pokemon" else None,
         "owner": owner,
         "card_type": card_type,
-        "regulation_mark": data["regulationMark"],
+        # 空串/缺省统一存 NULL（task 005 实测：基本能量 regulationMark=""，无赛制标记）
+        "regulation_mark": data.get("regulationMark") or None,
         "rarity": rarity,
         "stage": fields.map_stage(pa.get("stage"), ctx.stage_map),
         "hp": pa.get("hp"),
@@ -131,7 +132,8 @@ def _build_set_row(
         era = "未划分"
     release_raw = data.get("releaseDate") or ""
     release_date = datetime.fromisoformat(release_raw).date() if release_raw else None
-    marks = sorted({r["regulation_mark"] for r in records})
+    # 无赛制标记的卡（regulation_mark=None，如基本能量）不参与系列级标记汇总
+    marks = sorted({r["regulation_mark"] for r in records if r["regulation_mark"] is not None})
     if len(marks) > 1:
         questions.add(
             None, "regulation_mark", marks, "系列内赛制标记不唯一，sets 行存逗号连接值"

@@ -25,6 +25,7 @@ from ptcgdb.orm import Card, CardRelation, Set
 from ptcgdb.scrapers.raw_store import read_raw
 
 # 规则 1 必填字段（PRD FR-2.3：卡名、卡号、赛制标记、卡牌种类、text_raw）
+# 赛制标记对基本能量豁免（见 check_required 注）
 REQUIRED_FIELDS = ("name_full", "number", "regulation_mark", "card_type", "text_raw")
 
 # V-UNION 四方位（PRD §7.2 union_position）
@@ -80,10 +81,19 @@ def _load_vocabs(vocab_dir: Path) -> _Vocabs:
 
 
 def check_required(cards: list[Card]) -> RuleResult:
-    """规则 1：卡名/卡号/赛制标记/卡牌种类/text_raw 非空。"""
+    """规则 1：卡名/卡号/赛制标记/卡牌种类/text_raw 非空。
+
+    基本能量豁免（task 005 实测）：is_basic_energy=TRUE 的卡无赛制标记、
+    卡面无文字（text_raw 为空）均为数据事实——合法性走 is_basic_energy+快照
+    路径（PRD FR-3.2），"卡面全部文字逐字保留"（§7.2）对无字卡面即空串。
+    两项存 NULL/空不算必填缺失；其余字段对基本能量仍必填。
+    """
     res = RuleResult(rule="必填非空", checked=len(cards))
+    res.note = "regulation_mark/text_raw 对 is_basic_energy=TRUE 的卡豁免（PRD FR-3.2/§7.2）"
     for c in cards:
         for name in REQUIRED_FIELDS:
+            if name in ("regulation_mark", "text_raw") and c.is_basic_energy:
+                continue
             value = getattr(c, name)
             if value is None or (isinstance(value, str) and not value.strip()):
                 res.fail(card_id=c.card_id, field=name, note="必填字段为空")

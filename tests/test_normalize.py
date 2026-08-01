@@ -2,7 +2,8 @@
 
 零网络：fixtures 为 data/raw/mikmoe/CSM1aC 真实单卡文件的逐字拷贝；
 cards.json（系列级）由测试内 write_raw 重建（保持 _meta hash 有效）。
-CSM1aC 无基本能量卡（字段形态调查结论），能量样本以特殊能量 151 彩虹能量代替。
+CSM1aC 无基本能量卡（字段形态调查结论），特殊能量样本为 151 彩虹能量；
+基本能量样本为 CSM1DC/DAR.json（task 005 实测 cardType="Basic Energy"）。
 """
 
 import json
@@ -314,3 +315,55 @@ def test_unknown_enum_zero_guess(tmp_path):
         q["card_id"] == "CSM1aC-009" and "未知" in q["note"]
         for q in result.questions.items
     )
+
+
+# ---- 基本能量黄金样本：CSM1DC/DAR（task 005 实测 cardType="Basic Energy"）----
+
+FIXTURE_CSM1DC_DIR = Path(__file__).parent / "fixtures" / "raw" / "mikmoe" / "CSM1DC"
+
+
+def test_ingest_golden_basic_energy(tmp_path):
+    """基本恶能量：cardType=Basic Energy → energy/is_basic_energy；空赛制标记存 NULL。"""
+    raw_dir = tmp_path / "raw"
+    set_dir = raw_dir / "mikmoe" / "CSM1DC"
+    set_dir.mkdir(parents=True)
+    shutil.copy(FIXTURE_CSM1DC_DIR / "DAR.json", set_dir / "DAR.json")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "起始卡组 横空出世GX",
+                "setCode": "CSM1DC",
+                "setId": "CSM1DC",
+                "releaseDate": "2022-10-28T00:00:00+08:00",
+                "series": "Sun & Moon",
+                "mainExpansion": False,
+                "cardsNum": 345,
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+
+    db_path = tmp_path / "test.db"
+    result = ingest_set(raw_dir, "CSM1DC", db_path)
+    assert result.card_count == 1
+    assert result.skipped == []
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        c = session.get(Card, "CSM1DC-DAR")
+        assert c.name_full == "基本恶能量"
+        assert c.number == "DAR"
+        assert c.card_type == "energy"
+        assert c.trainer_subtype is None
+        assert c.is_basic_energy is True
+        assert c.provides == ["恶"]
+        assert c.regulation_mark is None  # 空赛制标记统一存 NULL
+        assert c.rarity == "无标记"
+        assert c.has_rule_box is False
+        # 系列行：全部卡无赛制标记 → 空串
+        assert session.get(Set, "CSM1DC").regulation_mark == ""
+    engine.dispose()

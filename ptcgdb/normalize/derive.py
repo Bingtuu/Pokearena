@@ -46,6 +46,7 @@ DECK_LIMIT_BY_RULE_BOX = {
     "v_union": 1,
 }
 
+# 基本能量 9 种属性（task 005 CSM1DC 实测 9 种，含妖：DAR/FAI/FIG/FIR/GRA/LIG/MET/PSY/WAT）
 BASIC_ENERGY_TYPES = ["草", "火", "水", "雷", "超", "斗", "恶", "钢", "妖"]
 
 
@@ -133,11 +134,12 @@ def derive_basic_energy(
 ) -> tuple[bool, list[str] | None]:
     """→ (is_basic_energy, provides)。
 
-    mik cardType="Energy" 即基本能量（CSM1aC 无样本，按命名约定映射）；
+    mik cardType="Basic Energy" 即基本能量（task 005 CSM1DC 实测）；
+    "Energy" 未实测，按预置保留同路径处理。
     provides 从卡名属性词解析。特殊能量效果差异大（条件性提供属性），
     provides 置 None 并记 question，效果文本见 text_raw。
     """
-    if mik_card_type == "Energy":
+    if mik_card_type in ("Basic Energy", "Energy"):
         for t in BASIC_ENERGY_TYPES:
             if t in name_full:
                 return True, [t]

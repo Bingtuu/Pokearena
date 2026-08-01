@@ -69,7 +69,7 @@ class Card(BaseModel):
     species: str | None
     owner: str | None
     card_type: str
-    regulation_mark: str
+    regulation_mark: str | None  # 无赛制标记（基本能量）为 None
     rarity: str
     stage: str | None
     hp: int | None

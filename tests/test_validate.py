@@ -138,6 +138,49 @@ def test_required_missing_fails(db_env):
     )
 
 
+def test_required_regulation_mark_none_fails_for_non_basic_energy(db_env):
+    """非基本能量 regulation_mark=NULL → 规则 1 失败。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", regulation_mark=None)
+    res = get_rule(run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "必填非空")
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["field"] == "regulation_mark"
+        for f in res.failures
+    )
+
+
+def test_required_regulation_mark_none_passes_for_basic_energy(db_env):
+    """基本能量无赛制标记是数据事实（PRD FR-3.2），regulation_mark=NULL 豁免。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", regulation_mark=None, is_basic_energy=True)
+    res = get_rule(run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "必填非空")
+    assert res.passed
+    # 豁免依据如实注明
+    assert res.note and "is_basic_energy" in res.note
+
+
+def test_required_text_raw_empty_passes_for_basic_energy(db_env):
+    """基本能量卡面无文字是数据事实（§7.2"卡面全部文字"即空），text_raw 豁免。"""
+    raw_dir, db_path = db_env
+    mutate_card(
+        db_path, f"{SET_ID}-001", regulation_mark=None, text_raw="", is_basic_energy=True
+    )
+    res = get_rule(run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "必填非空")
+    assert res.passed
+
+
+def test_required_text_raw_empty_fails_for_non_basic_energy(db_env):
+    """非基本能量 text_raw 空 → 规则 1 失败。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", text_raw="")
+    res = get_rule(run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "必填非空")
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["field"] == "text_raw" for f in res.failures
+    )
+
+
 # ---- 规则 2：枚举合法 ----
 
 

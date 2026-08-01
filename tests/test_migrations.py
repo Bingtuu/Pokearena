@@ -35,18 +35,19 @@ def test_migrations_idempotent(tmp_path):
     db_path = tmp_path / "test.db"
 
     assert available_migrations()[0][0] == 1
+    latest = available_migrations()[-1][0]
 
     first = apply_migrations(db_path)
-    assert first == 1
+    assert first == latest
 
     # 重复执行不报错、user_version 不变
     second = apply_migrations(db_path)
-    assert second == 1
+    assert second == latest
 
     conn = sqlite3.connect(db_path)
     try:
         version = conn.execute("PRAGMA user_version").fetchone()[0]
-        assert version == 1
+        assert version == latest
 
         tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         assert EXPECTED_TABLES <= tables

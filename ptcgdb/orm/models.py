@@ -46,7 +46,8 @@ class Card(Base):
     species: Mapped[str | None] = mapped_column(String, index=True)  # 宝可梦种名（检索用）
     owner: Mapped[str | None] = mapped_column(String)  # 训练家宝可梦归属（开放词表）
     card_type: Mapped[str] = mapped_column(String)  # pokemon / trainer / energy
-    regulation_mark: Mapped[str] = mapped_column(String, index=True)  # 卡面原值
+    # 卡面原值；无赛制标记（基本能量）存 NULL
+    regulation_mark: Mapped[str | None] = mapped_column(String, index=True)
     rarity: Mapped[str] = mapped_column(String)  # 罕贵度（开放词表）
     stage: Mapped[str | None] = mapped_column(String)  # 基础/1阶/2阶/超级进化…（开放）
     hp: Mapped[int | None] = mapped_column(Integer)
