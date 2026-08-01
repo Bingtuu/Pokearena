@@ -21,7 +21,9 @@ from ptcgdb.validate import run_validations, write_report
 
 app = typer.Typer(help="简中 PTCG 标准环境卡牌数据库 CLI")
 scrape_app = typer.Typer(help="数据采集（mik.moe 主源，限速 ≤1 次/2 秒）")
+monitor_app = typer.Typer(help="监控管线（L0 新卡增量 / L1 赛制变更）")
 app.add_typer(scrape_app, name="scrape")
+app.add_typer(monitor_app, name="monitor")
 
 DEFAULT_DB_PATH = Path("data/ptcg-cn.db")
 DEFAULT_RAW_DIR = Path("data/raw")
@@ -266,6 +268,41 @@ def scrape_cards(
 ) -> None:
     """抓单卡（card-detail）。断点续传：已抓且 hash 有效的卡自动跳过。"""
     _run_scrape("cards", raw_dir, db_path, force, set_id)
+
+
+@monitor_app.command("l0")
+def monitor_l0(
+    dry_run: bool = typer.Option(False, "--dry-run", help="只探测增量（只读，零额外请求）"),
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """L0 新卡增量管线：总量探测 → 抓新卡 → 校验 → active → 快照后处理。"""
+    from ptcgdb.monitor.l0 import run_l0
+
+    try:
+        with HttpClient(BASE_URL) as http:
+            result = run_l0(db_path, raw_dir, MikMoeScraper(http), dry_run=dry_run)
+    except CircuitOpenError as exc:
+        typer.echo(f"熔断中止：{exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    for inc in result.report.increments:
+        typer.echo(f"增量 set={inc.set_id} kind={inc.kind} {inc.current} → {inc.expected}")
+    for inc in result.report.suspicious:
+        typer.echo(
+            f"可疑（cardsNum 缩水，未处理）set={inc.set_id} {inc.current} → {inc.expected}",
+            err=True,
+        )
+    if result.dry_run:
+        typer.echo("dry-run：仅探测，未抓取未入库")
+        return
+    for sid, rules in result.blocked.items():
+        typer.echo(f"set={sid} 校验失败已阻断: {', '.join(rules)}", err=True)
+    typer.echo(
+        f"activated={result.activated} blocked={len(result.blocked)} "
+        f"data_version={result.data_version or '-'}"
+    )
+    if result.blocked:
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":

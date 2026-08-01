@@ -68,19 +68,16 @@ def _latest_text_overrides(session: Session, whitelist: list) -> dict[str, str]:
     return overrides
 
 
-def _append_changelog(
-    changelog_path: Path, version: str, seed: SnapshotSeed, proposal: Path
+def _append_changelog_block(
+    changelog_path: Path, version: str, section: str, items: list[str]
 ) -> None:
+    """四段式追加一个版本块（插在 "# Changelog" 标题之后）。"""
     if changelog_path.exists():
         text = changelog_path.read_text(encoding="utf-8")
     else:
         text = "# Changelog\n\n"
-    block = (
-        f"## [{version}] - {date.today().isoformat()}\n\n"
-        f"### Added\n\n"
-        f"- 环境快照 `{seed.snapshot_id}`（{seed.format}，{seed.effective_from} 起生效；"
-        f"提案 `{proposal}`）\n\n"
-    )
+    body = "\n".join(f"- {item}" for item in items)
+    block = f"## [{version}] - {date.today().isoformat()}\n\n### {section}\n\n{body}\n\n"
     lines = text.split("\n")
     # 插到 "# Changelog" 标题之后
     insert_at = 1
@@ -88,6 +85,20 @@ def _append_changelog(
         insert_at += 1
     lines.insert(insert_at, block.rstrip("\n"))
     changelog_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _append_changelog(
+    changelog_path: Path, version: str, seed: SnapshotSeed, proposal: Path
+) -> None:
+    _append_changelog_block(
+        changelog_path,
+        version,
+        "Added",
+        [
+            f"环境快照 `{seed.snapshot_id}`（{seed.format}，{seed.effective_from} 起生效；"
+            f"提案 `{proposal}`）"
+        ],
+    )
 
 
 def apply_snapshot(

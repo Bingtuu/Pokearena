@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import create_engine, delete
+from sqlalchemy import create_engine, delete, select
 from sqlalchemy.orm import Session
 
 from ptcgdb.migrations import apply_migrations
@@ -219,9 +219,16 @@ def ingest_set(
         session.merge(
             _build_set_row(cards_doc, records, fields.load_era_map(vocab_dir), questions, set_id)
         )
-        # 幂等：清掉本系列旧的归组/关系/卡牌 draft 行再写入
+        # 幂等：清掉本系列旧的归组/关系/卡牌行再写入；
+        # 重入库保留既有 status（task 013：L0 增量重入库不降级已 active 的卡）
         card_ids = [r["card_id"] for r in records]
+        old_status: dict[str, str] = {}
         if card_ids:
+            old_status = dict(
+                session.execute(
+                    select(Card.card_id, Card.status).where(Card.card_id.in_(card_ids))
+                ).all()
+            )
             session.execute(
                 delete(CardRelation).where(CardRelation.card_id.in_(card_ids))
             )
@@ -230,6 +237,8 @@ def ingest_set(
             )
             session.execute(delete(Card).where(Card.card_id.in_(card_ids)))
         for rec in records:
+            if old_status.get(rec["card_id"]) == "active":
+                rec["status"] = "active"
             session.add(Card(**rec))
         for key in sorted(set(group_keys.values())):
             session.merge(
