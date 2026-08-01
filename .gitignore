@@ -1,3 +1,7 @@
+# 抓包工具环境（task 001）
+tools/capture/.venv/
+tools/capture/.mitmproxy/
+
 # 数据与产物（卡牌文本有版权，不进入仓库、不公开分发）
 data/
 dist/
