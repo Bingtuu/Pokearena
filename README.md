@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Status](https://img.shields.io/badge/Status-Phase1完成·M4验收全过-brightgreen.svg?style=flat-square)](STATUS.md)
-[![PRD](https://img.shields.io/badge/PRD-v1.4-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
+[![PRD](https://img.shields.io/badge/PRD-v1.5-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
 
 [产品需求文档](docs/简中PTCG卡牌数据库_PRD与技术方案.md) · [开发进展](STATUS.md) · [工程约定](AGENTS.md)
 
@@ -17,7 +17,7 @@
 
 ## 为什么要有这个项目
 
-简中 PTCG 是一个**独立产品池**——套装结构、编号体系、赛制节奏都与国际版不同，任何国际版数据库（pokemon-tcg-data、TCGdex）都不含简中卡（TCGdex 的 zh-cn 仅停留在路线图）。官方数据锁在微信小程序里（接口带 JWT+AES+签名四层防护），开源世界也一直没有可用的简中卡数据集。好在 [Cryst's Cards Database（tcg.mik.moe）](https://tcg.mik.moe/) 提供了同源的公开 JSON API——本项目以此为**主数据源**，自建覆盖**简中标准赛制全部合法卡牌**的本地数据库与数据管线，作为「AI 模拟对战 + 卡组强度/胜率测试」工具链的第一块基石。
+简中 PTCG 是一个**独立产品池**——套装结构、编号体系、赛制节奏都与国际版不同，任何国际版数据库（pokemon-tcg-data、TCGdex）都不含简中卡级数据（TCGdex 已收录简中系列壳，但卡级 0%）。官方数据锁在微信小程序里（接口带 JWT+AES+签名四层防护），开源世界也一直没有可用的简中卡数据集。好在 [Cryst's Cards Database（tcg.mik.moe）](https://tcg.mik.moe/) 提供了同源的公开 JSON API——本项目以此为**主数据源**，自建覆盖**简中标准赛制全部合法卡牌**的本地数据库与数据管线，作为「AI 模拟对战 + 卡组强度/胜率测试」工具链的第一块基石。
 
 ## ✨ 亮点
 
@@ -107,7 +107,7 @@ flowchart TB
 - ✅ **Phase 1a** schema 建库 + 全卡首批入库（129 系列 / 12,420 张）+ 校验报告
 - ✅ **Phase 1b** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 双后端
 - ✅ **Phase 1c** L0/L1 自动更新管线 + M4 验收 A1~A8 全过（赶在 2026-09-16 新包发售前就位）
-- ⬜ **Phase 2** 跨语言映射（简中↔繁中↔英文）、卡组校验器
+- ⬜ **Phase 2** 跨语言映射（简中→英文→日文，EN 桥 + TCGdex 同 ID 共构）、卡组校验器
 - ⬜ **Phase 3** 效果标签层，配合规则引擎
 - ⬜ **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
 
@@ -117,7 +117,7 @@ flowchart TB
 
 | 文档 | 内容 |
 |---|---|
-| [PRD v1.4](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计 |
+| [PRD v1.5](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计 |
 | [主源接口文档](docs/mikmoe-api.md) | tcg.mik.moe `/api/v3/card/*` 端点、字段形态、限速约定 |
 | [STATUS.md](STATUS.md) | 当前阶段、里程碑进度、决策日志 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更（四段式，数据日历版本 + schema SemVer 双轨） |

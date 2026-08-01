@@ -5,13 +5,13 @@
 
 ## 当前状态
 
-**阶段：M4 ✅ 完成（goal 驱动，2026-08-01）—— Phase 1 全部收官** —— task 016~018 归档：验收基建（A1 白名单分赛制核对器 + 一键验收 runner，`reports/acceptance-20260801.md` 六项全 PASS）、A2/A3 抽样比对工具（A3 自动校验真实库 5,122 项次全过，清单落 reports/）、文档收尾（AGENTS 常用命令补全，README/STATUS/PRD/CHANGELOG 状态一致）。测试 165 全绿。下一步 Phase 2（跨语言映射 / 卡组校验器）+ 技术债立项（derive 跨系列进化解析）。赶在 2026-09-16 新包发售前就位 ✅。
+**阶段：Phase 2 任务拆分完成（2026-08-01，已按调研改设计）** —— M4 已收官（验收 A1~A8 全过、166 测试全绿）。Phase 2 拆为三个里程碑：M5 数据质量收口（task 019 derive 跨系列进化解析 + 020 A2/A3 卡面人工比对）、M6 跨语言映射 EN+JP（task 021~024：EN 桥提取 raw 已有 `setCodeEn/cardIndexEn/nameEn`；JP 走 TCGdex 同 ID 多语言共构，**不做繁中**；TCGdex zh-cn 系列壳用于系列级对账）、M7 卡组校验器（task 025~026，真实卡组源 = mik.moe 赛事数据库）。任务文档已落 `tasks/`，按 goal loop 逐里程碑推进。下一步：启动 M5 goal。
 
 ## 入口
 
 | 内容 | 位置 |
 |---|---|
-| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.4） |
+| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.5） |
 | 工程约定 | `AGENTS.md` |
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
 | **主源接口文档** | `docs/mikmoe-api.md`（task 001 产物，M1 采集层必读） |
@@ -26,6 +26,9 @@
 - [x] **M2 (Phase 1b)** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出七件套 + SDK 基础（3~4 天）—— **2026-08-01 完成（task 007~011）**：双赛制快照入库、`legal_at`/`effective_text`（A4 用例 24 组）、apply/冻结/回滚（A5/A6）、dist 七件套（A7）、SDK 双后端一致（A8）
 - [x] **M3 (Phase 1c)** L0/L1 监控管线 + 提案生成 + 通知（2 天）—— **2026-08-01 完成（task 013~015）**：L0 全链路（探测→抓取→校验→active→快照后处理，真实 dry-run 零增量）；L1 三页监控（基线建立、零假阳性、提案=SnapshotSeed 超集被 legal-apply 直接消费、needs_manual 不猜测）；桌面/webhook 通知 + 提案闭环（applied 回写）+ L2 勘误导入（`legal-errata`，effective_text 联测）
 - [x] **M4** 验收 A1~A8 + 文档收尾（1 天）—— **2026-08-01 完成（task 016~018）**：验收 runner 一键全过（A1 standard 55/55、open 61/61；A4/A5/A6/A7/A8 证据报告六项 PASS）、A2 抽样 100 张清单 + A3 自动校验 5,122 项次全过、AGENTS/README/PRD/CHANGELOG 状态一致
+- [ ] **M5 (Phase 2)** 数据质量收口：derive 跨系列进化解析 + A2/A3 卡面人工比对（task 019~020）
+- [ ] **M6 (Phase 2)** 跨语言映射 EN+JP（task 021~024；v1.5 定：EN 桥 + TCGdex 同 ID 共构取 JP，不做繁中）
+- [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025~026）
 
 ## 决策日志
 
@@ -36,11 +39,12 @@
 | 2026-08-01 | SQLAlchemy 2 替代 SQLModel；PRAGMA user_version 替代 Alembic | ✅ 已定（v1.3） |
 | 2026-08-01 | **Python 环境定为 3.14.6**（用户安装；`.venv` 已用 3.14 重建，deps/pytest/ruff/init-db 全验证通过）。`requires-python = ">=3.12"` 收回 PRD 口径。原 3.11 暂行决策作废（task 002 后记） | ✅ 已定 |
 | 2026-08-01 | **D1 = 路线 B：tcg.mik.moe 为主源**。理由：小程序接口有 JWT 登录态 + 请求/响应 AES 加密 + 签名四层防护（还原需反编译 wxapkg，超 M0 标准）；mik.moe `/api/v3/card/*` 无鉴权明文 JSON、字段完整且有意外收获（effectId 归组、regulationLegal 交叉校验、英文映射）。详见 `docs/mikmoe-api.md` 与 `tasks/done/001` | ✅ 已定 |
+| 2026-08-01 | **跨语言映射 = EN 桥 + TCGdex，取消繁中、新增日文原版（PRD v1.5，task 021）**。依据：raw 自带英文桥字段（`setCodeEn/cardIndexEn/nameEn`）；TCGdex 英/日卡级 100% 覆盖且同 card ID 多语言共构，JP 零爬虫可得；繁中站采集成本高于收益。校验源矩阵：TCGdex zh-cn 已收录全部系列壳但卡级 0% → 系列级跨源对账落地，卡级跨源仍待实装；`name_zh_tw` 预留不填充；`external_ids.system ∈ {mik_en, tcgdex, pokemon_card_jp}` | ✅ 已定 |
 
 ## 已知临近事件
 
 - **2026-09-16**：补充包"30周年庆典"全球同步发售（新罕贵度 FUR、可能引入超级进化/GX 复刻机制）——发售前需预扩词表（PRD 9.4）。
-- TCGdex 已把 zh-cn 列入路线图，持续跟踪（PRD 风险登记册）。
+- TCGdex 已收录全部简中系列壳（set_id 与本库一致）但卡级数据 0%（2026-08-01 实测）；系列级跨源对账已列入 task 023，卡级实装持续跟踪（PRD 风险登记册）。
 
 ## 已知技术债 / 待立项
 
@@ -69,3 +73,4 @@
 - **2026-08-01**：**task 016 完成（M4-1 ✅）**。验收基建：A1 白名单分赛制逐卡核对器（standard 55/55、open 61/61 全过）+ 一键验收 runner（A1/A4/A5/A6/A7/A8）+ CLI `ptcgdb accept`；真实库证据报告 `reports/acceptance-20260801.md` 六项全 PASS（A6 脏合入/回滚实验只在副本库，真实库只读）。详见 `tasks/done/016`。
 - **2026-08-01**：**task 017 完成（M4-2 ✅）**。A2/A3 抽样比对工具 + CLI `ptcgdb sample`：A2 随机 100 张 × 11 字段人工比对清单（seed 可复现）、A3 特殊卡 DB-vs-raw 自动校验真实库 **5,122 项次全过**（修正校验器两个错误假设：ACE SPEC 含特殊能量、化石宝可梦进化来源豁免）。发现 derive 跨系列进化解析缺口（记"已知技术债"，待立项）。165 测试全绿。详见 `tasks/done/017`。
 - **2026-08-01**：**task 018 完成（M4-3 ✅）→ M4 完成，Phase 1 全部收官**。文档收尾：AGENTS.md 常用命令补全 + 当前状态/技术栈更新（Python 3.14）、README badge/亮点/Roadmap/CLI 示例同步、PRD 状态行更新、新建 CHANGELOG.md（四段式，v20260801.0 首批发布）、进展日志补齐 task 013~018。165 测试全绿、ruff 通过。详见 `tasks/done/018`。
+- **2026-08-01**：**task 021 完成（PRD v1.5 ✅）**。外部调研（校验源 + 映射源）驱动修订：跨语言映射**取消繁中、新增日文原版**——链路 = mik raw 英文桥 → EN（TCGdex 交叉校验）→ TCGdex 同 ID 多语言共构取 JP（零爬虫），pokemon-card.com 仅作抽样权威核对；校验源矩阵更新：TCGdex zh-cn 已收录全部简中系列壳（set_id 一致）但卡级 0% → 系列级跨源对账落地（FR-1.2/FR-2.3 规则 6），卡级跨源仍待实装；mik.moe 赛事数据库列为 validate_deck 真实卡组源；`external_ids.system` 枚举改 `{mik_en, tcgdex, pokemon_card_jp}`；README/AGENTS/STATUS 同步，里程碑表补 M5~M7。详见 `tasks/done/021`。
