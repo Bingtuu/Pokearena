@@ -1,0 +1,736 @@
+{
+  "code": 200,
+  "data": {
+    "list": [
+      {
+        "rank": 1,
+        "points": 1000,
+        "qualified": false,
+        "teamName": "战队01",
+        "players": [
+          {
+            "nickname": "选手01-1",
+            "pinCode": "CN94sI4sRe"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 610080,
+            "variantId": 285,
+            "variantIcon": [
+              "gardevoir"
+            ],
+            "variantName": "沙奈朵"
+          }
+        ]
+      },
+      {
+        "rank": 2,
+        "points": 800,
+        "qualified": false,
+        "teamName": "战队02",
+        "players": [
+          {
+            "nickname": "选手02-1",
+            "pinCode": "CN38aJSZ5T"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 609431,
+            "variantId": 246,
+            "variantIcon": [
+              "lugia",
+              "archeops"
+            ],
+            "variantName": "洛奇亚 始祖大鸟"
+          }
+        ]
+      },
+      {
+        "rank": 3,
+        "points": 600,
+        "qualified": false,
+        "teamName": "战队03",
+        "players": [
+          {
+            "nickname": "选手03-1",
+            "pinCode": "CN02dO9slB"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 616144,
+            "variantId": 327,
+            "variantIcon": [
+              "iron-thorns"
+            ],
+            "variantName": "铁荆棘"
+          }
+        ]
+      },
+      {
+        "rank": 4,
+        "points": 600,
+        "qualified": false,
+        "teamName": "战队04",
+        "players": [
+          {
+            "nickname": "选手04-1",
+            "pinCode": "CN58LmRg7h"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 608639,
+            "variantId": 330,
+            "variantIcon": [
+              "dragapult",
+              "charizard"
+            ],
+            "variantName": "多龙巴鲁托 喷火龙"
+          }
+        ]
+      },
+      {
+        "rank": 5,
+        "points": 400,
+        "qualified": false,
+        "teamName": "战队05",
+        "players": [
+          {
+            "nickname": "选手05-1",
+            "pinCode": "CN161wFlue"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 607025,
+            "variantId": 280,
+            "variantIcon": [
+              "regidrago"
+            ],
+            "variantName": "雷吉铎拉戈"
+          }
+        ]
+      },
+      {
+        "rank": 6,
+        "points": 400,
+        "qualified": false,
+        "teamName": "战队06",
+        "players": [
+          {
+            "nickname": "选手06-1",
+            "pinCode": "CN50UXG54B"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 606323,
+            "variantId": 345,
+            "variantIcon": [
+              "archaludon",
+              "dialga"
+            ],
+            "variantName": "铝钢桥龙 帝牙卢卡"
+          }
+        ]
+      },
+      {
+        "rank": 7,
+        "points": 400,
+        "qualified": false,
+        "teamName": "战队07",
+        "players": [
+          {
+            "nickname": "选手07-1",
+            "pinCode": "CN95y7HHMO"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 609007,
+            "variantId": 285,
+            "variantIcon": [
+              "gardevoir"
+            ],
+            "variantName": "沙奈朵"
+          }
+        ]
+      },
+      {
+        "rank": 8,
+        "points": 400,
+        "qualified": false,
+        "teamName": "战队08",
+        "players": [
+          {
+            "nickname": "选手08-1",
+            "pinCode": "CN02184592"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614142,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 9,
+        "points": 200,
+        "qualified": false,
+        "teamName": "战队09",
+        "players": [
+          {
+            "nickname": "选手09-1",
+            "pinCode": "CN36Ragq1a"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614432,
+            "variantId": 285,
+            "variantIcon": [
+              "gardevoir"
+            ],
+            "variantName": "沙奈朵"
+          }
+        ]
+      },
+      {
+        "rank": 10,
+        "points": 200,
+        "qualified": false,
+        "teamName": "战队10",
+        "players": [
+          {
+            "nickname": "选手10-1",
+            "pinCode": "CN58aSkzN6"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 613213,
+            "variantId": 327,
+            "variantIcon": [
+              "iron-thorns"
+            ],
+            "variantName": "铁荆棘"
+          }
+        ]
+      },
+      {
+        "rank": 11,
+        "points": 200,
+        "qualified": false,
+        "teamName": "战队11",
+        "players": [
+          {
+            "nickname": "选手11-1",
+            "pinCode": "CN08677827"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 616389,
+            "variantId": 348,
+            "variantIcon": [
+              "klawf",
+              "terapagos"
+            ],
+            "variantName": "毛崖蟹 太乐巴戈斯"
+          }
+        ]
+      },
+      {
+        "rank": 12,
+        "points": 200,
+        "qualified": false,
+        "teamName": "战队12",
+        "players": [
+          {
+            "nickname": "选手12-1",
+            "pinCode": "CN59TPvhT8"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 611742,
+            "variantId": 280,
+            "variantIcon": [
+              "regidrago"
+            ],
+            "variantName": "雷吉铎拉戈"
+          }
+        ]
+      },
+      {
+        "rank": 13,
+        "points": 200,
+        "qualified": false,
+        "teamName": "战队13",
+        "players": [
+          {
+            "nickname": "选手13-1",
+            "pinCode": "CN49064077"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 606576,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 14,
+        "points": 200,
+        "qualified": false,
+        "teamName": "战队14",
+        "players": [
+          {
+            "nickname": "选手14-1",
+            "pinCode": "CN33WjOgyi"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 607346,
+            "variantId": 280,
+            "variantIcon": [
+              "regidrago"
+            ],
+            "variantName": "雷吉铎拉戈"
+          }
+        ]
+      },
+      {
+        "rank": 15,
+        "points": 200,
+        "qualified": false,
+        "teamName": "战队15",
+        "players": [
+          {
+            "nickname": "选手15-1",
+            "pinCode": "CN39BPuiIy"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 606446,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 16,
+        "points": 200,
+        "qualified": false,
+        "teamName": "战队16",
+        "players": [
+          {
+            "nickname": "选手16-1",
+            "pinCode": "CN03jTCJLk"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 606714,
+            "variantId": 280,
+            "variantIcon": [
+              "regidrago"
+            ],
+            "variantName": "雷吉铎拉戈"
+          }
+        ]
+      },
+      {
+        "rank": 17,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队17",
+        "players": [
+          {
+            "nickname": "选手17-1",
+            "pinCode": "CN25yMvUi7"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614333,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 18,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队18",
+        "players": [
+          {
+            "nickname": "选手18-1",
+            "pinCode": "CN64mBAxKz"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614386,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 19,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队19",
+        "players": [
+          {
+            "nickname": "选手19-1",
+            "pinCode": "CN298KvHXa"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614760,
+            "variantId": 343,
+            "variantIcon": [
+              "palkia-origin",
+              "noctowl"
+            ],
+            "variantName": "起源帕路奇亚 猫头夜鹰"
+          }
+        ]
+      },
+      {
+        "rank": 20,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队20",
+        "players": [
+          {
+            "nickname": "选手20-1",
+            "pinCode": "CN21dyVMk6"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614044,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 21,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队21",
+        "players": [
+          {
+            "nickname": "选手21-1",
+            "pinCode": "CN96FLxidH"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 605947,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 22,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队22",
+        "players": [
+          {
+            "nickname": "选手22-1",
+            "pinCode": "CN75024078"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614659,
+            "variantId": 276,
+            "variantIcon": [
+              "miraidon"
+            ],
+            "variantName": "密勒顿"
+          }
+        ]
+      },
+      {
+        "rank": 23,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队23",
+        "players": [
+          {
+            "nickname": "选手23-1",
+            "pinCode": "CN60249266"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 616332,
+            "variantId": 348,
+            "variantIcon": [
+              "klawf",
+              "terapagos"
+            ],
+            "variantName": "毛崖蟹 太乐巴戈斯"
+          }
+        ]
+      },
+      {
+        "rank": 24,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队24",
+        "players": [
+          {
+            "nickname": "选手24-1",
+            "pinCode": "CN45084470"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614963,
+            "variantId": 246,
+            "variantIcon": [
+              "lugia",
+              "archeops"
+            ],
+            "variantName": "洛奇亚 始祖大鸟"
+          }
+        ]
+      },
+      {
+        "rank": 25,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队25",
+        "players": [
+          {
+            "nickname": "选手25-1",
+            "pinCode": "CN69dw0mbv"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614613,
+            "variantId": 280,
+            "variantIcon": [
+              "regidrago"
+            ],
+            "variantName": "雷吉铎拉戈"
+          }
+        ]
+      },
+      {
+        "rank": 26,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队26",
+        "players": [
+          {
+            "nickname": "选手26-1",
+            "pinCode": "CN16673452"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 616053,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 27,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队27",
+        "players": [
+          {
+            "nickname": "选手27-1",
+            "pinCode": "CN00RxNgyL"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 608690,
+            "variantId": 348,
+            "variantIcon": [
+              "klawf",
+              "terapagos"
+            ],
+            "variantName": "毛崖蟹 太乐巴戈斯"
+          }
+        ]
+      },
+      {
+        "rank": 28,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队28",
+        "players": [
+          {
+            "nickname": "选手28-1",
+            "pinCode": "CN70973280"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 615739,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 29,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队29",
+        "players": [
+          {
+            "nickname": "选手29-1",
+            "pinCode": "CN065lNMku"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 614735,
+            "variantId": 296,
+            "variantIcon": [
+              "gholdengo"
+            ],
+            "variantName": "赛富豪"
+          }
+        ]
+      },
+      {
+        "rank": 30,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队30",
+        "players": [
+          {
+            "nickname": "选手30-1",
+            "pinCode": "CN99801052"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 616244,
+            "variantId": 346,
+            "variantIcon": [
+              "terapagos",
+              "noctowl"
+            ],
+            "variantName": "太乐巴戈斯 猫头夜鹰"
+          }
+        ]
+      },
+      {
+        "rank": 31,
+        "points": 150,
+        "qualified": false,
+        "teamName": "战队31",
+        "players": [
+          {
+            "nickname": "选手31-1",
+            "pinCode": "CN35242558"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 608839,
+            "variantId": 300,
+            "variantIcon": [
+              "charizard",
+              "pidgeot"
+            ],
+            "variantName": "喷火龙 大比鸟"
+          }
+        ]
+      },
+      {
+        "rank": 32,
+        "points": 0,
+        "qualified": false,
+        "teamName": "战队32",
+        "players": [
+          {
+            "nickname": "选手32-1",
+            "pinCode": "CN95264352"
+          }
+        ],
+        "decks": [
+          {
+            "deckId": 611174,
+            "variantId": 280,
+            "variantIcon": [
+              "regidrago"
+            ],
+            "variantName": "雷吉铎拉戈"
+          }
+        ]
+      }
+    ],
+    "twoDayFlag": false,
+    "pageCur": 1,
+    "pageNum": 1,
+    "pageSize": 64,
+    "itemNum": 32
+  },
+  "msg": "OK."
+}

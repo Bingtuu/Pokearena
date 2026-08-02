@@ -1,0 +1,39 @@
+{
+  "code": 200,
+  "data": {
+    "list": [
+      {
+        "id": 54,
+        "name": "2026西安超级赛",
+        "startDate": "2026-05-30T09:00:00+08:00",
+        "endDate": "2026-05-31T09:00:00+08:00",
+        "status": "ended",
+        "tournamentNum": 4,
+        "link": "https://www.pokemon.cn/tcg/event/21913.html"
+      },
+      {
+        "id": 55,
+        "name": "2026城市赛第三赛季",
+        "startDate": "2026-06-27T00:00:00+08:00",
+        "endDate": "2026-08-23T00:00:00+08:00",
+        "status": "ongoing",
+        "tournamentNum": 129,
+        "link": "https://www.pokemon.cn/tcg/event/22421.html"
+      },
+      {
+        "id": 56,
+        "name": "2026高级赛夏季场",
+        "startDate": "2026-06-28T00:00:00+08:00",
+        "endDate": "2026-07-12T00:00:00+08:00",
+        "status": "ended",
+        "tournamentNum": 12,
+        "link": "https://www.pokemon.cn/tcg/event/22365.html"
+      }
+    ],
+    "pageCur": 1,
+    "pageNum": 1,
+    "pageSize": 100,
+    "itemNum": 3
+  },
+  "msg": "OK."
+}

@@ -1,0 +1,40 @@
+{
+  "code": 200,
+  "data": {
+    "name": "2026城市赛第三赛季",
+    "list": [
+      {
+        "id": 3469,
+        "name": "2026城市赛第三赛季 - 潮极巨TCG",
+        "endDate": "2026-08-01T08:00:00+08:00",
+        "status": "ongoing",
+        "location": "上海",
+        "type": "City",
+        "division": "Master",
+        "participantCount": 0,
+        "isQual": false,
+        "isTeam": false,
+        "regulation": "Standard"
+      },
+      {
+        "id": 3464,
+        "name": "2026城市赛第三赛季 - 游好道馆",
+        "endDate": "2026-08-01T08:00:00+08:00",
+        "status": "ongoing",
+        "location": "天津",
+        "type": "City",
+        "division": "Master",
+        "participantCount": 0,
+        "isQual": false,
+        "isTeam": true,
+        "regulation": "Standard"
+      }
+    ],
+    "weeks": 7,
+    "pageCur": 1,
+    "pageNum": 1,
+    "pageSize": 100,
+    "itemNum": 2
+  },
+  "msg": "OK."
+}

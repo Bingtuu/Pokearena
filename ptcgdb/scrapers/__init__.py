@@ -2,6 +2,7 @@
 
 from ptcgdb.scrapers.http import CircuitOpenError, HttpClient, RateLimiter, TransientHttpError
 from ptcgdb.scrapers.mikmoe import MikMoeApiError, MikMoeScraper
+from ptcgdb.scrapers.mikmoe_tournament import MikMoeTournamentScraper
 from ptcgdb.scrapers.runner import RunResult, RunStats, ScrapeRunner
 
 __all__ = [
@@ -9,6 +10,7 @@ __all__ = [
     "HttpClient",
     "MikMoeApiError",
     "MikMoeScraper",
+    "MikMoeTournamentScraper",
     "RateLimiter",
     "RunResult",
     "RunStats",

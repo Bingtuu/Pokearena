@@ -13,14 +13,18 @@ from ptcgdb.schemas.models import (
     Set,
     Weakness,
 )
+from ptcgdb.schemas.tournaments import AppearanceRecord, DeckCardRecord, TournamentRecord
 
 __all__ = [
     "Ability",
     "Attack",
     "AttackCost",
     "Card",
+    "DeckCardRecord",
+    "AppearanceRecord",
     "LegalitySnapshot",
     "Resistance",
     "Set",
+    "TournamentRecord",
     "Weakness",
 ]

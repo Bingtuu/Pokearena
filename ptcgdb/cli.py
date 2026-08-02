@@ -14,9 +14,12 @@ from ptcgdb.legal.versions import apply_snapshot
 from ptcgdb.legal.versions import rollback as rollback_db
 from ptcgdb.migrations import apply_migrations
 from ptcgdb.normalize import ingest_set
+from ptcgdb.normalize.ingest_tourneys import ingest_tourneys
 from ptcgdb.orm import Card, Set
 from ptcgdb.scrapers import CircuitOpenError, HttpClient, MikMoeScraper, ScrapeRunner
 from ptcgdb.scrapers.mikmoe import BASE_URL
+from ptcgdb.scrapers.mikmoe_tournament import MikMoeTournamentScraper
+from ptcgdb.scrapers.tournament_runner import TournamentScrapeRunner
 from ptcgdb.validate import run_validations, write_report
 
 app = typer.Typer(help="简中 PTCG 标准环境卡牌数据库 CLI")
@@ -409,6 +412,78 @@ def scrape_cards(
 ) -> None:
     """抓单卡（card-detail）。断点续传：已抓且 hash 有效的卡自动跳过。"""
     _run_scrape("cards", raw_dir, db_path, force, set_id)
+
+
+@scrape_app.command("tourneys")
+def scrape_tourneys(
+    series_id: str | None = typer.Option(
+        None, "--series-id", help="只抓指定赛事系列（seriesId）；缺省抓全部系列"
+    ),
+    max_tournaments: int | None = typer.Option(
+        None, "--max-tournaments", help="最多处理的赛事场数（调试/小样用）"
+    ),
+    top_n: int = typer.Option(
+        64, "--top-n", help="rank-individual 页大小（默认 64 与 top64 对齐）"
+    ),
+    force: bool = typer.Option(False, "--force", help="忽略已有 raw 文件强制重抓"),
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """抓赛事链路：series-list → list → detail/rank(top64)/static → 各卡组 deck/detail。
+
+    断点续传：raw 文件存在且 hash 有效即跳过（零请求）。限速由 HttpClient 保证。
+    """
+    try:
+        with HttpClient(BASE_URL) as http:
+            runner = TournamentScrapeRunner(
+                raw_dir, MikMoeTournamentScraper(http), db_path
+            )
+            result = runner.scrape(
+                series_id=series_id,
+                max_tournaments=max_tournaments,
+                top_n=top_n,
+                force=force,
+            )
+    except CircuitOpenError as exc:
+        typer.echo(f"熔断中止：{exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    stats = result.stats
+    fetched = sum(1 for r in stats.scraped if r["action"] == "fetched")
+    skipped = sum(1 for r in stats.scraped if r["action"] == "skipped")
+    typer.echo(
+        f"run_id={result.run_id} status={'aborted' if stats.aborted else 'ok'} "
+        f"fetched={fetched} skipped={skipped} question={len(stats.question)} "
+        f"missing={len(stats.missing)} lists={result.lists_path}"
+    )
+    if stats.aborted:
+        typer.echo("警告：本轮运行因熔断提前中止，已抓产物与清单已落盘", err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command("ingest-tourneys")
+def ingest_tourneys_cmd(
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """赛事入库：raw mikmoe/tournaments + decks → tournaments/decks/deck_cards。
+
+    重跑幂等；count 合计 != 60 的卡组整组拦截（FR-9.6 质量门）并以非零码退出。
+    """
+    result = ingest_tourneys(raw_dir, db_path)
+    typer.echo(
+        f"tournaments={result.tournaments} decks={result.decks} appearances={result.appearances} "
+        f"deck_cards={result.deck_cards} blocked={len(result.blocked)} "
+        f"unknown_cards={len(result.unknown_cards)} warnings={len(result.warnings)}"
+    )
+    for b in result.blocked:
+        typer.echo(f"  ✗ {b['deck_id']}: {b['reason']}")
+    for u in result.unknown_cards[:20]:
+        typer.echo(f"  ? 未解析卡 {u['deck_id']}: {u['raw_name']} ×{u['count']}")
+    for w in result.warnings[:20]:
+        typer.echo(f"  ? {w}")
+    if result.blocked:
+        typer.echo("有卡组被 60 张质量门拦截，详见上方清单", err=True)
+        raise typer.Exit(code=1)
 
 
 def _make_notifier(notify: bool, webhook: str | None):

@@ -200,45 +200,56 @@ class ScrapeRunner:
 
     # ---- 收尾：三清单 + scrape_runs ----
     def _finish_run(self, run_id: str, started_at: datetime, stats: RunStats) -> RunResult:
-        finished_at = datetime.now(UTC)
-        lists_dir = self.raw_dir / "runs" / run_id
-        lists_dir.mkdir(parents=True, exist_ok=True)
-        for name, rows in (
-            ("scraped", stats.scraped),
-            ("question", stats.question),
-            ("missing", stats.missing),
-        ):
-            (lists_dir / f"{name}.json").write_text(
-                json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
-            )
-        manifest_hash = hashlib.sha256(
-            canonical_json(
-                {"scraped": stats.scraped, "question": stats.question, "missing": stats.missing}
-            ).encode("utf-8")
-        ).hexdigest()
-        status = STATUS_ABORTED if stats.aborted else STATUS_OK
-        if self.db_path is not None:
-            apply_migrations(self.db_path)
-            engine = create_engine(f"sqlite:///{self.db_path}")
-            with Session(engine) as session:
-                session.add(
-                    ScrapeRun(
-                        run_id=run_id,
-                        source=mikmoe.SOURCE,
-                        started_at=started_at,
-                        finished_at=finished_at,
-                        card_count=stats.total,
-                        ok_count=len(stats.scraped),
-                        question_count=len(stats.question),
-                        missing_count=len(stats.missing),
-                        lists_path=str(lists_dir),
-                        status=status,
-                        manifest_hash=manifest_hash,
-                    )
+        return finish_run(self.raw_dir, self.db_path, run_id, started_at, stats)
+
+
+def finish_run(
+    raw_dir: Path,
+    db_path: Path | None,
+    run_id: str,
+    started_at: datetime,
+    stats: RunStats,
+) -> RunResult:
+    """三清单落盘 + scrape_runs 运行记录（卡牌/赛事 runner 共用）。"""
+    finished_at = datetime.now(UTC)
+    lists_dir = raw_dir / "runs" / run_id
+    lists_dir.mkdir(parents=True, exist_ok=True)
+    for name, rows in (
+        ("scraped", stats.scraped),
+        ("question", stats.question),
+        ("missing", stats.missing),
+    ):
+        (lists_dir / f"{name}.json").write_text(
+            json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
+    manifest_hash = hashlib.sha256(
+        canonical_json(
+            {"scraped": stats.scraped, "question": stats.question, "missing": stats.missing}
+        ).encode("utf-8")
+    ).hexdigest()
+    status = STATUS_ABORTED if stats.aborted else STATUS_OK
+    if db_path is not None:
+        apply_migrations(db_path)
+        engine = create_engine(f"sqlite:///{db_path}")
+        with Session(engine) as session:
+            session.add(
+                ScrapeRun(
+                    run_id=run_id,
+                    source=mikmoe.SOURCE,
+                    started_at=started_at,
+                    finished_at=finished_at,
+                    card_count=stats.total,
+                    ok_count=len(stats.scraped),
+                    question_count=len(stats.question),
+                    missing_count=len(stats.missing),
+                    lists_path=str(lists_dir),
+                    status=status,
+                    manifest_hash=manifest_hash,
                 )
-                session.commit()
-            engine.dispose()
-        return RunResult(run_id=run_id, stats=stats, lists_path=lists_dir)
+            )
+            session.commit()
+        engine.dispose()
+    return RunResult(run_id=run_id, stats=stats, lists_path=lists_dir)
 
 
 def _product_entries(products_doc: dict[str, Any]) -> list[dict[str, Any]]:

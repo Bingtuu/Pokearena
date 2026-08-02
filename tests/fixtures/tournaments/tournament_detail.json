@@ -1,0 +1,21 @@
+{
+  "code": 200,
+  "data": {
+    "id": 3211,
+    "name": "2026西安超级赛 - 公开组正赛",
+    "type": "Great",
+    "status": "ended",
+    "isTeam": false,
+    "isQual": false,
+    "isRate": false,
+    "location": "西安",
+    "date": "2026-05-31T08:00:00+08:00",
+    "participantCount": 32,
+    "regulation": "Standard",
+    "regulationMark": "FGH",
+    "formatEnd": "CSV9C",
+    "division": "Master",
+    "notification": "<i>\n* 单败淘汰赛赛制 (BO1)，预赛与正赛之间无法更换卡组\n</i>"
+  },
+  "msg": "OK."
+}

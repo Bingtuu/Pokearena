@@ -16,6 +16,10 @@ EXPECTED_TABLES = {
     "scrape_runs",
     "external_ids",
     "meta",
+    "tournaments",
+    "decks",
+    "deck_appearances",
+    "deck_cards",
 }
 
 EXPECTED_INDEXES = {
@@ -28,6 +32,8 @@ EXPECTED_INDEXES = {
     "ix_cards_is_tera",
     "ix_card_relations_related_card_id",
     "ix_legality_snapshots_format_effective_from",
+    "ix_deck_appearances_tournament_id",
+    "ix_deck_cards_card_id",
 }
 
 

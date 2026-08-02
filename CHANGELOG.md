@@ -7,6 +7,8 @@
 
 ### Added
 
+- 赛事卡组管线 CN mik 全链路（M9-1，task 027）：mik 赛事四端点采集器（series-list → list → rank-individual top64 → deck/detail，限速 2s、断点续传、进行中赛事 MikMoeNotReadyError 优雅跳过）+ `scrape tourneys` / `ingest-tourneys` CLI；赛事四表 tournaments / decks（卡组内容实体）/ deck_appearances（出战条目，deck_id+tournament_id+rank 复合主键）/ deck_cards（migration 004/005，user_version=5）；真实采集 3 批 1,327 raw 文件 → 26 赛 / 1,252 卡组内容 / 1,396 出战 / 38,105 卡表行（blocked=0 / unknown=0）；stat_scope 六组合派生；tier/division 开放词表 `config/vocabularies/tournament_tiers.yml`
+- 对账工具 `tools/reconcile_variant_share.py`：deck-static 全量口径 vs top64 口径 + variantIcon 最长前缀 rollup 粒度归并（full-coverage 2/2 精确一致）；验收报告 `reports/task027-ingest-20260802.md`
 - 统计可复算性与查询层设计（M9-2，task 029 设计）：FR-9.6 可复算性契约（指标=库存事实+公开公式可复算、派生非真相、canonical SQL 单一事实源、口径词表 hash 版本化、as_of 回显、数据质量门）+ FR-9.7 接口（物化视图 v_stat_deck_cards/v_tournament_weights、`ptcgdb stats` 子命令组 usage/winrate/wws/card + `ptcgdb query` 只读 SQL、SDK stats_* 函数、导出追加赛事三件套）
 - 赛事卡组数据源调研与设计（M9 设计段，task 027）：mik.moe 赛事 API 端点文档化（`docs/data-sources.md` §1 赛事 API）；EN Limitless TCG / JP players.pokemon-card.com 源评估入档（§7/§8）；PRD §7.5 tournaments/decks/deck_cards 三表设计
 - FR-3.4 同名计数引擎（M7-1，task 025）：`ptcgdb/legal/deck.py` 纯函数核 `check_counts`（deck_size / 同名组双层上限 / ACE SPEC 与光辉全卡组 ≤1 / V-UNION 部件各 1 / 基本能量豁免）；`Violation` frozen schema（kind 全集含 additive 新增 `unknown_card` / `radiant_limit`）
@@ -18,6 +20,7 @@
 
 ### Changed
 
+- PRD 升 v1.10 续（task 027 真实数据订正）：真实采集实证 deckId = 卡组**内容实体**（多名选手/多场赛事共用、同赛事可多个名次）→ §7.5 拆表 decks（内容：variant/deck_code/mapping_status）/ deck_appearances（出战：rank/points/player_ref/record 三列）；mik `type` 实测词表（Great=super / City=city / Ultra=advanced）；id 参数必须 int 形态
 - PRD 升 v1.10（task 029 设计）：FR-9.6 可复算性契约 + FR-9.7 统计与查询接口（见 Added）；§7.5 修订（tournaments 加 topcut_slots/tier_coef、decks 加 record 三列、主键 {source}:{源侧id} 口径）；FR-7 导出追加赛事三件套；FR-8 SDK 追加 stats_*；M9 拆分 M9-1/2/3
 - PRD 升 v1.9（task 027 统计指标定稿）：FR-9.4 展开为三指标体系——①加权出场率 WUR（卡组名次权重 w̃_d × 赛事权重 W_t[tier 系数 × log₁₀参赛人数 × 半衰期 90 天时间衰减]，统计单元=name_group × 滚动赛季窗）；②胜率 WR 分层（A 层 Limitless 真实胜率含镜像对局剔除；B 层 mik 无逐局数据时用 top-cut 转化率代理并与 deck-static 端点对账）；③加权胜率 WWS = WUR × 贝叶斯收缩胜率（A 层 k=20 等效局/B 层 k=10 等效卡组、收缩基准 q0=赛事基准转化率而非 0.5）；每指标附样本量 + 口径标签 + low_confidence 低样本标记
 - PRD 升 v1.8（task 027 设计）：新增 FR-9 赛事卡组与统计基建（范围限定=可映射简中环境的卡组；统计范围=宝可梦/支援者/竞技场，能量/物品/道具不进统计；胜率=名次加权使用率/top-cut 转化率代理指标）+ §7.5 三表 + 数据源矩阵加 Limitless/players + 里程碑 M9

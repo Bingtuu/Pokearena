@@ -8,7 +8,7 @@
 
 ## 当前状态
 
-Phase 1 全部完成（2026-08-01，M4 验收 A1~A8 全过）：1a 首批入库 129 系列 / 12,420 张；1b 合法性引擎 + 导出七件套 + SDK 双后端；1c L0/L1 监控管线。D1 = 路线 B（tcg.mik.moe 主源，PRD 第 14 章）。Phase 2 进行中：M5 进化解析（task 019）、M6 跨语言映射 EN+JP（task 022~024，name_en 12,337 / name_ja 9,480）、M7-1 同名计数引擎（task 025，PRD v1.7）已完成；下一步 task 026 validate_deck SDK + M7 验收。
+Phase 1 全部完成（2026-08-01，M4 验收 A1~A8 全过）：1a 首批入库 129 系列 / 12,420 张；1b 合法性引擎 + 导出七件套 + SDK 双后端；1c L0/L1 监控管线。D1 = 路线 B（tcg.mik.moe 主源，PRD 第 14 章）。Phase 2 进行中：M5 进化解析、M6 跨语言映射 EN+JP（name_en 12,337 / name_ja 9,480）、M7-1 同名计数引擎已完成；**M9-1 赛事卡组管线 CN mik 已完成（task 027，2026-08-02）**：赛事四表（tournaments/decks 内容实体/deck_appearances 出战/deck_cards，user_version=5）+ 真实采集 26 赛 / 1,252 卡组内容 / 1,396 出战，deck-static 对账 full-coverage 2/2 精确一致；下一步 task 026 validate_deck SDK + M7 验收 / task 029 统计与查询层（M9-2，前置已齐）。
 代码结构已按 PRD 第 8 章落地：`ptcgdb/`（orm/schemas/migrations/scrapers/normalize/validate/legal/monitor/export/sdk/accept/mapping），不要自行发明布局。
 
 ## 技术栈与约束
@@ -51,6 +51,8 @@ ptcgdb monitor l1 [--baseline] / proposals      # L1 赛制监控 / 提案列表
 ptcgdb accept                                   # 一键验收 A1/A4/A5/A6/A7/A8
 ptcgdb sample [--a2 | --a3] [--seed N]          # A2/A3 抽样比对清单
 ptcgdb map-en / map-tcgdex / map-ja [--fetch]   # 跨语言映射：EN 桥 / TCGdex ID / JP 名
+ptcgdb scrape tourneys [--series-id 54] [--max-tournaments N]  # 采集 mik 赛事 → raw（限速 2s/请求）
+ptcgdb ingest-tourneys                          # 赛事 raw → 四表入库（60 张质量门）
 ```
 
 ## 工作方式

@@ -5,7 +5,7 @@
 | 文档版本 | v1.10 |
 | 日期 | 2026-08-01 |
 | 状态 | D1 已定（M0：路线 B，tcg.mik.moe 为主源，见第 14 章）；M1~M4 已完成（Phase 1a/1b/1c + 验收 A1~A8 全过），Phase 1 收官 |
-| 修订记录 | v1.1：移除卡图采集与存储（数据形态为纯文本/结构化数据）；明确交互形态为 CLI/TUI<br>v1.2：按评审意见修订——card_id 与卡号口径、编号外卡对账口径、白名单关联语义、基本能量建模；修正"宝可装置3.0/宝可齿轮3.0"同名规则来源；快照 override 冻结；JSON 字段示例、索引、服务条款风险；移除 D2<br>v1.3：按外部调研（简中赛制核查 / 开源项目对标 / 数据基建接口调研）修订——**重构基本能量合法性**（妖能量反例：标准 8 种 / 开放 9 种，进快照，废弃全局特判）；新增赛制标记**"视作"覆盖**（天空之柱视作B）、V-UNION 部件建模、`is_tera`、owner 进化封闭泛化（5 组训练家宝可梦）、开放赛制白名单（34 种）与"特别的卡牌"外链监控；**导出契约扩为七件套**（manifest/checksums/sets/relations）+ **双轨版本化**（日历版本 + schema SemVer）；新增**下游 SDK 设计**（open_db/open_jsonl 双后端、合法性一等公民函数）；技术栈调整（SQLAlchemy 2 替代 SQLModel、PRAGMA user_version 替代 Alembic）；补充 2.6 开源对标；验收标准与里程碑同步更新<br>v1.4：task 007 按赛制页正文逐名核定——开放赛制过去系列白名单 **34 种→32 种**（多出 6 种而非 8 种），§2.1/FR-5.4/A1/A4/附录 A 同步修正；种子文件 `config/legality/` 落为白名单结构化事实来源<br>v1.4（续，task 012 统一修订）：合并 M1/M2 实测偏差——①FR-2.3 对账改**条目 setCode + (setCode, cardIndex) 全局去重**口径（附赠能量卡跨系列重复列出，目录口径产生 15 个假缺口），§7.1 expected_count=mik cardsNum 含编号外卡、expected_secret_count 留 NULL；②attacks 子结构新增 **`cost_modifier`** 增量字段（TAG TEAM GX "WWC+" 追加费用，§7.2 示例同步）；③§7.1 主键口径：特典系列 product setCode='PROMO' 与目录 setId 不一致，sets 主键用目录 set_id；④FR-2.3 规则 6 本期为 DB vs raw 同源自验（单源，跨源比对待 Phase 2）、规则 1 增源数据缺失豁免（SSP-195）与基本能量标记可空豁免；⑤简中暂无太晶卡样本（§2.1 补注、A3 改样本出现后补验）；⑥task 011 已并入 legality.json `errata` 键（JSONL 后端 effective_text 用）；⑦D1 决策结果全文同步（§2.3 定位、FR-1.1/1.2 主源= mik.moe、§7.4 规模改实测值 12,420/5,320、§8 架构图、风险登记册、第 14 章改决策记录）<br>v1.4（续，task 014 实测订正）：§2.1 "特别的卡牌"外链（`/tcg-rules-regulation-extra/`）实测为**特殊机制图文说明页**（GX/棱镜之星/究极异兽/TAG TEAM/V-UNION），非"视作覆盖"清单——L1 对其只做正文 hash 监控 + needs_manual 提案，v1.3 推测作废<br>v1.5：按 2026-08-01 校验源与映射源调研（task 021）修订——**跨语言映射取消繁中方向、新增日文原版**：链路改为 简中 ──(mik raw 英文桥 `setCodeEn/cardIndexEn/nameEn`)──▶ EN ──(TCGdex 同 card ID 多语言共构)──▶ JP，官方 pokemon-card.com 卡查仅作 JP 抽样权威核对，不爬繁中站；`name_zh_tw` 保留预留不填充；**校验源矩阵更新**：TCGdex 已收录全部简中系列壳（set_id 与本库一致）但卡级数据 0%——**系列级跨源对账**（系列名+卡数）落地（FR-1.2 / FR-2.3 规则 6），卡级跨源仍待 zh-cn 实装（风险登记册跟踪）；mik.moe 赛事数据库（2023 广州大师赛以来官方积分赛卡组）列为 `validate_deck` 真实卡组校验源；`external_ids.system` 枚举改 `{mik_en, tcgdex, pokemon_card_jp}`<br>v1.5（续，排期调整）：M5 瘦身为 derive 跨系列进化解析（技术债先行）；A2/A3 卡面人工比对独立为 M8 收尾里程碑（需用户在场），M6/M7 不依赖其完成<br>v1.6：按 task 023 实测修订——**v1.5「TCGdex 同 ID 多语言共构取 JP」前提证伪**（EN/JA 卡 id 不共构，交集仅个位数；列表端点无 dexId）：§2.4 JP 映射改**名字级 dexId 链**（EN TCGdex id → pokemon-tcg-data 卡数据 `nationalPokedexNumbers` → PokéAPI 物种名表日文名 + 形态/机制开放词表；基本能量词表定名；训练家/特殊能量本里程碑不填充入 question 清单）；EN 桥 → TCGdex set 映射改**名字连接 + 词表覆盖**（ptcd/TCGdex set id 自 SV 代分叉实测），实测解析率 99.88%；置信度分档新增 `species-linked`；数据源矩阵新增 PokéAPI CSV<br>v1.7：task 025 同名计数引擎设计定稿——FR-3.4 展开为**逐条形式化计数语义**（deck_size=60；单卡/同名组双层上限判定；ACE SPEC 与光辉全卡组 ≤1；◇ 同名 ≤1；V-UNION 部件各 1 且组总 ≤4）；FR-8 `validate_deck` **Violation 语义全集定义**（kind 新增 `unknown_card`/`radiant_limit`（additive）；`evolution_chain` 定死为**预留类型**——官方卡组构筑规则无进化链完整性要求，当前规则集不产生）；DeckReport 字段定稿（ok/deck_size/format/date/snapshot_id/violations，Violation 增 `count`）<br>v1.8：task 027 赛事卡组数据源调研落地 + 数据模型设计——**mik.moe 赛事 API 全端点实测打通**（series-list → list → rank-individual → deck/detail，卡组卡标识 = setCode+cardIndex 与本库主键一致，零映射成本）；EN 源 = **Limitless TCG 官方 API**（play.limitlesstcg.com，匿名 50req/5min，PTCGO set code + number → name_en 桥）；JP 源 = players.pokemon-card.com JSON 壳（名次+卡组码，卡表渲染后置）。新增 **FR-9 赛事卡组与统计基建**：采集范围限定**仅可映射到简中环境的卡组**（EN/JP 按映射率分档 mapping_status）；§7.5 tournaments/decks/deck_cards 三表；**统计范围 = 宝可梦/支援者/竞技场**（能量/物品/宝可梦道具不进统计），统计粒度 = name_group；胜率语义诚实声明为**名次加权使用率 / top-cut 转化率**（mik 无逐局对阵，逐局 matchup 仅 Limitless pairings 可得，后置）；里程碑新增 M9<br>v1.9：task 027 统计指标体系定稿——FR-9.4 展开为**三指标**：①**加权出场率 WUR**（卡组名次权重[官方积分优先、无则 1/rank] 赛事内份额化 × 赛事权重[tier 系数开放词表 × log 人数 × 半衰期 90 天时间衰减]）；②**胜率 WR 分层**（A 层 Limitless record/pairings 真实胜率、镜像对局剔除；B 层 mik 无逐局数据 → top-cut 转化率代理，与 deck-static-by-tour 对账）；③**加权胜率 WWS = WUR × 贝叶斯收缩胜率**（A 层向 0.5 收缩 k=20 等效局；B 层向赛事基准转化率收缩 k=10 等效卡组）；每指标附样本量 n 与口径标签、低样本 low_confidence 标记<br>v1.10：统计可复算性与查询层设计（task 029 设计）——**FR-9.6 可复算性契约**（一切公布指标可由库存事实 + 公开公式复算；权重输入全量落库[tier_coef 物化/topcut_slots/参赛人数/日期]，指标只作派生不落真相；canonical SQL 单一事实源 `ptcgdb/stats/sql/`；name_group 与 tiers 词表 hash 入 meta/manifest；数据质量门：60 张/count 和/唯一性/{source}:{source_id} 主键口径/FK 强制）；§7.5 修订（tournaments 加 topcut_slots/tier_coef、decks 加 record 三列）+ 物化视图 v_stat_deck_cards/v_tournament_weights；**FR-9.7 统计与查询接口**（`ptcgdb stats` 子命令组 usage/winrate/wws/card/overview + `ptcgdb query` 只读 ad-hoc SQL + SDK stats_* 函数 + 导出追加赛事三件套）；M9 拆分 M9-1 数据管线 / M9-2 统计与查询层 / M9-3 EN Limitless |
+| 修订记录 | v1.1：移除卡图采集与存储（数据形态为纯文本/结构化数据）；明确交互形态为 CLI/TUI<br>v1.2：按评审意见修订——card_id 与卡号口径、编号外卡对账口径、白名单关联语义、基本能量建模；修正"宝可装置3.0/宝可齿轮3.0"同名规则来源；快照 override 冻结；JSON 字段示例、索引、服务条款风险；移除 D2<br>v1.3：按外部调研（简中赛制核查 / 开源项目对标 / 数据基建接口调研）修订——**重构基本能量合法性**（妖能量反例：标准 8 种 / 开放 9 种，进快照，废弃全局特判）；新增赛制标记**"视作"覆盖**（天空之柱视作B）、V-UNION 部件建模、`is_tera`、owner 进化封闭泛化（5 组训练家宝可梦）、开放赛制白名单（34 种）与"特别的卡牌"外链监控；**导出契约扩为七件套**（manifest/checksums/sets/relations）+ **双轨版本化**（日历版本 + schema SemVer）；新增**下游 SDK 设计**（open_db/open_jsonl 双后端、合法性一等公民函数）；技术栈调整（SQLAlchemy 2 替代 SQLModel、PRAGMA user_version 替代 Alembic）；补充 2.6 开源对标；验收标准与里程碑同步更新<br>v1.4：task 007 按赛制页正文逐名核定——开放赛制过去系列白名单 **34 种→32 种**（多出 6 种而非 8 种），§2.1/FR-5.4/A1/A4/附录 A 同步修正；种子文件 `config/legality/` 落为白名单结构化事实来源<br>v1.4（续，task 012 统一修订）：合并 M1/M2 实测偏差——①FR-2.3 对账改**条目 setCode + (setCode, cardIndex) 全局去重**口径（附赠能量卡跨系列重复列出，目录口径产生 15 个假缺口），§7.1 expected_count=mik cardsNum 含编号外卡、expected_secret_count 留 NULL；②attacks 子结构新增 **`cost_modifier`** 增量字段（TAG TEAM GX "WWC+" 追加费用，§7.2 示例同步）；③§7.1 主键口径：特典系列 product setCode='PROMO' 与目录 setId 不一致，sets 主键用目录 set_id；④FR-2.3 规则 6 本期为 DB vs raw 同源自验（单源，跨源比对待 Phase 2）、规则 1 增源数据缺失豁免（SSP-195）与基本能量标记可空豁免；⑤简中暂无太晶卡样本（§2.1 补注、A3 改样本出现后补验）；⑥task 011 已并入 legality.json `errata` 键（JSONL 后端 effective_text 用）；⑦D1 决策结果全文同步（§2.3 定位、FR-1.1/1.2 主源= mik.moe、§7.4 规模改实测值 12,420/5,320、§8 架构图、风险登记册、第 14 章改决策记录）<br>v1.4（续，task 014 实测订正）：§2.1 "特别的卡牌"外链（`/tcg-rules-regulation-extra/`）实测为**特殊机制图文说明页**（GX/棱镜之星/究极异兽/TAG TEAM/V-UNION），非"视作覆盖"清单——L1 对其只做正文 hash 监控 + needs_manual 提案，v1.3 推测作废<br>v1.5：按 2026-08-01 校验源与映射源调研（task 021）修订——**跨语言映射取消繁中方向、新增日文原版**：链路改为 简中 ──(mik raw 英文桥 `setCodeEn/cardIndexEn/nameEn`)──▶ EN ──(TCGdex 同 card ID 多语言共构)──▶ JP，官方 pokemon-card.com 卡查仅作 JP 抽样权威核对，不爬繁中站；`name_zh_tw` 保留预留不填充；**校验源矩阵更新**：TCGdex 已收录全部简中系列壳（set_id 与本库一致）但卡级数据 0%——**系列级跨源对账**（系列名+卡数）落地（FR-1.2 / FR-2.3 规则 6），卡级跨源仍待 zh-cn 实装（风险登记册跟踪）；mik.moe 赛事数据库（2023 广州大师赛以来官方积分赛卡组）列为 `validate_deck` 真实卡组校验源；`external_ids.system` 枚举改 `{mik_en, tcgdex, pokemon_card_jp}`<br>v1.5（续，排期调整）：M5 瘦身为 derive 跨系列进化解析（技术债先行）；A2/A3 卡面人工比对独立为 M8 收尾里程碑（需用户在场），M6/M7 不依赖其完成<br>v1.6：按 task 023 实测修订——**v1.5「TCGdex 同 ID 多语言共构取 JP」前提证伪**（EN/JA 卡 id 不共构，交集仅个位数；列表端点无 dexId）：§2.4 JP 映射改**名字级 dexId 链**（EN TCGdex id → pokemon-tcg-data 卡数据 `nationalPokedexNumbers` → PokéAPI 物种名表日文名 + 形态/机制开放词表；基本能量词表定名；训练家/特殊能量本里程碑不填充入 question 清单）；EN 桥 → TCGdex set 映射改**名字连接 + 词表覆盖**（ptcd/TCGdex set id 自 SV 代分叉实测），实测解析率 99.88%；置信度分档新增 `species-linked`；数据源矩阵新增 PokéAPI CSV<br>v1.7：task 025 同名计数引擎设计定稿——FR-3.4 展开为**逐条形式化计数语义**（deck_size=60；单卡/同名组双层上限判定；ACE SPEC 与光辉全卡组 ≤1；◇ 同名 ≤1；V-UNION 部件各 1 且组总 ≤4）；FR-8 `validate_deck` **Violation 语义全集定义**（kind 新增 `unknown_card`/`radiant_limit`（additive）；`evolution_chain` 定死为**预留类型**——官方卡组构筑规则无进化链完整性要求，当前规则集不产生）；DeckReport 字段定稿（ok/deck_size/format/date/snapshot_id/violations，Violation 增 `count`）<br>v1.8：task 027 赛事卡组数据源调研落地 + 数据模型设计——**mik.moe 赛事 API 全端点实测打通**（series-list → list → rank-individual → deck/detail，卡组卡标识 = setCode+cardIndex 与本库主键一致，零映射成本）；EN 源 = **Limitless TCG 官方 API**（play.limitlesstcg.com，匿名 50req/5min，PTCGO set code + number → name_en 桥）；JP 源 = players.pokemon-card.com JSON 壳（名次+卡组码，卡表渲染后置）。新增 **FR-9 赛事卡组与统计基建**：采集范围限定**仅可映射到简中环境的卡组**（EN/JP 按映射率分档 mapping_status）；§7.5 tournaments/decks/deck_cards 三表；**统计范围 = 宝可梦/支援者/竞技场**（能量/物品/宝可梦道具不进统计），统计粒度 = name_group；胜率语义诚实声明为**名次加权使用率 / top-cut 转化率**（mik 无逐局对阵，逐局 matchup 仅 Limitless pairings 可得，后置）；里程碑新增 M9<br>v1.9：task 027 统计指标体系定稿——FR-9.4 展开为**三指标**：①**加权出场率 WUR**（卡组名次权重[官方积分优先、无则 1/rank] 赛事内份额化 × 赛事权重[tier 系数开放词表 × log 人数 × 半衰期 90 天时间衰减]）；②**胜率 WR 分层**（A 层 Limitless record/pairings 真实胜率、镜像对局剔除；B 层 mik 无逐局数据 → top-cut 转化率代理，与 deck-static-by-tour 对账）；③**加权胜率 WWS = WUR × 贝叶斯收缩胜率**（A 层向 0.5 收缩 k=20 等效局；B 层向赛事基准转化率收缩 k=10 等效卡组）；每指标附样本量 n 与口径标签、低样本 low_confidence 标记<br>v1.10：统计可复算性与查询层设计（task 029 设计）——**FR-9.6 可复算性契约**（一切公布指标可由库存事实 + 公开公式复算；权重输入全量落库[tier_coef 物化/topcut_slots/参赛人数/日期]，指标只作派生不落真相；canonical SQL 单一事实源 `ptcgdb/stats/sql/`；name_group 与 tiers 词表 hash 入 meta/manifest；数据质量门：60 张/count 和/唯一性/{source}:{source_id} 主键口径/FK 强制）；§7.5 修订（tournaments 加 topcut_slots/tier_coef、decks 加 record 三列）+ 物化视图 v_stat_deck_cards/v_tournament_weights；**FR-9.7 统计与查询接口**（`ptcgdb stats` 子命令组 usage/winrate/wws/card/overview + `ptcgdb query` 只读 ad-hoc SQL + SDK stats_* 函数 + 导出追加赛事三件套）；M9 拆分 M9-1 数据管线 / M9-2 统计与查询层 / M9-3 EN Limitless<br>v1.10（续，task 027 实测订正）：**mik deckId 实测为卡组内容实体**——同一套 60 张清单按内容去重、可被多名选手/多场赛事共用（真实采集 1,396 个名次条目 vs 1,252 套内容；97 套内容跨赛事；存在同一赛事两个名次共用同一 deckId 的实例）——§7.5 拆表：decks=内容实体（variant/deck_code/映射状态），新增 **deck_appearances** 出战条目表（名次/积分/选手/A 层 record 挂此，PK(deck_id, tournament_id, rank)）；FR-9.2 数据模型、FR-9.4 统计口径（"卡组数"=出战条目数，与 deck-static-by-tour variant count 可对账）、FR-9.7 视图（四表联查）同步；migration 005 重建赛事三表（004 数据可由 raw 重 ingest，特性未发布无下游） |
 | 项目代号 | ptcg-cn-db |
 | 上游目标 | 为"AI模拟对战 + 卡组强度/胜率测试"本地工具提供卡牌数据与规则基建 |
 
@@ -330,12 +330,12 @@ db.stats_card("沙奈朵ex")                        # 单卡逐赛事钻取
 ### FR-9 赛事卡组与统计基建（Phase 2 扩展，v1.8 新增，task 027 起）
 
 - FR-9.1 **采集范围**：CN 主源 = mik.moe 赛事 API（2023 广州大师赛以来官方积分赛：城市赛/高级赛/超级赛/大师赛，组别 Master/Senior/Junior）；EN 辅源 = Limitless TCG 官方 API（线上赛）+ 主站 HTML（官方大赛上位卡组）；JP 壳源 = players.pokemon-card.com（名次 + 卡组码，卡表渲染后置）。**只入能映射到简中环境的卡组**：CN 源卡标识 = setCode+cardIndex 与本库主键一致（零映射成本）；EN/JP 卡组按卡名映射率分档 `mapping_status`（full ≥95% / partial <95% / unmapped 0%），统计层仅消费 full。
-- FR-9.2 **数据模型**：§7.5 tournaments / decks / deck_cards 三表。卡组构成**保真全量存 60 张**（含能量，供 `validate_deck` 复用做真值校验）；`card_id` 可空 + `raw_name` 保真，映射不上的卡不猜测。
+- FR-9.2 **数据模型**：§7.5 tournaments / decks / deck_appearances / deck_cards 四表。**mik deckId 实测为内容实体**（同一套 60 张清单按内容去重，可被多名选手/多场赛事共用）——内容（decks）与出战条目（deck_appearances）分表，名次/积分/选手/A 层战绩挂出战条目（v1.10 续，task 027 实测订正）。卡组构成**保真全量存 60 张**（含能量，供 `validate_deck` 复用做真值校验）；`card_id` 可空 + `raw_name` 保真，映射不上的卡不猜测。
 - FR-9.3 **统计范围（硬约束）**：使用率/胜率统计**仅含宝可梦、支援者、竞技场**（card_type / trainer_subtype 判定）；**能量、物品、宝可梦道具不进统计**。统计粒度 = **name_group**（跨印刷同名合并，与 FR-3.4 计数口径一致）。
 - FR-9.4 **统计指标体系（v1.9 定稿）**：三指标，统计单元 = **name_group × 时间窗**（默认滚动赛季），仅消费 `stat_scope ∈ {pokemon, supporter, stadium}` 且 `mapping_status='full'` 的卡组。公共权重：
   - **卡组名次权重** w_d：官方积分优先（mik points / Limitless points），无则 1/rank；赛事内份额化 w̃_d = w_d / Σ_{d∈t} w（跨赛事可比）；
   - **赛事权重** W_t = tier 系数（开放词表 `config/vocabularies/tournament_tiers.yml`：大师赛/PJCS=4、超级赛/CL=2、高级赛/Regional=1.5、城市赛=1）× log10(参赛人数) × 时间衰减（半衰期 90 天：0.5^(天数/90)）。
-  1. **加权出场率 WUR**：`WUR(c) = Σ_t W_t·Σ_{d∋c} w̃_d / Σ_t W_t`——该卡在加权卡组中的出场份额。主口径 = 携带卡组数；副口径按 count 张数加权（报告注明）。
+  1. **加权出场率 WUR**：`WUR(c) = Σ_t W_t·Σ_{d∋c} w̃_d / Σ_t W_t`——该卡在加权卡组中的出场份额。主口径 = 携带卡组数（**出战条目数 deck_appearances**——同一内容多套出战按多次计，与 mik deck-static-by-tour 的 variant count 口径一致、可直接对账）；副口径按 count 张数加权（报告注明）。
   2. **胜率 WR（按数据可得性分层）**：**A 层**（Limitless，有 record/pairings）：`WR(c) = (wins + 0.5·ties) / (wins + losses + ties)`（携带 c 的卡组逐局战绩）；pairings 可得时**剔除镜像对局**（双方同含 c）并注明口径。**B 层**（mik，无逐局对阵——swiss 端点仅赛事进行中可用）：**代理胜率 = top-cut 转化率** `CR(c) = 加权 top-cut 携带 / 加权总携带`，与 `deck-static-by-tour` 的 topcutTimes/share 抽样对账。
   3. **加权胜率 WWS**：`WWS(c) = WUR(c) × WR_adj(c)`——WR_adj 为**贝叶斯收缩胜率**：A 层 `(W + k·0.5)/(N + k)`（k=20 等效局数，向 50% 收缩）；B 层 `(T + k·q0)/(U + k)`（q0 = 赛事基准转化率 = topcut 名额/参赛人数，k=10 等效卡组）。低样本卡向基准收缩，出场率叠加后突出"高出场 × 高胜率"的环境核心卡；业务解释 = **该卡对环境胜利的贡献份额**。
   每个指标输出附带**样本量 n 与口径标签**（A/B 层、镜像口径、主/副口径）；n 低于阈值（词表定）打 `low_confidence` 标记。**模拟对战结果永远落独立库**（既有红线），赛事统计派生表在主库。
@@ -349,7 +349,7 @@ db.stats_card("沙奈朵ex")                        # 单卡逐赛事钻取
   - **数据质量门（入库即强制）**：①deck_cards 的 count 合计 = 60（is_team/异常赛制登记豁免名单）；②(deck_id, card_id, raw_name) 唯一；③tournament_id / deck_id 采用 `{source}:{源侧id}` 口径防跨源碰撞；④mapping_status 阈值固化（full ≥95%）；⑤导出前 `PRAGMA foreign_key_check` + `integrity_check` 通过。
   - **精度约定**：计算全链 float64；CLI 表格展示四舍五入 4 位，JSON/CSV 输出全精度。
 - FR-9.7 **统计与查询接口（v1.10）**：
-  - **物化视图**（随迁移落库，导出 DB 自带）：`v_stat_deck_cards`（三表联查 + 范围过滤[`mapping_status='full'` ∧ stat_scope 三类] + group_key 预联）、`v_tournament_weights`（赛事静态权重件 tier_coef × log10(participant_count)；衰减因子由查询参数 as_of 计算）。视图只封装过滤与连接，**不含业务公式**——公式只在 canonical SQL。
+  - **物化视图**（随迁移落库，导出 DB 自带）：`v_stat_deck_cards`（deck_cards ⋈ decks ⋈ deck_appearances ⋈ tournaments 四表联查 + 范围过滤[`mapping_status='full'` ∧ stat_scope 三类] + group_key 预联，行粒度 = 出战条目 × 卡）、`v_tournament_weights`（赛事静态权重件 tier_coef × log10(participant_count)；衰减因子由查询参数 as_of 计算）。视图只封装过滤与连接，**不含业务公式**——公式只在 canonical SQL。
   - **CLI**（`stats` 升级为子命令组，裸 `ptcgdb stats` 兼容旧对账行为）：
     ```
     ptcgdb stats overview                        # 原"各系列/标记卡数对账"（兼容）
@@ -549,21 +549,28 @@ tournaments(
   fetched_at     DATETIME);
 
 decks(
-  deck_id        TEXT PRIMARY KEY,   -- {source}:{源侧id} 口径（mik deckId；pcc 卡组码；limitless tournament_id+player 合成）
-  tournament_id  TEXT NOT NULL REFERENCES tournaments(tournament_id),
-  player_ref     TEXT,               -- 官方选手编号（pinCode；隐私最小化，不存昵称）
-  rank           INTEGER,
-  points         REAL,
-  record_wins    INTEGER,            -- A 层逐局战绩（Limitless；可空 = 源无此数据）
-  record_losses  INTEGER,
-  record_ties    INTEGER,
-  archetype_id   TEXT,               -- variantId / 自动归类 id
+  deck_id        TEXT PRIMARY KEY,   -- {source}:{源侧id} 口径；**卡组内容实体**（同一套 60 张清单全源一行：
+                                     -- mik deckId 按内容去重，可被多名选手/多场赛事共用——v1.10 续实测订正）
+  archetype_id   TEXT,               -- variantId / 自动归类 id（内容级：mik deck/detail 的 variant 字段）
   archetype_name TEXT,               -- 卡组归类名（沙奈朵…）
   deck_code      TEXT,               -- 小程序分享码（可空）
   mapping_status TEXT NOT NULL,      -- full(≥95%) / partial / unmapped（FR-9.1）
   mapped_ratio   REAL,
   source         TEXT NOT NULL,
   fetched_at     DATETIME);
+
+deck_appearances(                    -- 出战条目：一套内容在一次赛事取得的一个名次（统计"卡组数"的口径单元）
+  deck_id        TEXT NOT NULL REFERENCES decks(deck_id),
+  tournament_id  TEXT NOT NULL REFERENCES tournaments(tournament_id),
+  rank           INTEGER NOT NULL,
+  points         REAL,
+  player_ref     TEXT,               -- 官方选手编号（pinCode；隐私最小化，不存昵称）
+  record_wins    INTEGER,            -- A 层逐局战绩（Limitless standings 按 选手×赛事；可空 = 源无此数据）
+  record_losses  INTEGER,
+  record_ties    INTEGER,
+  source         TEXT NOT NULL,
+  fetched_at     DATETIME,
+  PRIMARY KEY(deck_id, tournament_id, rank));
 
 deck_cards(
   deck_id        TEXT NOT NULL REFERENCES decks(deck_id),
@@ -574,8 +581,8 @@ deck_cards(
   PRIMARY KEY(deck_id, card_id, raw_name));
 ```
 
-- 物化视图（v1.10，FR-9.7）：`v_stat_deck_cards`（三表联查 + 统计范围过滤 + group_key 预联）、`v_tournament_weights`（赛事静态权重件）随迁移落库、导出 DB 自带；视图只封装过滤与连接，业务公式只在 canonical SQL（`ptcgdb/stats/sql/`）。
-- 派生统计（task 028+）：按 name_group × 赛事/时间窗聚合的使用率、名次加权分、top-cut 转化率；只消费 `stat_scope ∈ {pokemon, supporter, stadium}` 且 `mapping_status='full'` 的卡组。
+- 物化视图（v1.10，FR-9.7）：`v_stat_deck_cards`（四表联查[deck_cards ⋈ decks ⋈ deck_appearances ⋈ tournaments] + 统计范围过滤 + group_key 预联，行粒度 = 出战条目 × 卡）、`v_tournament_weights`（赛事静态权重件）随迁移落库、导出 DB 自带；视图只封装过滤与连接，业务公式只在 canonical SQL（`ptcgdb/stats/sql/`）。
+- 派生统计（task 028+）：按 name_group × 赛事/时间窗聚合的使用率、名次加权分、top-cut 转化率；只消费 `stat_scope ∈ {pokemon, supporter, stadium}` 且 `mapping_status='full'` 的卡组（"卡组数" = 出战条目数，见 deck_appearances）。
 - `deck_cards` 保真全量（60 张）落库——validate_deck 真值校验（task 026）与统计复用同一事实源；统计层的范围过滤只发生在聚合查询。
 
 ## 8. 架构与管线

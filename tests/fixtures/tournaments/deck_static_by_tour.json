@@ -1,0 +1,299 @@
+{
+  "code": 200,
+  "data": {
+    "list": [
+      {
+        "id": 299,
+        "icon": [
+          "charizard"
+        ],
+        "name": "喷火龙",
+        "label": "ex",
+        "rawCount": 10,
+        "rawPoints": 133,
+        "rawShare": 0.3125,
+        "rawShare2": 0.2697768762677485,
+        "count": 10,
+        "share": 0.3125,
+        "points": 1850,
+        "points2": 133,
+        "share2": 0.2697768762677485,
+        "topcutTimes": [
+          0,
+          0,
+          0,
+          1,
+          3
+        ]
+      },
+      {
+        "id": 280,
+        "icon": [
+          "regidrago"
+        ],
+        "name": "雷吉铎拉戈",
+        "label": "VSTAR",
+        "rawCount": 6,
+        "rawPoints": 87,
+        "rawShare": 0.1875,
+        "rawShare2": 0.17647058823529413,
+        "count": 6,
+        "share": 0.1875,
+        "points": 1150,
+        "points2": 87,
+        "share2": 0.17647058823529413,
+        "topcutTimes": [
+          0,
+          0,
+          0,
+          1,
+          4
+        ]
+      },
+      {
+        "id": 348,
+        "icon": [
+          "klawf",
+          "terapagos"
+        ],
+        "name": "毛崖蟹 太乐巴戈斯",
+        "label": "-",
+        "rawCount": 3,
+        "rawPoints": 38,
+        "rawShare": 0.09375,
+        "rawShare2": 0.07707910750507099,
+        "count": 3,
+        "share": 0.09375,
+        "points": 500,
+        "points2": 38,
+        "share2": 0.07707910750507099,
+        "topcutTimes": [
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      {
+        "id": 285,
+        "icon": [
+          "gardevoir"
+        ],
+        "name": "沙奈朵",
+        "label": "ex",
+        "rawCount": 3,
+        "rawPoints": 65,
+        "rawShare": 0.09375,
+        "rawShare2": 0.13184584178498987,
+        "count": 3,
+        "share": 0.09375,
+        "points": 1600,
+        "points2": 65,
+        "share2": 0.13184584178498987,
+        "topcutTimes": [
+          1,
+          1,
+          1,
+          2,
+          3
+        ]
+      },
+      {
+        "id": 246,
+        "icon": [
+          "lugia",
+          "archeops"
+        ],
+        "name": "洛奇亚 始祖大鸟",
+        "label": "-",
+        "rawCount": 2,
+        "rawPoints": 39,
+        "rawShare": 0.0625,
+        "rawShare2": 0.07910750507099391,
+        "count": 2,
+        "share": 0.0625,
+        "points": 950,
+        "points2": 39,
+        "share2": 0.07910750507099391,
+        "topcutTimes": [
+          0,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 327,
+        "icon": [
+          "iron-thorns"
+        ],
+        "name": "铁荆棘",
+        "label": "ex",
+        "rawCount": 2,
+        "rawPoints": 38,
+        "rawShare": 0.0625,
+        "rawShare2": 0.07707910750507099,
+        "count": 2,
+        "share": 0.0625,
+        "points": 800,
+        "points2": 38,
+        "share2": 0.07707910750507099,
+        "topcutTimes": [
+          0,
+          0,
+          1,
+          1,
+          2
+        ]
+      },
+      {
+        "id": 329,
+        "icon": [
+          "dragapult"
+        ],
+        "name": "多龙巴鲁托",
+        "label": "ex",
+        "rawCount": 1,
+        "rawPoints": 24,
+        "rawShare": 0.03125,
+        "rawShare2": 0.0486815415821501,
+        "count": 1,
+        "share": 0.03125,
+        "points": 600,
+        "points2": 24,
+        "share2": 0.0486815415821501,
+        "topcutTimes": [
+          0,
+          0,
+          1,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 172,
+        "icon": [
+          "palkia-origin"
+        ],
+        "name": "起源帕路奇亚",
+        "label": "VSTAR",
+        "rawCount": 1,
+        "rawPoints": 12,
+        "rawShare": 0.03125,
+        "rawShare2": 0.02434077079107505,
+        "count": 1,
+        "share": 0.03125,
+        "points": 150,
+        "points2": 12,
+        "share2": 0.02434077079107505,
+        "topcutTimes": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": 346,
+        "icon": [
+          "terapagos",
+          "noctowl"
+        ],
+        "name": "太乐巴戈斯 猫头夜鹰",
+        "label": "ex",
+        "rawCount": 1,
+        "rawPoints": 12,
+        "rawShare": 0.03125,
+        "rawShare2": 0.02434077079107505,
+        "count": 1,
+        "share": 0.03125,
+        "points": 150,
+        "points2": 12,
+        "share2": 0.02434077079107505,
+        "topcutTimes": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": 296,
+        "icon": [
+          "gholdengo"
+        ],
+        "name": "赛富豪",
+        "label": "ex",
+        "rawCount": 1,
+        "rawPoints": 12,
+        "rawShare": 0.03125,
+        "rawShare2": 0.02434077079107505,
+        "count": 1,
+        "share": 0.03125,
+        "points": 150,
+        "points2": 12,
+        "share2": 0.02434077079107505,
+        "topcutTimes": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "id": 344,
+        "icon": [
+          "archaludon"
+        ],
+        "name": "铝钢桥龙",
+        "label": "ex",
+        "rawCount": 1,
+        "rawPoints": 21,
+        "rawShare": 0.03125,
+        "rawShare2": 0.04259634888438134,
+        "count": 1,
+        "share": 0.03125,
+        "points": 400,
+        "points2": 21,
+        "share2": 0.04259634888438134,
+        "topcutTimes": [
+          0,
+          0,
+          0,
+          1,
+          1
+        ]
+      },
+      {
+        "id": 276,
+        "icon": [
+          "miraidon"
+        ],
+        "name": "密勒顿",
+        "label": "ex",
+        "rawCount": 1,
+        "rawPoints": 12,
+        "rawShare": 0.03125,
+        "rawShare2": 0.02434077079107505,
+        "count": 1,
+        "share": 0.03125,
+        "points": 150,
+        "points2": 12,
+        "share2": 0.02434077079107505,
+        "topcutTimes": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ]
+  },
+  "msg": "OK."
+}

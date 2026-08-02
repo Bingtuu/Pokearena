@@ -1,0 +1,66 @@
+{
+  "code": 200,
+  "data": {
+    "name": "2026西安超级赛",
+    "list": [
+      {
+        "id": 3215,
+        "name": "2026西安超级赛 - 公开组预赛",
+        "endDate": "2026-05-31T08:00:00+08:00",
+        "status": "ended",
+        "location": "西安",
+        "type": "Great",
+        "division": "Master",
+        "participantCount": 2065,
+        "isQual": false,
+        "isTeam": false,
+        "regulation": "Standard"
+      },
+      {
+        "id": 3211,
+        "name": "2026西安超级赛 - 公开组正赛",
+        "endDate": "2026-05-31T08:00:00+08:00",
+        "status": "ended",
+        "location": "西安",
+        "type": "Great",
+        "division": "Master",
+        "participantCount": 32,
+        "isQual": false,
+        "isTeam": false,
+        "regulation": "Standard"
+      },
+      {
+        "id": 3216,
+        "name": "2026西安超级赛 - 少年组",
+        "endDate": "2026-05-31T08:00:00+08:00",
+        "status": "ended",
+        "location": "西安",
+        "type": "Great",
+        "division": "Senior",
+        "participantCount": 186,
+        "isQual": false,
+        "isTeam": false,
+        "regulation": "Standard"
+      },
+      {
+        "id": 3210,
+        "name": "2026西安超级赛 - 儿童组",
+        "endDate": "2026-05-31T08:00:00+08:00",
+        "status": "ended",
+        "location": "西安",
+        "type": "Great",
+        "division": "Junior",
+        "participantCount": 108,
+        "isQual": false,
+        "isTeam": false,
+        "regulation": "Standard"
+      }
+    ],
+    "weeks": 1,
+    "pageCur": 1,
+    "pageNum": 1,
+    "pageSize": 100,
+    "itemNum": 4
+  },
+  "msg": "OK."
+}

@@ -54,21 +54,23 @@
 - `cardIndex` 必须传字符串（`"001"`），传整数会返回 `{code:10002, msg:"内部错误"}`。
 - 基本搜索中文命中不佳（"超梦"返回空），全量采集走 `product-list → product-detail → card-detail` 链路，不依赖搜索。
 
-### 赛事 API（task 027 调研实测，2026-08-02）
+### 赛事 API（task 027 调研实测 2026-08-02，真实采集校准同日）
 
 与卡牌端点同风格（`POST /api/v3/*` + JSON，响应包装 `{code, data, msg}`，无鉴权）。
 数据链路：`series-list → list → rank-individual → deck/detail`，外加 Meta 聚合端点。
 
 | 端点 | 请求体 | 用途 |
 |---|---|---|
-| `/api/v3/tournament/series-list` | `{page, pageSize}` | 赛事系列清单（name/startDate/endDate/status/tournamentNum/**link=官方公告页**，可交叉核对） |
-| `/api/v3/tournament/list` | `{seriesId, page, pageSize}` | 系列下具体赛事：name/endDate/location/**type**(Great 等)/**division**(Master/Senior/Junior)/participantCount/**isQual**/isTeam/regulation；一场大赛拆多条（正赛+预赛#1#2+少年/儿童组） |
-| `/api/v3/tournament/detail` | `{tournamentId}` | 赛事详情：**regulation:"Standard" / regulationMark:"GHI" / formatEnd:"CSV10C"**——赛制标记 + 截止系列，直连合法性快照语境 |
-| `/api/v3/tournament/rank-individual` | `{tournamentId, page, pageSize}`（默认 64/页） | 完整排名：rank/points/**players[].pinCode（官方选手编号）**/decks[].**deckId** + variant 归类（variantId/variantName） |
-| `/api/v3/deck/detail` | `{deckId}` | **卡组构成：卡标识 = setCode+cardIndex，与本库主键一致（零映射成本）**，含 count/rarity/nameEn 等；实测 25 条目合计 60 张。注意基本能量 cardIndex 为字母码（"PSY"/"DAR"…），归一化时特殊处理。另含 deckCode（小程序分享码） |
-| `/api/v3/deck/deck-static-by-tour` | `{tournamentId, topcut, points, isVariant}` | **Meta 统计**：每 variant 的 count/share(0~1)/points/topcutTimes——使用率与 top-cut 转化率直接可对账 |
+| `/api/v3/tournament/series-list` | `{page, pageSize}` | 赛事系列清单：主键字段 **`id`**（非 seriesId）/name/startDate/endDate/status(ongoing/ended/upcoming)/tournamentNum/**link=官方公告页**。响应无 total/pages，翻页以不足页/空 list 终止 |
+| `/api/v3/tournament/list` | `{seriesId: int, page, pageSize}` | 系列下具体赛事：主键 **`id`**/name/endDate/location/**type**（实测 Great=超级赛/City=城市赛/Ultra=高级赛，词表 `config/vocabularies/tournament_tiers.yml`）/**division**(Master/Senior/Junior)/participantCount/**isQual**/isTeam/regulation；一场大赛拆多条（正赛+预赛+少年/儿童组） |
+| `/api/v3/tournament/detail` | `{tournamentId: int}` | 赛事详情：`id`/**date**/regulation:"Standard" / **regulationMark** / **formatEnd**（截止系列）/division/isRate——赛制标记 + 截止系列，直连合法性快照语境；participantCount/location 以此为准 |
+| `/api/v3/tournament/rank-individual` | `{tournamentId: int, page, pageSize}`（默认 64/页） | 完整排名：rank/points/qualified/teamName/**players[].pinCode（官方选手编号）**/decks[].**deckId** + variant 归类（variantId/variantName）。**进行中赛事返回 code=400"赛事未结束"**（可预期空结果，按跳过处理，不是故障） |
+| `/api/v3/deck/detail` | `{deckId: int}` | **卡组构成：卡标识 = setCode+cardIndex，与本库主键一致（零映射成本）**，含 count/rarity/nameEn 等；实测 25~28 条目合计 60 张。注意基本能量 cardIndex 为字母码（"PSY"/"DAR"…）。另含 deckCode（小程序分享码）与 variant（variantId/variantName/variantIcon 卡组归型）。**实测语义（2026-08-02）：deckId = 卡组内容实体**——多名选手/多场赛事可共用同一 deckId，同一赛事可出现多个名次；deck-static 的 archetype 粒度 = variant 按 variantIcon 最长前缀归并（id 与 variantId 同空间） |
+| `/api/v3/deck/deck-static-by-tour` | `{tournamentId: int}`（**只传这一个参数**，多传 topcut/points/isVariant 任何参数报 10002） | **Meta 统计**：每 variant 的 rawCount/rawShare/share/points/topcutTimes[]——使用率与 top-cut 转化率直接可对账；无数据赛事返回 10002（可预期空结果） |
 | `/api/v3/tournament/regulation-list` | `{}` | 赛制词表（"赛制标记-截止系列"形态，如 `GHI-CSV10C`） |
 | `/api/v3/deck/category-detail` | `{id}`（variantId） | 卡组分类详情（relatedVariant 等） |
+
+**id 参数类型陷阱（2026-08-02 实测）**：seriesId/tournamentId/deckId 必须传 **int**，传 str 一律 `code=10002 内部错误`——与 cardIndex 必须传 str 的规则正好相反。采集器对 id 参数做强类型校验（`MikMoeTournamentScraper._require_int`），非 int 直接 TypeError 不发出请求。
 
 仅从前端 bundle 得知、未实测或有条件：`/deck/core-card`（核心卡使用率，regulation 传 `GHI-CSV10C` 形态）、`/deck/deck-static-by-date-and-reg`（时段 Meta）、`/tournament/swiss`（**仅赛事进行中可用**，ended 返回 400——历史赛事无逐局对阵数据）、`/player/rank-official` / `rank-season` / `rank-career`、`/deck/category-list`（**需登录 401**）。
 

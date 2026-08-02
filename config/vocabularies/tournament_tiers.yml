@@ -1,0 +1,54 @@
+# 赛事级别词表（开放词表，可追加）
+# 系数按 PRD FR-9.4：大师赛/PJCS=4、超级赛/CL=2、高级赛/Regional=1.5、城市赛=1。
+# aliases = 源侧原始值（mik /tournament/list 的 type 字段等）→ 规范 tier，匹配大小写不敏感。
+# 未知 tier 策略：tier_coef 置 null + 代码发警告，绝不猜测（FR-9.4）。
+tiers:
+  - tier: master
+    label: 大师赛
+    coef: 4
+    aliases: [master, 大师赛]
+  - tier: pjcs
+    label: PJCS（宝可梦卡牌日本冠军赛）
+    coef: 4
+    aliases: [pjcs, PJCS]
+  - tier: super
+    label: 超级赛
+    coef: 2
+    aliases:
+      - super
+      - 超级赛
+      # mik /tournament/list type 实测值（2026-08-02 真实采集校准：西安超级赛）
+      - Great
+  - tier: cl
+    label: 冠军联赛（Champions League，EN/JP 大赛）
+    coef: 2
+    aliases: [cl, CL, Champions League]
+  - tier: advanced
+    label: 高级赛
+    coef: 1.5
+    aliases:
+      - advanced
+      - 高级赛
+      # mik /tournament/list type 实测值（2026-08-02 真实采集校准：高级赛夏季场）
+      - Ultra
+  - tier: regional
+    label: Regional（EN 大区赛）
+    coef: 1.5
+    aliases: [regional, Regional]
+  - tier: city
+    label: 城市赛
+    coef: 1
+    # City = mik 实测值（2026-08-02 真实采集校准：城市赛第三赛季）
+    aliases: [city, City, 城市赛]
+
+# 组别词表（开放词表，可追加）；aliases 匹配大小写不敏感。
+divisions:
+  - division: master
+    label: 公开组（Master）
+    aliases: [master, Master, 公开组]
+  - division: senior
+    label: 少年组（Senior）
+    aliases: [senior, Senior, 少年组]
+  - division: junior
+    label: 儿童组（Junior）
+    aliases: [junior, Junior, 儿童组]
