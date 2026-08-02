@@ -5,6 +5,24 @@
 
 ## [Unreleased]
 
+### Added
+
+- 跨语言映射（M6，task 022~024）：`name_en` 填充 12,337/12,420（99.3% = raw 英文桥上限）+ `external_ids(system='mik_en')`；EN 桥 → TCGdex card ID 解析 12,322（99.88%）+ 系列级跨源对账；`name_ja` 名字级映射 9,480（76.8%，dexId 链 + 开放词表）+ `external_ids(system='tcgdex')` 12,331；pokemon-card.com 官方抽样核对 31 张一致率 100%
+- 跨语言词表：`config/vocabularies/ja_name_rules.yml`（前后缀/后缀修饰/归属/能量/TAG TEAM 连接符）、`config/tcgdex_set_map_overrides.yml`（套映射覆盖）
+- CLI：`map-en` / `map-tcgdex` / `map-ja [--fetch]`（`ptcgdb/mapping/` 新包）
+- derive 跨系列进化解析（M5，task 019）：`resolve_evolution` 全库回退（系列内优先/链根跨库续走），未解析 401→5
+- 数据源文档 `docs/data-sources.md`：全部数据源获取方式汇总（由 mikmoe-api.md 扩编重命名）
+
+### Changed
+
+- PRD 升 v1.6：§2.4 跨语言映射由「TCGdex 同 ID 共构取 JP」（前提证伪）改为「名字级 dexId 链」
+- 官方小程序验证信息收敛为结论性说明（接口细节不公开），测试记录显式 gitignore
+- ruff 排除 `.scratch/`；`.scratch/pcc-*` 逆向中间产物入 gitignore
+
+### Deprecated
+
+### Removed
+
 ## [v20260801.0] - 2026-08-01 · schema 1.0.0
 
 首批发布（Phase 1 全部完成，M4 验收 A1~A8 全过）。

@@ -1,5 +1,5 @@
 # 属性词表（开放词表，可追加）
-# mik_code 为 tcg.mik.moe 单字母属性码（docs/mikmoe-api.md）。
+# mik_code 为 tcg.mik.moe 单字母属性码（docs/data-sources.md §1）。
 # N=龙、C=无 已经 task 004 字段形态调查核证：
 #   energyType=N 全部为龙系宝可梦（宝贝龙/暴飞龙/黏美龙/杖尾鳞甲龙/究极奈克洛兹玛）；
 #   energyType=C 全部为无色宝可梦（吉利蛋/伊布/多边兽/智挥猩），且招式 cost 中 C=无。

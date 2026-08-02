@@ -126,7 +126,7 @@ flowchart TB
 | 文档 | 内容 |
 |---|---|
 | [PRD v1.6](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计、跨语言映射（名字级 dexId 链） |
-| [主源接口文档](docs/mikmoe-api.md) | tcg.mik.moe `/api/v3/card/*` 端点、字段形态、限速约定 |
+| [数据源与接口文档](docs/data-sources.md) | 全部数据源获取方式：mik.moe 主源 API、官网赛制页、TCGdex / pokemon-tcg-data / PokéAPI、pokemon-card.com 抽样核对 |
 | [STATUS.md](STATUS.md) | 当前阶段、里程碑进度、决策日志 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更（四段式，数据日历版本 + schema SemVer 双轨） |
 | [AGENTS.md](AGENTS.md) | 工程约定与技术红线（协作者/AI 共读） |

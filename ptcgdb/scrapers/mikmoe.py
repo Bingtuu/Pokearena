@@ -1,6 +1,6 @@
 """tcg.mik.moe 采集器：product-list → product-detail → card-detail 三级链路。
 
-接口约定见 docs/mikmoe-api.md：
+接口约定见 docs/data-sources.md §1：
 - 均 POST `https://tcg.mik.moe/api/v3/...`，响应包装 `{code, data, msg}`。
 - `cardIndex` 必须传字符串（"001"），传整数会返回 `{code:10002}`。
 - 响应校验：HTTP 200 且 body code==200 且 data 非空，否则抛 MikMoeApiError（进 question 清单）。

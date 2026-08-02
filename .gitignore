@@ -3,6 +3,7 @@ tools/capture/.venv/
 tools/capture/.mitmproxy/
 
 # 数据与产物（卡牌文本有版权，不进入仓库、不公开分发）
+# 含官方小程序验证的测试记录 data/raw/capture/（敏感，仅存本机，勿外传）
 data/
 dist/
 

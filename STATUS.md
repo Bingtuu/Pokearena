@@ -14,7 +14,7 @@
 | 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.6） |
 | 工程约定 | `AGENTS.md` |
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
-| **主源接口文档** | `docs/mikmoe-api.md`（task 001 产物，M1 采集层必读） |
+| **数据源与接口文档** | `docs/data-sources.md`（全部数据源获取方式：mik.moe 主源 API / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对） |
 | 代码 | `ptcgdb/`（orm/schemas/migrations/cli + scrapers/normalize/validate + legal（引擎/种子/版本化）+ monitor（L0/L1/提案）+ export/sdk + accept（验收）） |
 | 数据 | `data/ptcg-cn.db`（schema user_version=3；**12,420 张去重卡 active**；name_en 12,337 / name_ja 9,480；external_ids mik_en 12,337 + tcgdex 12,331；2 条环境快照）、`data/raw/`（mikmoe 全量 + tcgdex/pokemon-tcg-data/pokeapi 静态源，append-only + manifest）、`dist/`（导出七件套，gitignore）、`reports/`（校验报告，git 跟踪） |
 | 合法性种子 | `config/legality/`（standard/open 双赛制快照种子，官方赛制页 2026-07-16 版） |
@@ -39,7 +39,7 @@
 | 2026-08-01 | 数据存储于项目内 `data/`（原 D2） | ✅ 已定 |
 | 2026-08-01 | SQLAlchemy 2 替代 SQLModel；PRAGMA user_version 替代 Alembic | ✅ 已定（v1.3） |
 | 2026-08-01 | **Python 环境定为 3.14.6**（用户安装；`.venv` 已用 3.14 重建，deps/pytest/ruff/init-db 全验证通过）。`requires-python = ">=3.12"` 收回 PRD 口径。原 3.11 暂行决策作废（task 002 后记） | ✅ 已定 |
-| 2026-08-01 | **D1 = 路线 B：tcg.mik.moe 为主源**。理由：小程序接口有 JWT 登录态 + 请求/响应 AES 加密 + 签名四层防护（还原需反编译 wxapkg，超 M0 标准）；mik.moe `/api/v3/card/*` 无鉴权明文 JSON、字段完整且有意外收获（effectId 归组、regulationLegal 交叉校验、英文映射）。详见 `docs/mikmoe-api.md` 与 `tasks/done/001` | ✅ 已定 |
+| 2026-08-01 | **D1 = 路线 B：tcg.mik.moe 为主源**。理由：小程序接口有 JWT 登录态 + 请求/响应 AES 加密 + 签名四层防护（还原需反编译 wxapkg，超 M0 标准）；mik.moe `/api/v3/card/*` 无鉴权明文 JSON、字段完整且有意外收获（effectId 归组、regulationLegal 交叉校验、英文映射）。详见 `docs/data-sources.md` 与 `tasks/done/001` | ✅ 已定 |
 | 2026-08-01 | **跨语言映射 = EN 桥 + TCGdex，取消繁中、新增日文原版（PRD v1.5，task 021）**。依据：raw 自带英文桥字段（`setCodeEn/cardIndexEn/nameEn`）；TCGdex 英/日卡级 100% 覆盖且同 card ID 多语言共构，JP 零爬虫可得；繁中站采集成本高于收益。校验源矩阵：TCGdex zh-cn 已收录全部系列壳但卡级 0% → 系列级跨源对账落地，卡级跨源仍待实装；`name_zh_tw` 预留不填充；`external_ids.system ∈ {mik_en, tcgdex, pokemon_card_jp}` | ✅ 已定 |
 
 ## 已知临近事件
@@ -55,7 +55,7 @@
 ## 进展日志
 
 - **2026-08-01**：PRD 迭代至 v1.3（评审修订 + 外部调研：简中赛制核查、开源对标、数据基建接口设计）；建立 AGENTS.md / STATUS.md；确立 tasks/ 任务工作循环（`tasks/README.md`）。
-- **2026-08-01**：**task 001 完成（M0 ✅）**。mitmproxy 抓包官方小程序 → 判定路线 A 不可行（JWT+加密+签名四层防护）→ 验证 tcg.mik.moe `/api/v3/card/*` JSON API 完全可行 → **D1 = 路线 B（mik.moe 主源）**。产物：`docs/mikmoe-api.md`、`tools/capture/`（可复用抓包环境）、API 样例。M1 预算调整为 4~6 天。
+- **2026-08-01**：**task 001 完成（M0 ✅）**。mitmproxy 抓包官方小程序 → 判定路线 A 不可行（JWT+加密+签名四层防护）→ 验证 tcg.mik.moe `/api/v3/card/*` JSON API 完全可行 → **D1 = 路线 B（mik.moe 主源）**。产物：`docs/data-sources.md`（原 mikmoe-api.md）、`tools/capture/`（可复用抓包环境）、API 样例。M1 预算调整为 4~6 天。
 - **2026-08-01**：**task 002 完成（M1-1 ✅）**。项目骨架落地：pyproject + `.venv`、`ptcgdb/` 包（11 表 ORM 与 PRD §7 逐字段一致、PRAGMA user_version 幂等迁移、frozen Pydantic 核心模型、4 个初始词表、`ptcgdb init-db`）；pytest 2 绿、ruff 通过。下一步 task 003：mik.moe 采集器 + raw 层。
 - **2026-08-01**：Python 环境收口 3.14.6（`requires-python >=3.12` 收回 PRD 口径）。**启动 goal：完成 M1**（采集→入库→校验报告，限速红线 2s/请求+熔断，按任务循环自动 commit+push）。
 - **2026-08-01**：**task 003 完成（M1-2 ✅）**。采集层全链路：限速 HTTP 层（2s/请求、退避、三路熔断）、mik.moe 三端点、append-only raw 层（sha256 manifest）、card 级断点续传、三清单+scrape_runs 落库、CLI `scrape sets/cards`。CSM1aC 211 张实测 7 分钟跑通，resume 重跑零请求；16 测试全绿（零网络）。发现并修复 product-list data 包装层偏差（文档已同步）。下一步 task 004：normalize + 入库管线。
@@ -79,3 +79,4 @@
 - **2026-08-02**：**task 022 完成（M6-1 ✅，goal 驱动）**。EN 映射填充：新包 `ptcgdb/mapping/` + CLI `map-en`；真实库 12,337/12,420（99.3%）= raw 英文桥实际上限，external_ids(mik_en) 12,337 行 / 5,852 distinct EN 印刷；无桥 83 张全入清单（简中独占促销）。发现 name_en 自 M1 起已由 ingest 填充（任务范围收敛为核实+external_ids+报告，零 schema 变更——置信度由 system 枚举编码）。171 测试全绿、ruff 通过。报告 `reports/mapping-en-20260801.md`。详见 `tasks/done/022`。
 - **2026-08-02**：**task 023 完成（M6-2 ✅，goal 驱动）**。TCGdex 接入：`ptcgdb/mapping/tcgdex.py` + CLI `map-tcgdex`；raw 层新增 tcgdex en-cards/en-sets/ja-cards/zh-cn-sets + pokemon-tcg-data sets-en（append-only）。EN 桥 → TCGdex ID 解析 **12,322/12,337（99.88%）**：名字连接（ptcd id 与 TCGdex id SV 代分叉实测修正）+ 词表覆盖 `config/tcgdex_set_map_overrides.yml` + 零填充/字母前缀/子集套编号三类形态兜底；missing 6 + mismatch 9 全部归类入报告。系列级对账：TCGdex zh-cn 壳 57 套 vs 本库 129 套，差异如实记录（结论：TCGdex zh-cn 仅壳级参照）。**关键实测：TCGdex EN/JA 卡 id 不共构**（PRD v1.5「同 ID 共构取 JP」前提证伪，task 024 JP 链路需重新设计）。177 测试全绿、ruff 通过。报告 `reports/mapping-tcgdex-20260801.md`。详见 `tasks/done/023`。
 - **2026-08-02**：**task 024 完成（M6-3 ✅ → M6 完成，goal 驱动）**。JP 名字级映射：`ptcgdb/mapping/ja.py` + CLI `map-ja`（TCGdex EN id → ptcd dexId → PokéAPI 日文物种名 + 开放词表 `ja_name_rules.yml` 组合）。`name_ja` 填充 **9,480/12,337（76.8%）**，`external_ids(tcgdex)` 12,331 条；未覆盖 2,857 全入分类清单（trainer 2,715/energy_special 125/name_unmatched 16/no_set_map 1，不猜）。**官方抽样核对 31 张**（pokemon-card.com，FetchURL 通道）：修复前 83.9% → **修复后 100%**，不符项全部裁决——地区形态前缀半角空格（426 张重填）、Bloodmoon/オーガポン面具后缀型修饰（词表新增 suffix_modifiers，41 张新填）、はくば/こくば平假名修正（28 张重填）、シェイミ◇保留卡面符号。PRD 升 v1.6（§2.4 名字级 dexId 链）；导出契约不扩展（name_ja/external_ids 不在七件套字段内，理由见 task 文档）。181 测试全绿、ruff 通过（.scratch 排除 lint，pcc-* 逆向中间产物入 gitignore）。报告 `reports/mapping-ja-20260802.md` + `reports/official-check-ja-20260802.md`。详见 `tasks/done/024`。
+- **2026-08-02**：**文档维护（M6 收尾后）**。`docs/mikmoe-api.md` 扩编重命名为 `docs/data-sources.md`——汇总全部数据源获取方式（mik.moe 主源 / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对）；官方小程序验证信息收敛为结论性说明（接口细节不入库文档），测试记录显式 gitignore，`tasks/done/001` 同步脱敏。CHANGELOG [Unreleased] 补 M5/M6 条目；README/AGENTS/PRD 引用同步。
