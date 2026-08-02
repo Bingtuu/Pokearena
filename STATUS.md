@@ -11,7 +11,7 @@
 
 | 内容 | 位置 |
 |---|---|
-| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.8） |
+| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.9） |
 | 工程约定 | `AGENTS.md` |
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
 | **数据源与接口文档** | `docs/data-sources.md`（全部数据源获取方式：mik.moe 主源 API / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对） |
@@ -83,3 +83,4 @@
 - **2026-08-02**：**task 025 完成（M7-1 ✅）**。FR-3.4 同名计数引擎：PRD 升 **v1.7**（计数语义形式化——deck_size=60、单卡/同名组双层上限、ACE SPEC 与光辉全卡组 ≤1、◇ 同名 ≤1、V-UNION 部件各 1 且组总 ≤4、**基本能量豁免**补入；Violation 语义全集定稿，kind 新增 `unknown_card`/`radiant_limit`，`evolution_chain` 定死为预留类型——官方无进化链完整性规则；DeckReport 字段定稿）。实现 `ptcgdb/legal/deck.py` 纯函数核 `check_counts` + `Violation` frozen schema；TDD 13 用例全绿（§6.2 全规则面：跨插画归组/owner 前缀/ex 后缀/ACE 双违规/光辉全局/◇/V-UNION/能量豁免）；真实库冒烟通过。194 测试全绿、ruff 通过。详见 `tasks/done/025`。
 - **2026-08-02**：**文档维护（M6 收尾后）**。`docs/mikmoe-api.md` 扩编重命名为 `docs/data-sources.md`——汇总全部数据源获取方式（mik.moe 主源 / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对）；官方小程序验证信息收敛为结论性说明（接口细节不入库文档），测试记录显式 gitignore，`tasks/done/001` 同步脱敏。CHANGELOG [Unreleased] 补 M5/M6 条目；README/AGENTS/PRD 引用同步。
 - **2026-08-02**：**task 027 设计完成（M9-1 设计段）**。赛事卡组数据源三路调研实证落地：**CN mik.moe 赛事 API 全端点实测打通**（series-list→list→rank-individual→deck/detail，卡标识=setCode+cardIndex 零映射成本，regulationMark/formatEnd 直连快照语境，Meta 聚合端点可对账）；**EN Limitless TCG 官方开放 API**（匿名 50req/5min，decklist=PTCGO set+number+英文名 → name_en 桥；pairings=逐局 matchup 唯一源，Phase 4 后置）；**JP players.pokemon-card.com JSON 壳**（名次+官方卡组码，卡表渲染后置）。用户拍板两条硬约束：只入可映射简中环境的卡组（mapping_status 分档，统计仅消费 full）；**统计范围=宝可梦/支援者/竞技场**（能量/物品/道具不进统计），粒度=name_group。PRD 升 **v1.8**（FR-9 赛事卡组与统计基建 + §7.5 tournaments/decks/deck_cards 三表 + 数据源矩阵加 Limitless/players + 里程碑 M9）；docs/data-sources.md 补 §1 赛事 API / §7 Limitless / §8 players；胜率语义诚实声明为名次加权使用率+top-cut 转化率（mik 无逐局对阵）。任务文档 `tasks/027`，下一步三表迁移 + mik 采集器。
+- **2026-08-02**：**task 027 统计指标体系定稿（M9-1 设计段收尾）**。三指标设计落 PRD **v1.9**（FR-9.4 展开）：**①加权出场率 WUR** = Σ_t W_t·Σ_{d∋c} w̃_d / Σ_t W_t（卡组名次权重 w̃_d 赛事内份额化：官方积分优先、无则 1/rank；赛事权重 W_t = tier 系数[开放词表 `config/vocabularies/tournament_tiers.yml`] × log₁₀参赛人数 × 半衰期 90 天时间衰减）；**②胜率 WR 分层**——A 层 Limitless 有逐局数据 = (wins+0.5·ties)/(W+L+T)、pairings 可得时剔除镜像对局，B 层 mik 无逐局 = top-cut 转化率代理并与 deck-static-by-tour 端点抽样对账；**③加权胜率 WWS** = WUR × 贝叶斯收缩胜率（A 层 k=20 等效局收缩向 0.5，B 层 k=10 等效卡组收缩向赛事基准转化率 q0=topcut 名额/参赛人数——**非 0.5**，业务解释=该卡对环境胜利的贡献份额）。每指标附样本量 n + 口径标签（usage_basis/winrate_layer），低样本打 low_confidence；统计仅消费 stat_scope 三类且 mapping_status='full' 的卡组。任务文档 `tasks/027` 同步，下一步由用户定序：task 026（validate_deck，M7 收尾）或 task 027 实现段（三表迁移 user_version 3→4 + mik 采集器）。
