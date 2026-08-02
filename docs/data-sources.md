@@ -7,13 +7,15 @@
 
 | 源 | 用途 | 形态 | 获取方式 |
 |---|---|---|---|
-| [tcg.mik.moe](https://tcg.mik.moe/) | **主数据源**：简中全卡 + 系列清单 | 公开 JSON API | `POST /api/v3/card/*`（见 §1） |
+| [tcg.mik.moe](https://tcg.mik.moe/) | **主数据源**：简中全卡 + 系列清单；**赛事卡组**（2023 广州大师赛以来官方积分赛） | 公开 JSON API | `POST /api/v3/card/*` · `/api/v3/tournament/*` · `/api/v3/deck/*`（见 §1） |
 | 宝可梦官网赛制页/公告 | **合法性权威源**（L1 监控） | HTML | GET 三页，hash 比对（见 §2） |
 | [TCGdex](https://tcgdex.net/) | 跨语言映射：EN 桥 → TCGdex card ID；简中系列壳对账 | REST + GitHub 静态库 | `api.tcgdex.net/v2`（见 §3） |
 | [pokemon-tcg-data](https://github.com/PokemonTCG/pokemon-tcg-data) | TCGdex EN id → dexId 桥 | GitHub 静态 JSON | raw 单文件（见 §4） |
 | [PokéAPI](https://github.com/PokeAPI/pokeapi) | dexId → 日/英物种名 | GitHub CSV | raw 单文件（见 §5） |
 | [pokemon-card.com](https://www.pokemon-card.com/) | JP 官方卡查：**抽样权威核对** | 官方站内部 JSON | GET resultAPI.php（见 §6，只读抽样） |
-| 官方小程序"宝可梦卡牌会员" | 不可得（D1 否决，原因见 §7） | — | — |
+| [Limitless TCG](https://limitlesstcg.com/) | **EN 赛事卡组**：线上赛全量（API）+ 官方大赛上位卡组（主站 HTML） | 官方开放 API + 公开网页 | `play.limitlesstcg.com/api`（见 §7） |
+| [players.pokemon-card.com](https://players.pokemon-card.com/) | **JP 赛事壳**：City League/CL/PJCS 名次 + 官方卡组码 | 官方站内部 JSON | event_search / event_result_detail_search（见 §8） |
+| 官方小程序"宝可梦卡牌会员" | 不可得（D1 否决，原因见 §9） | — | — |
 
 ## 1. tcg.mik.moe 卡牌 API（主数据源，D1 结论 = 路线 B）
 
@@ -51,6 +53,26 @@
 - 能量/属性用单字母编码与 `【】` 占位符，归一化映射表是 normalize 层的核心工作（黄金样本覆盖）。
 - `cardIndex` 必须传字符串（`"001"`），传整数会返回 `{code:10002, msg:"内部错误"}`。
 - 基本搜索中文命中不佳（"超梦"返回空），全量采集走 `product-list → product-detail → card-detail` 链路，不依赖搜索。
+
+### 赛事 API（task 027 调研实测，2026-08-02）
+
+与卡牌端点同风格（`POST /api/v3/*` + JSON，响应包装 `{code, data, msg}`，无鉴权）。
+数据链路：`series-list → list → rank-individual → deck/detail`，外加 Meta 聚合端点。
+
+| 端点 | 请求体 | 用途 |
+|---|---|---|
+| `/api/v3/tournament/series-list` | `{page, pageSize}` | 赛事系列清单（name/startDate/endDate/status/tournamentNum/**link=官方公告页**，可交叉核对） |
+| `/api/v3/tournament/list` | `{seriesId, page, pageSize}` | 系列下具体赛事：name/endDate/location/**type**(Great 等)/**division**(Master/Senior/Junior)/participantCount/**isQual**/isTeam/regulation；一场大赛拆多条（正赛+预赛#1#2+少年/儿童组） |
+| `/api/v3/tournament/detail` | `{tournamentId}` | 赛事详情：**regulation:"Standard" / regulationMark:"GHI" / formatEnd:"CSV10C"**——赛制标记 + 截止系列，直连合法性快照语境 |
+| `/api/v3/tournament/rank-individual` | `{tournamentId, page, pageSize}`（默认 64/页） | 完整排名：rank/points/**players[].pinCode（官方选手编号）**/decks[].**deckId** + variant 归类（variantId/variantName） |
+| `/api/v3/deck/detail` | `{deckId}` | **卡组构成：卡标识 = setCode+cardIndex，与本库主键一致（零映射成本）**，含 count/rarity/nameEn 等；实测 25 条目合计 60 张。注意基本能量 cardIndex 为字母码（"PSY"/"DAR"…），归一化时特殊处理。另含 deckCode（小程序分享码） |
+| `/api/v3/deck/deck-static-by-tour` | `{tournamentId, topcut, points, isVariant}` | **Meta 统计**：每 variant 的 count/share(0~1)/points/topcutTimes——使用率与 top-cut 转化率直接可对账 |
+| `/api/v3/tournament/regulation-list` | `{}` | 赛制词表（"赛制标记-截止系列"形态，如 `GHI-CSV10C`） |
+| `/api/v3/deck/category-detail` | `{id}`（variantId） | 卡组分类详情（relatedVariant 等） |
+
+仅从前端 bundle 得知、未实测或有条件：`/deck/core-card`（核心卡使用率，regulation 传 `GHI-CSV10C` 形态）、`/deck/deck-static-by-date-and-reg`（时段 Meta）、`/tournament/swiss`（**仅赛事进行中可用**，ended 返回 400——历史赛事无逐局对阵数据）、`/player/rank-official` / `rank-season` / `rank-career`、`/deck/category-list`（**需登录 401**）。
+
+**采集纪律**（FR-9.5）：2s/请求；只拉上位卡组（rank 默认 64/页与 top64 对齐）；player_ref 只存 pinCode，不存昵称。
 
 ## 2. 宝可梦官网赛制页与公告（合法性权威源，L1 监控）
 
@@ -92,6 +114,26 @@
 - 用途（task 024）：`name_ja` 填充结果的**抽样**权威核对（31 张分层样本，修复后一致率 100%，报告 `reports/official-check-ja-20260802.md`）。
 - 约束：只读、**抽样 ≤35 请求、≥2s/请求，绝不做批量采集**；站方 WAF 严格（曾对异常流量出口做关键字剥离/403），任何核对都以小样本低频方式做。
 
-## 7. 官方小程序"宝可梦卡牌会员"（不可得，D1 否决）
+## 7. Limitless TCG（EN 赛事卡组，task 027 调研）
+
+- **官方开放 API**（文档 [docs.limitlesstcg.com/developer.html](https://docs.limitlesstcg.com/developer.html)，实测 2026-08-02 匿名可用）：
+  - `GET https://play.limitlesstcg.com/api/tournaments?game=PTCG&format=STANDARD&limit=&page=` — 赛事列表；
+  - `GET /api/tournaments/{id}/standings` — 名次 + record（wins/losses/ties）+ **decklist** + archetype 自动归类；
+  - `GET /api/tournaments/{id}/pairings` — **逐桌对阵与胜者**（逐局 matchup 胜率唯一可得源，Phase 4 用）。
+  - decklist 形态：`{"pokemon":[{"count":3,"set":"SCR","number":"57","name":"Slowpoke"},...], "trainer":[...], "energy":[...]}`——**PTCGO set code + number + 精确英文名**，与 pokemon-tcg-data（`ptcgoCode`）直接 join，经 name_en 桥映射简中（FR-9.1 映射率分档）。
+  - 限速：响应头 `RateLimit: "50-in-5min"`（匿名 50 req/5min）；申请 key 可提额（key 只发面向公众的合规项目）。`/games/{id}/decks` 端点需 key，其余匿名。
+- **主站 HTML**（limitlesstcg.com/tournaments/{id}、/decks/list/{id}）：官方线下大赛（Regional/IC 等）上位卡组人工收录——API 覆盖不到的部分；卡条目带 `data-set`/`data-number` 属性，易解析；robots.txt 全放行，无反爬条款。
+- 许可信号：官方 API 文档 + robots 全放行 + ToS 无反爬条款，风险最低；仍按 ≥1s/请求自控。
+- 参考实现：GitHub [jpbullalayao/limitless-python](https://github.com/jpbullalayao/limitless-python)（MIT，模型定义可参照）。
+
+## 8. players.pokemon-card.com（JP 赛事壳，task 027 调研）
+
+- 日本官方赛事系统（City League / Champions League / PJCS）：
+  - `GET /event_search?offset=0&order=4&result_resist=1&event_type[]=...` → JSON 赛事列表（event_holding_id / 日期 / 店名 / leagueName / event_title）；
+  - `GET /event_result_detail_search?event_holding_id={id}&offset=0&per_page=64` → JSON 名次表（rank/name/player_id/**deck_id = 官方卡组码**）。
+- **卡组内容无 JSON 端点**：卡组码在 `www.pokemon-card.com/deck/confirm.html/deckID/{码}` 由前端 JS 解码渲染，需浏览器自动化（Playwright）逐页提取——WAF 严格、成本高，**壳数据（名次+卡组码）先入，卡表渲染后置单独评估**（FR-9.1）。
+- 参考实现：GitHub [dtsong/tcg-scout](https://github.com/dtsong/tcg-scout)（2026 活跃；无 LICENSE，只读思路不抄代码）；JP 卡表亦可走 Limitless `?format=standard-jp` HTML（国际版包代码 → name_en 桥）作为替代路径。
+
+## 9. 官方小程序"宝可梦卡牌会员"（不可得，D1 否决）
 
 简中卡牌的官方数据源，但无可行获取方式：接口有**登录态令牌 + 请求/响应加密 + 请求签名**多层防护，还原需逆向小程序安装包提取加密与签名逻辑，超出 M0 可行性验证标准，且存在服务条款风险 → 按决策矩阵走路线 B（PRD 第 14 章 D1）。验证过程的测试记录仅存本机（`data/raw/capture/`，已 gitignore，勿外传）。

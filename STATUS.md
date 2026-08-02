@@ -11,7 +11,7 @@
 
 | 内容 | 位置 |
 |---|---|
-| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.7） |
+| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.8） |
 | 工程约定 | `AGENTS.md` |
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
 | **数据源与接口文档** | `docs/data-sources.md`（全部数据源获取方式：mik.moe 主源 API / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对） |
@@ -28,8 +28,9 @@
 - [x] **M4** 验收 A1~A8 + 文档收尾（1 天）—— **2026-08-01 完成（task 016~018）**：验收 runner 一键全过（A1 standard 55/55、open 61/61；A4/A5/A6/A7/A8 证据报告六项 PASS）、A2 抽样 100 张清单 + A3 自动校验 5,122 项次全过、AGENTS/README/PRD/CHANGELOG 状态一致
 - [x] **M5 (Phase 2)** derive 跨系列进化解析（task 019）—— **2026-08-02 完成**：全库回退解析，未解析 401→5（仅剩化石无收录豁免），31 系列重 ingest skipped=0，FR-2.3 六规则全过，A3 复跑 5,122 项次全过
 - [x] **M6 (Phase 2)** 跨语言映射 EN+JP（task 022~024）—— **2026-08-02 完成**：EN 桥 12,337/12,420（99.3%=raw 上限）；TCGdex ID 解析 12,322（99.88%）+ 系列级对账（TCGdex zh-cn 仅壳级参照）；JP 改名字级 dexId 链（PRD v1.6，同 ID 共构证伪），name_ja 9,480（76.8%）+ external_ids(tcgdex) 12,331，官方抽样 31 张修复后一致率 100%（不符项全部裁决：地区前缀空格/后缀修饰/はくば・こくば/◇保留）
-- [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025~026）
+- [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025 ✅ / 026）
 - [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场，收尾做）
+- [ ] **M9 (Phase 2 扩展，PRD v1.8)** 赛事卡组管线 + 统计基建（task 027 CN mik / 028 EN Limitless；统计范围=宝可梦/支援者/竞技场）
 
 ## 决策日志
 
@@ -81,3 +82,4 @@
 - **2026-08-02**：**task 024 完成（M6-3 ✅ → M6 完成，goal 驱动）**。JP 名字级映射：`ptcgdb/mapping/ja.py` + CLI `map-ja`（TCGdex EN id → ptcd dexId → PokéAPI 日文物种名 + 开放词表 `ja_name_rules.yml` 组合）。`name_ja` 填充 **9,480/12,337（76.8%）**，`external_ids(tcgdex)` 12,331 条；未覆盖 2,857 全入分类清单（trainer 2,715/energy_special 125/name_unmatched 16/no_set_map 1，不猜）。**官方抽样核对 31 张**（pokemon-card.com，FetchURL 通道）：修复前 83.9% → **修复后 100%**，不符项全部裁决——地区形态前缀半角空格（426 张重填）、Bloodmoon/オーガポン面具后缀型修饰（词表新增 suffix_modifiers，41 张新填）、はくば/こくば平假名修正（28 张重填）、シェイミ◇保留卡面符号。PRD 升 v1.6（§2.4 名字级 dexId 链）；导出契约不扩展（name_ja/external_ids 不在七件套字段内，理由见 task 文档）。181 测试全绿、ruff 通过（.scratch 排除 lint，pcc-* 逆向中间产物入 gitignore）。报告 `reports/mapping-ja-20260802.md` + `reports/official-check-ja-20260802.md`。详见 `tasks/done/024`。
 - **2026-08-02**：**task 025 完成（M7-1 ✅）**。FR-3.4 同名计数引擎：PRD 升 **v1.7**（计数语义形式化——deck_size=60、单卡/同名组双层上限、ACE SPEC 与光辉全卡组 ≤1、◇ 同名 ≤1、V-UNION 部件各 1 且组总 ≤4、**基本能量豁免**补入；Violation 语义全集定稿，kind 新增 `unknown_card`/`radiant_limit`，`evolution_chain` 定死为预留类型——官方无进化链完整性规则；DeckReport 字段定稿）。实现 `ptcgdb/legal/deck.py` 纯函数核 `check_counts` + `Violation` frozen schema；TDD 13 用例全绿（§6.2 全规则面：跨插画归组/owner 前缀/ex 后缀/ACE 双违规/光辉全局/◇/V-UNION/能量豁免）；真实库冒烟通过。194 测试全绿、ruff 通过。详见 `tasks/done/025`。
 - **2026-08-02**：**文档维护（M6 收尾后）**。`docs/mikmoe-api.md` 扩编重命名为 `docs/data-sources.md`——汇总全部数据源获取方式（mik.moe 主源 / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对）；官方小程序验证信息收敛为结论性说明（接口细节不入库文档），测试记录显式 gitignore，`tasks/done/001` 同步脱敏。CHANGELOG [Unreleased] 补 M5/M6 条目；README/AGENTS/PRD 引用同步。
+- **2026-08-02**：**task 027 设计完成（M9-1 设计段）**。赛事卡组数据源三路调研实证落地：**CN mik.moe 赛事 API 全端点实测打通**（series-list→list→rank-individual→deck/detail，卡标识=setCode+cardIndex 零映射成本，regulationMark/formatEnd 直连快照语境，Meta 聚合端点可对账）；**EN Limitless TCG 官方开放 API**（匿名 50req/5min，decklist=PTCGO set+number+英文名 → name_en 桥；pairings=逐局 matchup 唯一源，Phase 4 后置）；**JP players.pokemon-card.com JSON 壳**（名次+官方卡组码，卡表渲染后置）。用户拍板两条硬约束：只入可映射简中环境的卡组（mapping_status 分档，统计仅消费 full）；**统计范围=宝可梦/支援者/竞技场**（能量/物品/道具不进统计），粒度=name_group。PRD 升 **v1.8**（FR-9 赛事卡组与统计基建 + §7.5 tournaments/decks/deck_cards 三表 + 数据源矩阵加 Limitless/players + 里程碑 M9）；docs/data-sources.md 补 §1 赛事 API / §7 Limitless / §8 players；胜率语义诚实声明为名次加权使用率+top-cut 转化率（mik 无逐局对阵）。任务文档 `tasks/027`，下一步三表迁移 + mik 采集器。
