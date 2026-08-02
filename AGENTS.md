@@ -8,8 +8,8 @@
 
 ## 当前状态
 
-Phase 1 全部完成（2026-08-01，M4 验收 A1~A8 全过）：1a 首批入库 129 系列 / 12,420 张；1b 合法性引擎 + 导出七件套 + SDK 双后端；1c L0/L1 监控管线。D1 = 路线 B（tcg.mik.moe 主源，PRD 第 14 章）。Phase 2 进行中：M5 进化解析、M6 跨语言映射 EN+JP（name_en 12,337 / name_ja 9,480）、M7-1 同名计数引擎已完成；**M9-1 赛事卡组管线 CN mik 已完成（task 027，2026-08-02）**：赛事四表（tournaments/decks 内容实体/deck_appearances 出战/deck_cards，user_version=5）+ 真实采集 26 赛 / 1,252 卡组内容 / 1,396 出战，deck-static 对账 full-coverage 2/2 精确一致；下一步 task 026 validate_deck SDK + M7 验收 / task 029 统计与查询层（M9-2，前置已齐）。
-代码结构已按 PRD 第 8 章落地：`ptcgdb/`（orm/schemas/migrations/scrapers/normalize/validate/legal/monitor/export/sdk/accept/mapping），不要自行发明布局。
+Phase 1 全部完成（2026-08-01，M4 验收 A1~A8 全过）：1a 首批入库 129 系列 / 12,420 张；1b 合法性引擎 + 导出七件套 + SDK 双后端；1c L0/L1 监控管线。D1 = 路线 B（tcg.mik.moe 主源，PRD 第 14 章）。Phase 2 进行中：M5 进化解析、M6 跨语言映射 EN+JP（name_en 12,337 / name_ja 9,480）、M7-1 同名计数引擎已完成；**M9-1 赛事卡组管线 CN mik ✅（task 027）+ M9-2 统计可复算与查询层 ✅（task 029，2026-08-02）**：赛事四表（user_version=6，26 赛 / 1,252 卡组内容 / 1,396 出战）+ 物化视图 v_stat_deck_cards/v_tournament_weights + canonical SQL 五文件（三指标公式单一事实源）+ CLI `stats` 子命令组 / `query` 只读 SQL + SDK `stats_*` 双后端 + 导出十二件套；已知缺口 topcut_slots 全 NULL → WR/WWS 暂空（WUR 正常），补全立项待定。下一步 task 026 validate_deck SDK + M7 验收 / task 028 EN Limitless（M9-3）。
+代码结构已按 PRD 第 8 章落地：`ptcgdb/`（orm/schemas/migrations/scrapers/normalize/validate/legal/monitor/export/sdk/accept/mapping/stats），不要自行发明布局。
 
 ## 技术栈与约束
 
@@ -45,7 +45,9 @@ ptcgdb legal --date 2026-08-01 --format standard  # 指定日期的合法卡池
 ptcgdb legal-seed                               # 快照种子入库（config/legality/）
 ptcgdb legal-apply --proposal p.yml             # 应用赛制变更提案
 ptcgdb legal-errata / rollback                  # L2 勘误导入 / 回滚
-ptcgdb export --out dist/                       # 导出七件套
+ptcgdb export --out dist/                       # 导出十二件套（七件套 + 赛事四 JSONL）
+ptcgdb stats usage|winrate|wws|card <名>        # 三指标统计（裸 stats = 旧对账 overview）
+ptcgdb query "SELECT ..."                       # 只读 ad-hoc SQL（mode=ro，默认 LIMIT 500）
 ptcgdb monitor l0 [--dry-run]                   # L0 新卡增量管线
 ptcgdb monitor l1 [--baseline] / proposals      # L1 赛制监控 / 提案列表
 ptcgdb accept                                   # 一键验收 A1/A4/A5/A6/A7/A8

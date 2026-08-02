@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M9-1 ✅ 完成（task 027）；M7 进行中（task 025 ✅ / 026 待做）** —— 赛事卡组管线 CN mik 全链路落地：真实采集 3 批（1327 raw 文件）→ 入库 26 赛 / 1252 套卡组内容 / 1396 条出战记录 / 38,105 行卡表（blocked=0 / unknown=0）；真实数据实证订正 deckId=内容实体 → PRD v1.10 续拆表 decks/deck_appearances（migration 005，user_version=5）；deck-static 对账 full-coverage 2/2 逐 archetype 精确一致。M6 ✅（name_en 12,337 / name_ja 9,480）。M7-1 task 025 完成（PRD v1.7）。M9-2 task 029 统计与查询层设计✅（PRD v1.10），前置已齐可启动。258 测试全绿。下一步 task 026 validate_deck SDK + M7 验收 / task 029 实现段（顺序待定）。M8（A2/A3 人工比对，需用户在场）收尾做。
+**阶段：M9-2 ✅ 完成（task 029）；M7 进行中（task 025 ✅ / 026 待做）** —— 统计可复算性与查询层落地：migration 006 两物化视图（user_version=6）+ canonical SQL 五文件（公式单一事实源，CLI/SDK/schema.md 三处共用）+ CLI `stats usage/winrate/wws/card` 子命令组与 `query` 只读 SQL + SDK `stats_*` 双后端（真实库 stats_usage 289 行等双端 meta 全等）+ 导出追加赛事四件套（十二件套）+ 黄金数据集三指标容差 1e-9 对平。已知缺口：mik 源 topcut_slots 全 NULL → 真实库 WR/WWS 暂空（WUR 正常，老大的指令 89.7% 居首），补全立项待定。M9-1 ✅（26 赛/1252 内容/1396 出战）。M6 ✅（name_en 12,337 / name_ja 9,480）。M7-1 task 025 完成（PRD v1.7）。293 测试全绿。下一步 task 026 validate_deck SDK + M7 验收 / task 028 EN Limitless（M9-3）/ topcut 补全立项。M8（A2/A3 人工比对，需用户在场）收尾做。
 
 ## 入口
 
@@ -16,7 +16,7 @@
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
 | **数据源与接口文档** | `docs/data-sources.md`（全部数据源获取方式：mik.moe 主源 API / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对） |
 | 代码 | `ptcgdb/`（orm/schemas/migrations/cli + scrapers/normalize/validate + legal（引擎/种子/版本化）+ monitor（L0/L1/提案）+ export/sdk + accept（验收）） |
-| 数据 | `data/ptcg-cn.db`（schema user_version=5；**12,420 张去重卡 active**；name_en 12,337 / name_ja 9,480；external_ids mik_en 12,337 + tcgdex 12,331；2 条环境快照；**赛事四表：26 赛 / 1,252 卡组内容 / 1,396 出战 / 38,105 卡表行**）、`data/raw/`（mikmoe 全量[卡牌+赛事 1,327 文件] + tcgdex/pokemon-tcg-data/pokeapi 静态源，append-only + manifest）、`dist/`（导出七件套，gitignore）、`reports/`（校验报告，git 跟踪） |
+| 数据 | `data/ptcg-cn.db`（schema user_version=6；**12,420 张去重卡 active**；name_en 12,337 / name_ja 9,480；external_ids mik_en 12,337 + tcgdex 12,331；2 条环境快照；**赛事四表：26 赛 / 1,252 卡组内容 / 1,396 出战 / 38,105 卡表行** + 统计视图 v_stat_deck_cards / v_tournament_weights）、`data/raw/`（mikmoe 全量[卡牌+赛事 1,327 文件] + tcgdex/pokemon-tcg-data/pokeapi 静态源，append-only + manifest）、`dist/`（导出十二件套，gitignore）、`reports/`（校验报告，git 跟踪） |
 | 合法性种子 | `config/legality/`（standard/open 双赛制快照种子，官方赛制页 2026-07-16 版） |
 
 ## 里程碑（PRD 第 11 章）
@@ -30,7 +30,7 @@
 - [x] **M6 (Phase 2)** 跨语言映射 EN+JP（task 022~024）—— **2026-08-02 完成**：EN 桥 12,337/12,420（99.3%=raw 上限）；TCGdex ID 解析 12,322（99.88%）+ 系列级对账（TCGdex zh-cn 仅壳级参照）；JP 改名字级 dexId 链（PRD v1.6，同 ID 共构证伪），name_ja 9,480（76.8%）+ external_ids(tcgdex) 12,331，官方抽样 31 张修复后一致率 100%（不符项全部裁决：地区前缀空格/后缀修饰/はくば・こくば/◇保留）
 - [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025 ✅ / 026）
 - [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场，收尾做）
-- [ ] **M9 (Phase 2 扩展，PRD v1.8~v1.10)** 赛事卡组管线 + 统计基建：M9-1 task 027 CN mik ✅（2026-08-02）/ M9-2 task 029 统计与查询层（设计✅，前置已齐）/ M9-3 task 028 EN Limitless；统计范围=宝可梦/支援者/竞技场
+- [ ] **M9 (Phase 2 扩展，PRD v1.8~v1.10)** 赛事卡组管线 + 统计基建：M9-1 task 027 CN mik ✅（2026-08-02）/ M9-2 task 029 统计与查询层 ✅（2026-08-02）/ M9-3 task 028 EN Limitless；统计范围=宝可梦/支援者/竞技场
 
 ## 决策日志
 
@@ -50,6 +50,8 @@
 
 ## 已知技术债 / 待立项
 
+- **topcut_slots 数据缺口（task 029 实测）**：mik 源 26 场赛事 topcut_slots 全 NULL → 真实库 WR / WWS 统计当前为空集（WUR 正常）。补全路径：deck-static 接口 topcutTimes 字段反推或人工登记，可并入 task 028 立项。
+- **mik `isQual` 语义存疑（task 029 实测）**：3,215/3,348 名为"预赛"的赛事 isQual=false，与"预赛=瑞士轮"假设不符；已如实落库不猜，待核实。
 - ~~derive 跨系列进化解析缺口~~：**已清偿（task 019，2026-08-02）**——`resolve_evolution` 全库回退解析，401 → 5（仅剩化石道具库内无收录的合理豁免；另修正 10 条原误判豁免：化石道具卡在 SVP 有收录）。收敛报告 `reports/task019-evolution-resolution-20260802.md`。
 - **A2/A3 卡面人工比对（M8）**：清单已就绪（`reports/sampling-a2-20260801.md` 100 张 / `sampling-a3-20260802.md` 50 张——A3 清单已随 task 019 复跑刷新），需用户在场比对（小程序无 API），另约协作 session。
 
@@ -86,3 +88,4 @@
 - **2026-08-02**：**task 027 统计指标体系定稿（M9-1 设计段收尾）**。三指标设计落 PRD **v1.9**（FR-9.4 展开）：**①加权出场率 WUR** = Σ_t W_t·Σ_{d∋c} w̃_d / Σ_t W_t（卡组名次权重 w̃_d 赛事内份额化：官方积分优先、无则 1/rank；赛事权重 W_t = tier 系数[开放词表 `config/vocabularies/tournament_tiers.yml`] × log₁₀参赛人数 × 半衰期 90 天时间衰减）；**②胜率 WR 分层**——A 层 Limitless 有逐局数据 = (wins+0.5·ties)/(W+L+T)、pairings 可得时剔除镜像对局，B 层 mik 无逐局 = top-cut 转化率代理并与 deck-static-by-tour 端点抽样对账；**③加权胜率 WWS** = WUR × 贝叶斯收缩胜率（A 层 k=20 等效局收缩向 0.5，B 层 k=10 等效卡组收缩向赛事基准转化率 q0=topcut 名额/参赛人数——**非 0.5**，业务解释=该卡对环境胜利的贡献份额）。每指标附样本量 n + 口径标签（usage_basis/winrate_layer），低样本打 low_confidence；统计仅消费 stat_scope 三类且 mapping_status='full' 的卡组。任务文档 `tasks/027` 同步，下一步由用户定序：task 026（validate_deck，M7 收尾）或 task 027 实现段（三表迁移 user_version 3→4 + mik 采集器）。
 - **2026-08-02**：**task 029 设计完成（M9-2 设计段）**。**统计可复算性契约**定稿（用户要求：下游像写 SQL 一样自行复算三指标）：可行性实证通过（SQLite 3.50 具备 log10/pow/julianday/窗口函数，三指标可纯 SQL 表达；name_groups/cards_name_group 归组物化已在库）。PRD 升 **v1.10**：**FR-9.6 可复算性契约**（事实完整性=权重输入全量落库[tier_coef 物化/topcut_slots/record 三列]，SQL 消费方免读词表；派生非真相；canonical SQL 单一事实源 `ptcgdb/stats/sql/` 三处共用[CLI/SDK/schema.md 附录]；口径版本化=name_group/tiers 词表 hash 入 meta+manifest；as_of 回显；数据质量门=60 张合计/唯一性/{source}:{源侧id} 主键口径/FK 检查）；**FR-9.7 接口**（物化视图 v_stat_deck_cards/v_tournament_weights 随导出 DB 自带；`ptcgdb stats` 升子命令组[裸调用兼容旧对账] + `ptcgdb query` 只读 ad-hoc SQL[mode=ro 仅 SELECT/WITH]；SDK stats_* 返回 frozen CardStat；FR-7 导出追加赛事三件套[deck_cards 附 group_key/stat_scope 冗余列]）；§7.5 三表修订 + M9 拆分 M9-1/2/3。任务文档 `tasks/029`（TODO，前置=task 027 三表迁移与首批数据）。
 - **2026-08-02**：**task 027 完成（M9-1 ✅）**。mik 赛事管线全链路真实落地：3 批采集（54 西安超级赛 fetched=201 / 56 高级赛夏季场 fetched=718 / 55 城市赛前 10 场 fetched=408，限速 2s 全部 status=ok，7 场进行中赛事 MikMoeNotReadyError 优雅跳过）→ 1,327 个 raw 文件（append-only）；入库 **26 赛 / 1,252 套卡组内容 / 1,396 条出战 / 38,105 卡表行**，质量门 blocked=0、unknown_cards=0。**真实数据实证订正**：deckId = 卡组**内容实体**（97 套跨赛事复用、610080 同赛事双名次）→ PRD v1.10 续拆表 **decks（内容）/ deck_appearances（出战，deck_id+tournament_id+rank 复合主键）**，migration 005（user_version=5），真实库重建重 ingest。对账方法论落地 `tools/reconcile_variant_share.py`：deck-static 全量口径 vs 我方 top64 口径 + variantIcon 最长前缀 rollup 粒度归并 → **full-coverage 2/2 逐 archetype 精确一致、partial 8/8 单调性通过**；隐私复核 923 distinct player_ref 全 pinCode 形态。验收报告 `reports/task027-ingest-20260802.md`。258 测试全绿、ruff 通过。详见 `tasks/done/027`。
+- **2026-08-02**：**task 029 完成（M9-2 ✅，goal 驱动）**。统计可复算性与查询层落地：migration 006（user_version=6）物化视图 `v_stat_deck_cards`（四表联查 + full/三 scope 过滤 + group_key 预联）/ `v_tournament_weights`（tier_coef × log10 人数）；`ptcgdb/stats/` 新包——canonical SQL 五文件（wur/winrate_a/winrate_b/wws/card_drilldown，公式单一事实源）+ 引擎（layer A/B/auto 探测，meta 回显 as_of/窗口/口径/词表 hash）+ `caliber.py`（词表 sha256 前 12 位，init-db 写入 meta）+ `jsonldb.py`（JSONL→内存 SQLite 同名视图）；CLI `stats usage/winrate/wws/card` 子命令组（裸调用兼容旧对账）+ `query` 只读 SQL（mode=ro，拒非 SELECT 与 ATTACH，默认 LIMIT 500）；SDK 四 stats_* 抽象方法双后端（真实库 stats_usage 289 行 / stats_card「老大的指令」双端 data+meta 全等）；导出追加 tournaments/decks/deck_appearances/deck_cards 四 JSONL（十二件套）+ manifest.caliber + schema.md canonical SQL 附录。黄金数据集（6 赛事覆盖 tier/senior/qual/缺 coef/topcut NULL 边界）三指标容差 1e-9 对平。**真实数据驱动两处修正**：wws.sql 的 WUR 因子恒用全口径赛事范围（保 FR-9.6 契约）、黄金集 T6 锁定 meta n_tournaments 口径。实测缺口记技术债：topcut_slots 全 NULL → 真实库 WR/WWS 暂空（WUR 正常，老大的指令 89.7% 居首）；mik isQual 语义存疑（如实落库不猜）。293 测试全绿、ruff 通过。详见 `tasks/done/029`。

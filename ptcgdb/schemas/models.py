@@ -4,6 +4,7 @@
 """
 
 from datetime import date, datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
@@ -187,3 +188,58 @@ class Violation(BaseModel):
     detail: str  # 人类可读说明
     cards: list[str]  # 涉及的 card_id（排序去重）
     count: int | None = None  # 实际数量（供 AI 策略消费）
+
+
+class CardStat(BaseModel):
+    """stats_* 返回的单组统计（PRD FR-9.7 / FR-8 v1.10）。
+
+    value 为指标值（WUR / WR / WWS，float64 全精度）；n 为样本量
+    （usage/wws-b=携带出战条目数，a 层=对局数）；basis/layer 为口径标签；
+    n < min_n 时 low_confidence=True。
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    group_key: str  # name_group 归组 key（规范化完整卡名）
+    display_name: str
+    value: float
+    n: int
+    basis: str = ""  # decks / copies（usage 口径标签）
+    layer: str = ""  # a / b（winrate/wws 口径标签）
+    low_confidence: bool = False
+
+
+class CardDrilldown(BaseModel):
+    """stats_card 单卡逐赛事钻取行（PRD FR-9.7）。"""
+
+    model_config = ConfigDict(frozen=True)
+
+    tournament_id: str
+    tournament_name: str
+    date: str
+    tier: str | None
+    n_decks: int  # 携带该组的出战条目数
+    weighted_carry: float  # 名次权重携带份额 Σ w̃
+    topcut_decks: int  # top-cut 携带数（rank ≤ topcut_slots）
+    best_rank: int
+
+
+class StatsResult(BaseModel):
+    """stats_usage / stats_winrate / stats_wws 返回（PRD FR-9.7 SDK 包装）。
+
+    meta 回显 as_of/窗口/scope/division/口径标签/词表 hash（FR-9.6 as_of 回显契约）。
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    meta: dict[str, Any]
+    data: list[CardStat]
+
+
+class DrilldownResult(BaseModel):
+    """stats_card 返回（meta + 逐赛事钻取行）。"""
+
+    model_config = ConfigDict(frozen=True)
+
+    meta: dict[str, Any]
+    data: list[CardDrilldown]

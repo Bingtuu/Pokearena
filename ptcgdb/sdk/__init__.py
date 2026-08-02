@@ -30,9 +30,11 @@ from ptcgdb.schemas.models import (
     Card as CardSchema,
 )
 from ptcgdb.schemas.models import (
+    DrilldownResult,
     EffectiveText,
     ErrataRecord,
     LegalityPool,
+    StatsResult,
 )
 from ptcgdb.schemas.models import (
     LegalitySnapshot as SnapshotSchema,
@@ -40,6 +42,8 @@ from ptcgdb.schemas.models import (
 from ptcgdb.schemas.models import (
     Set as SetSchema,
 )
+from ptcgdb.stats import engine as stats_engine
+from ptcgdb.stats.jsonldb import build_stats_conn
 
 
 def _as_date(d: str | date) -> date:
@@ -110,6 +114,29 @@ class CardDatabase(ABC):
     @abstractmethod
     def snapshots(self, format: str | None = None) -> list[SnapshotSchema]: ...
 
+    # —— 赛事统计（FR-8 Phase 2 追加，v1.10；薄封装 canonical SQL，双后端一致）——
+
+    @abstractmethod
+    def stats_usage(self, **kwargs: Any) -> StatsResult:
+        """WUR 加权出场率。参数见 StatsParams（as_of/date_from/date_to/window_days/
+        scope/division/tiers/include_qual/include_team/usage_basis/min_n）。"""
+        ...
+
+    @abstractmethod
+    def stats_winrate(self, **kwargs: Any) -> StatsResult:
+        """WR 胜率（layer=auto|a|b，mirror 口径标签）。"""
+        ...
+
+    @abstractmethod
+    def stats_wws(self, **kwargs: Any) -> StatsResult:
+        """WWS 加权胜率（layer=auto|a|b，k_a/k_b 贝叶斯收缩强度）。"""
+        ...
+
+    @abstractmethod
+    def stats_card(self, name: str, **kwargs: Any) -> DrilldownResult:
+        """单卡逐赛事钻取（name = name_group 归组 key）。"""
+        ...
+
     @abstractmethod
     def close(self) -> None: ...
 
@@ -124,10 +151,47 @@ def _row_schema(model, row) -> Any:
     return model.model_validate({c.name: getattr(row, c.name) for c in row.__table__.columns})
 
 
+# —— 赛事统计共用实现（FR-9.7：双后端薄封装同一 canonical SQL 与 engine）——
+
+
+def _stats_params(kwargs: dict) -> stats_engine.StatsParams:
+    kw = dict(kwargs)
+    as_of = kw.pop("as_of", None)
+    date_from = kw.pop("date_from", None)
+    date_to = kw.pop("date_to", None)
+    window_days = kw.pop("window_days", None)
+    return stats_engine.resolve_window(as_of, date_from, date_to, window_days, **kw)
+
+
+def _do_usage(db: Any, kwargs: dict) -> StatsResult:
+    data, meta = stats_engine.usage(db, _stats_params(kwargs))
+    return StatsResult(meta=meta, data=data)
+
+
+def _do_winrate(db: Any, kwargs: dict) -> StatsResult:
+    kw = dict(kwargs)
+    layer = kw.pop("layer", "auto")
+    data, meta = stats_engine.winrate(db, _stats_params(kw), layer=layer)
+    return StatsResult(meta=meta, data=data)
+
+
+def _do_wws(db: Any, kwargs: dict) -> StatsResult:
+    kw = dict(kwargs)
+    layer = kw.pop("layer", "auto")
+    data, meta = stats_engine.wws(db, _stats_params(kw), layer=layer)
+    return StatsResult(meta=meta, data=data)
+
+
+def _do_card(db: Any, name: str, kwargs: dict) -> DrilldownResult:
+    data, meta = stats_engine.card_drilldown(db, name, _stats_params(kwargs))
+    return DrilldownResult(meta=meta, data=data)
+
+
 class DbBackend(CardDatabase):
     """SQLite 后端：直接读 ptcg-cn.db。"""
 
     def __init__(self, db_path: str | Path):
+        self._db_path = db_path
         self._engine = create_engine(f"sqlite:///{db_path}")
 
     @property
@@ -212,6 +276,18 @@ class DbBackend(CardDatabase):
             key=lambda r: (r.format, r.effective_from),
         )
 
+    def stats_usage(self, **kwargs: Any) -> StatsResult:
+        return _do_usage(self._db_path, kwargs)
+
+    def stats_winrate(self, **kwargs: Any) -> StatsResult:
+        return _do_winrate(self._db_path, kwargs)
+
+    def stats_wws(self, **kwargs: Any) -> StatsResult:
+        return _do_wws(self._db_path, kwargs)
+
+    def stats_card(self, name: str, **kwargs: Any) -> DrilldownResult:
+        return _do_card(self._db_path, name, kwargs)
+
     def close(self) -> None:
         self._engine.dispose()
 
@@ -221,6 +297,8 @@ class JsonlBackend(CardDatabase):
 
     def __init__(self, dist_dir: str | Path):
         dist_dir = Path(dist_dir)
+        self._dist_dir = dist_dir
+        self._stats_conn = None
         manifest = json.loads((dist_dir / "manifest.json").read_text(encoding="utf-8"))
         self._schema_version = manifest["schema_version"]
         self._cards = [
@@ -298,8 +376,28 @@ class JsonlBackend(CardDatabase):
             key=lambda s: (s.format, s.effective_from),
         )
 
+    def _stats_db(self):
+        """懒构建统计内存库（FR-9.7：导出四件套 → 同名视图 → 同一 canonical SQL）。"""
+        if self._stats_conn is None:
+            self._stats_conn = build_stats_conn(self._dist_dir)
+        return self._stats_conn
+
+    def stats_usage(self, **kwargs: Any) -> StatsResult:
+        return _do_usage(self._stats_db(), kwargs)
+
+    def stats_winrate(self, **kwargs: Any) -> StatsResult:
+        return _do_winrate(self._stats_db(), kwargs)
+
+    def stats_wws(self, **kwargs: Any) -> StatsResult:
+        return _do_wws(self._stats_db(), kwargs)
+
+    def stats_card(self, name: str, **kwargs: Any) -> DrilldownResult:
+        return _do_card(self._stats_db(), name, kwargs)
+
     def close(self) -> None:
-        pass
+        if self._stats_conn is not None:
+            self._stats_conn.close()
+            self._stats_conn = None
 
 
 def open_db(db_path: str | Path) -> CardDatabase:

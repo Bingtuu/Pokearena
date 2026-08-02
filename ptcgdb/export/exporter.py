@@ -21,16 +21,23 @@ from ptcgdb.orm import (
     Card,
     CardNameGroup,
     CardRelation,
+    Deck,
+    DeckAppearance,
+    DeckCard,
     Errata,
     LegalitySnapshot,
     Meta,
     NameGroup,
     Set,
+    Tournament,
 )
 from ptcgdb.schemas.models import Card as CardSchema
 from ptcgdb.schemas.models import ErrataRecord as ErrataSchema
 from ptcgdb.schemas.models import LegalitySnapshot as SnapshotSchema
 from ptcgdb.schemas.models import Set as SetSchema
+from ptcgdb.schemas.tournaments import AppearanceRecord, DeckCardRecord, DeckRecord
+from ptcgdb.schemas.tournaments import TournamentRecord as TournamentSchema
+from ptcgdb.stats.engine import SQL_DIR
 
 EXPORT_FILES = [
     "manifest.json",
@@ -38,6 +45,10 @@ EXPORT_FILES = [
     "sets.jsonl",
     "relations.jsonl",
     "legality.json",
+    "tournaments.jsonl",
+    "decks.jsonl",
+    "deck_appearances.jsonl",
+    "deck_cards.jsonl",
     "ptcg-cn.db",
     "checksums.sha256",
     "schema.md",
@@ -82,6 +93,23 @@ def _schema_md() -> str:
             desc = (prop.get("description") or "").replace("|", "\\|")
             lines.append(f"| `{name}` | {type_} | {desc} |")
         lines.append("")
+    # FR-9.6/9.7：canonical SQL 附录（单一事实源原文，复制即得官方口径）
+    lines += [
+        "## 附录：统计 canonical SQL（FR-9.6 可复算性契约）",
+        "",
+        "以下 SQL 为 WUR / WR / WWS 三指标的唯一权威实现（`ptcgdb/stats/sql/`），",
+        "命名参数：`:as_of` `:date_from` `:date_to` `:scope`（逗号串）`:division` `:tiers`",
+        "（逗号串或 NULL）`:include_qual` `:include_team` `:usage_basis` `:layer` `:k_a` `:k_b`。",
+        "复算示例：sqlite3 打开 dist/ptcg-cn.db，`.parameter set :as_of 2026-08-01` 设参后执行。",
+        "",
+    ]
+    for sql_file in sorted(SQL_DIR.glob("*.sql")):
+        lines.append(f"### {sql_file.name}")
+        lines.append("")
+        lines.append("```sql")
+        lines.append(sql_file.read_text(encoding="utf-8").rstrip())
+        lines.append("```")
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -106,11 +134,33 @@ def export_all(db_path: Path, out_dir: Path) -> dict:
             relations.append({"kind": "name_group", **_row_dict(g)})
         for m in session.scalars(select(CardNameGroup)).all():
             relations.append({"kind": "cards_name_group", **_row_dict(m)})
+        # 赛事四件套（FR-7 追加，只加不删）；deck_cards 附 group_key 冗余列免联表
+        tournaments = [
+            _dump(TournamentSchema, t) for t in session.scalars(select(Tournament)).all()
+        ]
+        decks = [_dump(DeckRecord, d) for d in session.scalars(select(Deck)).all()]
+        appearances = [
+            _dump(AppearanceRecord, a)
+            for a in session.scalars(select(DeckAppearance)).all()
+        ]
+        group_map = dict(
+            session.execute(select(CardNameGroup.card_id, CardNameGroup.group_key)).all()
+        )
+        deck_cards = [
+            DeckCardRecord.model_validate(
+                {**_row_dict(r), "group_key": group_map.get(r.card_id)}
+            ).model_dump(mode="json")
+            for r in session.scalars(select(DeckCard)).all()
+        ]
     engine.dispose()
 
     _write_jsonl(out_dir / "cards.jsonl", cards)
     _write_jsonl(out_dir / "sets.jsonl", sets)
     _write_jsonl(out_dir / "relations.jsonl", relations)
+    _write_jsonl(out_dir / "tournaments.jsonl", tournaments)
+    _write_jsonl(out_dir / "decks.jsonl", decks)
+    _write_jsonl(out_dir / "deck_appearances.jsonl", appearances)
+    _write_jsonl(out_dir / "deck_cards.jsonl", deck_cards)
 
     built_at = datetime.now(UTC).isoformat()
     schema_version = meta.get("schema_version", "1.0.0")
@@ -138,11 +188,19 @@ def export_all(db_path: Path, out_dir: Path) -> dict:
         "schema_version": schema_version,
         "built_at": built_at,
         "db_sha256": _sha256(out_dir / "ptcg-cn.db"),
+        "caliber": {  # FR-9.6 口径版本化：跨库比对复算结果先核对口径版本
+            "name_group_rules_hash": meta.get("name_group_rules_hash"),
+            "tournament_tiers_hash": meta.get("tournament_tiers_hash"),
+        },
         "counts": {
             "cards": len(cards),
             "sets": len(sets),
             "snapshots": len(snapshots),
             "relations": len(relations),
+            "tournaments": len(tournaments),
+            "decks": len(decks),
+            "deck_appearances": len(appearances),
+            "deck_cards": len(deck_cards),
         },
     }
     (out_dir / "manifest.json").write_text(

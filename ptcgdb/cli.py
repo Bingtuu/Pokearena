@@ -12,7 +12,6 @@ from ptcgdb.export.exporter import export_all
 from ptcgdb.legal import legal_at, seed_snapshots
 from ptcgdb.legal.versions import apply_snapshot
 from ptcgdb.legal.versions import rollback as rollback_db
-from ptcgdb.migrations import apply_migrations
 from ptcgdb.normalize import ingest_set
 from ptcgdb.normalize.ingest_tourneys import ingest_tourneys
 from ptcgdb.orm import Card, Set
@@ -20,6 +19,7 @@ from ptcgdb.scrapers import CircuitOpenError, HttpClient, MikMoeScraper, ScrapeR
 from ptcgdb.scrapers.mikmoe import BASE_URL
 from ptcgdb.scrapers.mikmoe_tournament import MikMoeTournamentScraper
 from ptcgdb.scrapers.tournament_runner import TournamentScrapeRunner
+from ptcgdb.stats.cli import init_db_with_caliber, query_cmd, stats_app
 from ptcgdb.validate import run_validations, write_report
 
 app = typer.Typer(help="简中 PTCG 标准环境卡牌数据库 CLI")
@@ -27,6 +27,8 @@ scrape_app = typer.Typer(help="数据采集（mik.moe 主源，限速 ≤1 次/2
 monitor_app = typer.Typer(help="监控管线（L0 新卡增量 / L1 赛制变更）")
 app.add_typer(scrape_app, name="scrape")
 app.add_typer(monitor_app, name="monitor")
+app.add_typer(stats_app, name="stats")
+app.command("query", help="只读 ad-hoc SQL（mode=ro，仅 SELECT/WITH，FR-9.7）")(query_cmd)
 
 DEFAULT_DB_PATH = Path("data/ptcg-cn.db")
 DEFAULT_RAW_DIR = Path("data/raw")
@@ -34,8 +36,8 @@ DEFAULT_RAW_DIR = Path("data/raw")
 
 @app.command("init-db")
 def init_db(db_path: Path = DEFAULT_DB_PATH) -> None:
-    """建库/迁移：对数据库执行全部未应用的迁移，打印 user_version。"""
-    version = apply_migrations(db_path)
+    """建库/迁移：执行全部未应用的迁移 + 口径 hash 入 meta（FR-9.6）。"""
+    version = init_db_with_caliber(db_path)
     typer.echo(f"OK: {db_path} (user_version={version})")
 
 
@@ -357,12 +359,6 @@ def export(
         f"OK: {out}/ version={manifest['version']} "
         f"schema_version={manifest['schema_version']} counts={manifest['counts']}"
     )
-
-
-@app.command()
-def stats() -> None:
-    """库内统计（未实现）。"""
-    typer.echo("not implemented")
 
 
 def _run_scrape(kind: str, raw_dir: Path, db_path: Path, force: bool, set_id: str | None) -> None:

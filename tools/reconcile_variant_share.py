@@ -1,9 +1,10 @@
 """task 027 验收：variant 对账（mik deck-static vs 我方 deck_appearances 聚合）。
 
 口径发现（2026-08-02 实测）：
-- mik deck-static 覆盖**全量参赛卡组**；我方 ingest 口径 = rank-individual 第 1 页（top64，FR-9.5）。
-- mik deck-static 的 archetype 粒度 = variant 归并：取 variantIcon 的**最长前缀**匹配 static entry icon
-  （完整匹配 → 自身；否则前缀递减，如 [charizard,pidgeot] → 299 喷火龙）。
+- mik deck-static 覆盖**全量参赛卡组**；我方 ingest 口径 = rank-individual 第 1 页
+  （top64，FR-9.5）。
+- mik deck-static 的 archetype 粒度 = variant 归并：取 variantIcon 的**最长前缀**匹配
+  static entry icon（完整匹配 → 自身；否则前缀递减，如 [charizard,pidgeot] → 299 喷火龙）。
 - 团队赛（is_team）mik deck-static 的 count 为人均值（小数），口径不可比 → 跳过。
 
 判定：
@@ -67,7 +68,9 @@ def main() -> int:
         ).fetchone()[0]
         if is_team:
             skipped += 1
-            lines.append(f"{tid} 团队赛（mik count 为人均口径，不可比；我方条目={our_total}），跳过")
+            lines.append(
+                f"{tid} 团队赛（mik count 为人均口径，不可比；我方条目={our_total}），跳过"
+            )
             continue
         if not data:
             skipped += 1
@@ -101,7 +104,10 @@ def main() -> int:
         if unmapped:
             diffs.append(f"variant 无 icon 映射: {sorted(unmapped)}")
 
-        coverage = "full" if mik_total == our_total else f"partial(mik={mik_total}/我方top64={our_total})"
+        if mik_total == our_total:
+            coverage = "full"
+        else:
+            coverage = f"partial(mik={mik_total}/我方top64={our_total})"
         if diffs:
             if mik_total == our_total:
                 full_fail += 1

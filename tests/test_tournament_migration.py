@@ -7,7 +7,9 @@ deck_appearances=出战条目——mik deckId 实测为内容实体，多名选�
 
 import sqlite3
 
-from ptcgdb.migrations import apply_migrations
+from ptcgdb.migrations import apply_migrations, available_migrations
+
+LATEST = available_migrations()[-1][0]  # 最新迁移版本（006 起含统计视图）
 
 # 注：SQLite 对非 INTEGER 的 PRIMARY KEY 列不把 notnull 置 1（历史行为，PRD SQL 原文
 # 也未写 NOT NULL），故 PK 列 notnull 期望为 0，主键约束由 pk 标志单独校验。
@@ -78,7 +80,7 @@ def _apply(tmp_path):
 
 def test_migration_005_user_version(tmp_path):
     _, version = _apply(tmp_path)
-    assert version == 5
+    assert version == LATEST
 
 
 def test_migration_005_columns(tmp_path):
@@ -150,7 +152,7 @@ def test_migration_005_indexes(tmp_path):
 def test_migration_005_idempotent_and_null_card_id(tmp_path):
     db_path, _ = _apply(tmp_path)
     # 重复执行不报错（DROP/CREATE 均 IF EXISTS/IF NOT EXISTS）
-    assert apply_migrations(db_path) == 5
+    assert apply_migrations(db_path) == LATEST
 
     conn = sqlite3.connect(db_path)
     try:

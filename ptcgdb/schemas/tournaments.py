@@ -38,6 +38,21 @@ class TournamentRecord(BaseModel):
     fetched_at: datetime
 
 
+class DeckRecord(BaseModel):
+    """decks 卡组内容实体表形状（PRD §7.5 v1.10 续）：同一套 60 张清单全源一行。"""
+
+    model_config = ConfigDict(frozen=True)
+
+    deck_id: str  # {source}:{源侧id}
+    archetype_id: str | None  # variantId / 自动归类 id
+    archetype_name: str | None
+    deck_code: str | None  # 小程序分享码
+    mapping_status: str  # full(≥95%) / partial / unmapped（FR-9.1）
+    mapped_ratio: float | None
+    source: str
+    fetched_at: datetime
+
+
 class AppearanceRecord(BaseModel):
     """deck_appearances 出战条目解析形状（PRD §7.5 v1.10 续）。
 
@@ -75,3 +90,4 @@ class DeckCardRecord(BaseModel):
     count: int
     raw_name: str  # 源侧原始卡名（保真）
     stat_scope: str = "other"  # 解析段占位，入库段按 cards 表派生（FR-9.3）
+    group_key: str | None = None  # 导出冗余列（FR-9.7）：免联 cards_name_group
