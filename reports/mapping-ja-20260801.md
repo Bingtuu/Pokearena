@@ -1,0 +1,289 @@
+# JP 映射覆盖率报告（20260801）
+
+- 链路：CN → mik 英文桥 → TCGdex EN id → ptcd dexId → PokéAPI 日文物种名 + 形态/机制词表（PRD v1.6 名字级映射）
+- mik_en 桥总数：12337
+- external_ids(system='tcgdex') 落库：12331（置信度 tcgdex-linked）
+- name_ja 填充：9439（76.5%，置信度 species-linked = dexId 链 + 词表）
+- 已有值冲突（保留原值，需人工裁决）：0
+- 未填充（question 清单，不猜测）：2898
+
+## 未填充分类
+
+| 类别 | 数量 | 说明 |
+|---|---|---|
+| energy_special | 125 | 特殊能量：同上 |
+| name_unmatched | 57 | EN 卡名核心与物种名校验不符 / 词表外前后缀（含 TAG TEAM 成分不齐） |
+| no_set_map | 1 | mik 桥无法解析出 TCGdex id（含 task 023 missing 6 张） |
+| trainer | 2715 | 训练家卡：无可靠批量 JA 名源，本里程碑不填充 |
+
+### energy_special（前 100）
+
+- `CBB3C-2003`
+- `CBB3C-2006`
+- `CS1.5C-052`
+- `CS1.5C-053`
+- `CS1.5C-054`
+- `CS1.5C-055`
+- `CS1.5C-096`
+- `CS1DC-207`
+- `CS1aC-135`
+- `CS1bC-136`
+- `CS1bC-199`
+- `CS2.5C-058`
+- `CS2.5C-059`
+- `CS2aC-114`
+- `CS2aC-115`
+- `CS2bC-114`
+- `CS2bC-115`
+- `CS3.5C-064`
+- `CS3.5C-065`
+- `CS3.5C-066`
+- `CS3DC-166`
+- `CS3DC-167`
+- `CS3DC-168`
+- `CS3DC-169`
+- `CS3DC-170`
+- `CS3aC-125`
+- `CS3aC-184`
+- `CS3bC-122`
+- `CS3bC-179`
+- `CS4DaC-412`
+- `CS4DaC-413`
+- `CS4DaC-414`
+- `CS4aC-132`
+- `CS4bC-132`
+- `CS5DC-153`
+- `CS5aC-127`
+- `CS5aC-176`
+- `CS6.5C-072`
+- `CS6.5C-096`
+- `CS6aC-131`
+- `CS6bC-131`
+- `CSAC-024`
+- `CSBC-018`
+- `CSBC-019`
+- `CSCC-018`
+- `CSCC-019`
+- `CSM1.5C-058`
+- `CSM1.5C-059`
+- `CSM1.5C-060`
+- `CSM1.5C-086`
+- `CSM1.5C-087`
+- `CSM1.5C-088`
+- `CSM1DC-324`
+- `CSM1aC-150`
+- `CSM1aC-151`
+- `CSM1aC-211`
+- `CSM1bC-150`
+- `CSM1bC-151`
+- `CSM1bC-204`
+- `CSM1cC-149`
+- `CSM1cC-150`
+- `CSM1cC-151`
+- `CSM1cC-212`
+- `CSM2.5C-061`
+- `CSM2.5C-099`
+- `CSM2DC-342`
+- `CSM2aC-150`
+- `CSM2aC-194`
+- `CSM2bC-150`
+- `CSM2bC-193`
+- `CSM2cC-150`
+- `CSM2cC-192`
+- `CSMAC-018`
+- `CSMAC-019`
+- `CSMPfC-024`
+- `CSMPgC-024`
+- `CSMPhC-024`
+- `CSMPpC-010`
+- `CSNC-024`
+- `CSOC-018`
+- `CSOC-019`
+- `CSV10C-221`
+- `CSV10C-222`
+- `CSV10C-287`
+- `CSV1C-127`
+- `CSV2C-128`
+- `CSV3C-130`
+- `CSV3C-165`
+- `CSV4C-129`
+- `CSV5C-129`
+- `CSV7C-203`
+- `CSV7C-204`
+- `CSV8C-206`
+- `CSV8C-207`
+- `CSV8C-263`
+- `CSV8C-264`
+- `CSV9.5C-206`
+- `CSV9.5C-207`
+- `CSV9.5C-208`
+- `CSV9C-208`
+- ……共 125 张
+
+### name_unmatched（前 100）
+
+- `CS3.5C-007`
+- `CS3.5C-019`
+- `CS3.5C-020`
+- `CSM1.5C-020`
+- `CSM1.5C-021`
+- `CSM1.5C-034`
+- `CSM1.5C-035`
+- `CSM1.5C-064`
+- `CSM1.5C-066`
+- `CSM1.5C-077`
+- `CSM1.5C-079`
+- `CSMPqC-004`
+- `CSV10C-081`
+- `CSV4C-038`
+- `CSV8C-027`
+- `CSV8C-028`
+- `CSV8C-043`
+- `CSV8C-067`
+- `CSV8C-121`
+- `CSV8C-214`
+- `CSV8C-215`
+- `CSV8C-220`
+- `CSV8C-223`
+- `CSV8C-242`
+- `CSV8C-243`
+- `CSV8C-245`
+- `CSV8C-246`
+- `CSV8C-256`
+- `CSV9.5C-021`
+- `CSV9.5C-029`
+- `CSV9.5C-056`
+- `CSV9.5C-102`
+- `CSV9.5C-222`
+- `CSV9.5C-225`
+- `CSV9.5C-229`
+- `CSV9.5C-238`
+- `CSV9.5C-256`
+- `CSV9C-022`
+- `CSVH4C-004`
+- `CSVH5C-003`
+- `CSVM2aC-001`
+- `CSVNC-009`
+- `CSVNC-010`
+- `CSVNC-011`
+- `CSVNC-012`
+- `CSVNC-013`
+- `CSVNC-016`
+- `CSVNC-017`
+- `CSVNC-023`
+- `CSVNC-024`
+- `CSVNC-041`
+- `CSVNC-043`
+- `SSP-205`
+- `SVP-319`
+- `SVP-322`
+- `SVP-327`
+- `SVP-331`
+
+### no_set_map（前 100）
+
+- `SVP-190`
+
+### trainer（前 100）
+
+- `CBB1C-1701`
+- `CBB1C-1702`
+- `CBB1C-1703`
+- `CBB1C-1704`
+- `CBB2C-1001`
+- `CBB2C-1002`
+- `CBB2C-1003`
+- `CBB2C-1004`
+- `CBB3C-1901`
+- `CBB3C-1902`
+- `CBB3C-1903`
+- `CBB3C-1904`
+- `CS1.5C-042`
+- `CS1.5C-043`
+- `CS1.5C-044`
+- `CS1.5C-045`
+- `CS1.5C-046`
+- `CS1.5C-047`
+- `CS1.5C-048`
+- `CS1.5C-049`
+- `CS1.5C-050`
+- `CS1.5C-051`
+- `CS1.5C-080`
+- `CS1.5C-081`
+- `CS1.5C-082`
+- `CS1.5C-088`
+- `CS1.5C-089`
+- `CS1.5C-090`
+- `CS1.5C-093`
+- `CS1.5C-094`
+- `CS1.5C-095`
+- `CS1DC-164`
+- `CS1DC-165`
+- `CS1DC-166`
+- `CS1DC-167`
+- `CS1DC-168`
+- `CS1DC-169`
+- `CS1DC-170`
+- `CS1DC-171`
+- `CS1DC-172`
+- `CS1DC-173`
+- `CS1DC-174`
+- `CS1DC-175`
+- `CS1DC-176`
+- `CS1DC-177`
+- `CS1DC-178`
+- `CS1DC-179`
+- `CS1DC-180`
+- `CS1DC-181`
+- `CS1DC-182`
+- `CS1DC-183`
+- `CS1DC-184`
+- `CS1DC-185`
+- `CS1DC-186`
+- `CS1DC-187`
+- `CS1DC-188`
+- `CS1DC-189`
+- `CS1DC-190`
+- `CS1DC-191`
+- `CS1DC-192`
+- `CS1DC-193`
+- `CS1DC-194`
+- `CS1DC-195`
+- `CS1DC-196`
+- `CS1DC-197`
+- `CS1DC-198`
+- `CS1DC-199`
+- `CS1DC-200`
+- `CS1DC-201`
+- `CS1DC-202`
+- `CS1DC-203`
+- `CS1DC-204`
+- `CS1DC-205`
+- `CS1DC-206`
+- `CS1DC-219`
+- `CS1DC-220`
+- `CS1DC-222`
+- `CS1aC-120`
+- `CS1aC-121`
+- `CS1aC-122`
+- `CS1aC-123`
+- `CS1aC-124`
+- `CS1aC-125`
+- `CS1aC-126`
+- `CS1aC-127`
+- `CS1aC-128`
+- `CS1aC-129`
+- `CS1aC-130`
+- `CS1aC-131`
+- `CS1aC-132`
+- `CS1aC-133`
+- `CS1aC-134`
+- `CS1aC-189`
+- `CS1aC-190`
+- `CS1aC-191`
+- `CS1aC-192`
+- `CS1aC-208`
+- `CS1aC-209`
+- `CS1aC-210`
+- `CS1aC-211`
+- ……共 2715 张

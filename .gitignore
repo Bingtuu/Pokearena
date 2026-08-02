@@ -18,3 +18,7 @@ venv/
 # 系统
 .DS_Store
 Thumbs.db
+
+# 逆向工程中间产物（含 cookie，不进仓库；保留 ja-sample 核对证据）
+.scratch/pcc-*
+.scratch/fetch_ja_data.py

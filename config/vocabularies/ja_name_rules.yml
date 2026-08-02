@@ -1,0 +1,89 @@
+# task 024：EN 卡名 → JA 卡名 组合规则（开放词表，可追加；不猜测——
+# 词表覆盖不到的一律入 question 清单）。
+# 组成：name_ja = 前缀JA + 物种JA（dexId → PokéAPI 日文名） + 变体字母
+#       + 后置修饰JA + 尾缀JA。
+# 仅收录官方定名确证的条目；pokemon-card.com 官方抽样核对为其背书
+# （reports/official-check-ja-20260802.md）。
+# 官方空格规则（抽样实测）：地区形态前缀带半角尾随空格（アローラ ナッシー），
+# 后置修饰带半角前导空格（ガチグマ アカツキex）；其余前缀连写无空格
+# （ロケット団の/オリジン/はくば/こくば/れんげき/メガ…）。
+
+# EN 前缀（短语优先长按降序匹配）→ JA 前缀（直接拼接于物种名前）
+prefixes:
+  - { en: "Team Rocket's", ja: "ロケット団の" }
+  - { en: "Shadow Rider", ja: "こくば" }
+  - { en: "Ice Rider", ja: "はくば" }
+  - { en: "Rapid Strike", ja: "れんげき" }
+  - { en: "Single Strike", ja: "いちげき" }
+  - { en: "Fusion Strike", ja: "フュージョン" }
+  - { en: "Origin Forme", ja: "オリジン" }
+  - { en: "Ultra", ja: "ウルトラ" }
+  - { en: "Surfing", ja: "なみのり" }
+  - { en: "Flying", ja: "そらをとぶ" }
+  - { en: "Shining", ja: "ひかる" }
+  - { en: "Alolan", ja: "アローラ " }
+  - { en: "Galarian", ja: "ガラル " }
+  - { en: "Hisuian", ja: "ヒスイ " }
+  - { en: "Paldean", ja: "パルデア " }
+  - { en: "Radiant", ja: "かがやく" }
+  - { en: "Mega", ja: "メガ" }
+  - { en: "Black", ja: "ブラック" }
+  - { en: "White", ja: "ホワイト" }
+  - { en: "Mow", ja: "カット" }
+  - { en: "Heat", ja: "ヒート" }
+  - { en: "Wash", ja: "ウォッシュ" }
+  - { en: "Fan", ja: "スピン" }
+  - { en: "Frost", ja: "フロスト" }
+
+# EN 前置修饰 → JA 后置修饰（"Bloodmoon Ursaluna" → "ガチグマ アカツキ"，
+# 官方为「种名 + 半角空格 + 修饰」；pokemon-card.com 抽样实测确证，
+# 另含オーガポン四面具：オーガポン みどりのめんex 等）
+suffix_modifiers:
+  - { en: "Hearthflame Mask", ja: "かまどのめん" }
+  - { en: "Cornerstone Mask", ja: "いしずえのめん" }
+  - { en: "Wellspring Mask", ja: "いどのめん" }
+  - { en: "Teal Mask", ja: "みどりのめん" }
+  - { en: "Bloodmoon", ja: "アカツキ" }
+
+# 训练家宝可梦归属（"{Owner}'s X" → "{JA}のX"）：官方角色名定名
+owners:
+  - { en: "N", ja: "N" }
+  - { en: "Ethan", ja: "ヒビキ" }
+  - { en: "Hop", ja: "ホップ" }
+  - { en: "Cynthia", ja: "シロナ" }
+  - { en: "Iono", ja: "ナンジャモ" }
+  - { en: "Arven", ja: "ペパー" }
+  - { en: "Marnie", ja: "マリィ" }
+  - { en: "Misty", ja: "カスミ" }
+  - { en: "Steven", ja: "ダイゴ" }
+  - { en: "Lillie", ja: "リーリエ" }
+  - { en: "Lance", ja: "ワタル" }
+
+# EN 尾缀（长按降序匹配）→ JA 尾缀（拼接于物种名后，无空格）
+suffixes:
+  - { en: " Prism Star", ja: "◇" }
+  - { en: " V-UNION", ja: "V-UNION" }
+  - { en: " VMAX", ja: "VMAX" }
+  - { en: " VSTAR", ja: "VSTAR" }
+  - { en: "-GX", ja: "GX" }
+  - { en: "-EX", ja: "EX" }
+  - { en: " ex", ja: "ex" }
+  - { en: " V", ja: "V" }
+
+# 基本能量（封闭集）：EN 全名精确匹配 → JA 官方定名
+basic_energies:
+  - { en: "Grass Energy", ja: "基本草エネルギー" }
+  - { en: "Fire Energy", ja: "基本炎エネルギー" }
+  - { en: "Water Energy", ja: "基本水エネルギー" }
+  - { en: "Lightning Energy", ja: "基本雷エネルギー" }
+  - { en: "Psychic Energy", ja: "基本超エネルギー" }
+  - { en: "Fighting Energy", ja: "基本闘エネルギー" }
+  - { en: "Darkness Energy", ja: "基本悪エネルギー" }
+  - { en: "Metal Energy", ja: "基本鋼エネルギー" }
+  - { en: "Fairy Energy", ja: "基本フェアリーエネルギー" }
+
+# TAG TEAM 多物种连接符（pokemon-card.com 官方卡查实测为半角 &：レシラム&リザードンGX）
+tag_team_joiner: "&"
+
+# 物种变体字母（"Mega Charizard X ex" 的 X/Y）：物种名后直接接字母
+variant_letters: ["X", "Y"]

@@ -34,6 +34,7 @@ ptcgdb = ["migrations/*.sql"]
 
 [tool.ruff]
 line-length = 100
+extend-exclude = [".scratch"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

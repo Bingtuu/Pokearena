@@ -261,6 +261,40 @@ def map_tcgdex(
     typer.echo(f"报告: {path}")
 
 
+@app.command("map-ja")
+def map_ja(
+    fetch: bool = typer.Option(False, "--fetch", help="下载 ptcd 卡数据 + PokéAPI 名表入 raw 层"),
+    db_path: Path = DEFAULT_DB_PATH,
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    out_dir: Path = Path("reports"),
+) -> None:
+    """JP 映射填充：dexId 链日文物种名 + 词表组合 name_ja + external_ids(tcgdex)（task 024）。"""
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
+    from ptcgdb.mapping.ja import fetch_ja_raw, fill_ja
+    from ptcgdb.mapping.report import write_ja_report
+    from ptcgdb.orm import ExternalId
+
+    if fetch:
+        written = fetch_ja_raw(raw_dir)
+        typer.echo(f"raw 更新: {len(written)} 个文件")
+    result = fill_ja(db_path, raw_dir)
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        total_bridge = session.query(ExternalId).filter_by(system="mik_en").count()
+    engine.dispose()
+    path = write_ja_report(result, total_bridge, out_dir)
+    typer.echo(
+        f"mik_en={total_bridge} tcgdex_ids={result.external_ids_written} "
+        f"name_ja={result.name_ja_filled} conflicts={len(result.conflicts)} "
+        f"questions={sum(len(v) for v in result.questions.values())}"
+    )
+    for category in sorted(result.questions):
+        typer.echo(f"  {category}: {len(result.questions[category])}")
+    typer.echo(f"报告: {path}")
+
+
 @app.command()
 def rollback(db_path: Path = DEFAULT_DB_PATH) -> None:
     """回滚：用最新备份覆盖当前 DB（FR-6.3）。"""

@@ -2,10 +2,10 @@
 
 | 项目 | 内容 |
 |---|---|
-| 文档版本 | v1.5 |
+| 文档版本 | v1.6 |
 | 日期 | 2026-08-01 |
 | 状态 | D1 已定（M0：路线 B，tcg.mik.moe 为主源，见第 14 章）；M1~M4 已完成（Phase 1a/1b/1c + 验收 A1~A8 全过），Phase 1 收官 |
-| 修订记录 | v1.1：移除卡图采集与存储（数据形态为纯文本/结构化数据）；明确交互形态为 CLI/TUI<br>v1.2：按评审意见修订——card_id 与卡号口径、编号外卡对账口径、白名单关联语义、基本能量建模；修正"宝可装置3.0/宝可齿轮3.0"同名规则来源；快照 override 冻结；JSON 字段示例、索引、服务条款风险；移除 D2<br>v1.3：按外部调研（简中赛制核查 / 开源项目对标 / 数据基建接口调研）修订——**重构基本能量合法性**（妖能量反例：标准 8 种 / 开放 9 种，进快照，废弃全局特判）；新增赛制标记**"视作"覆盖**（天空之柱视作B）、V-UNION 部件建模、`is_tera`、owner 进化封闭泛化（5 组训练家宝可梦）、开放赛制白名单（34 种）与"特别的卡牌"外链监控；**导出契约扩为七件套**（manifest/checksums/sets/relations）+ **双轨版本化**（日历版本 + schema SemVer）；新增**下游 SDK 设计**（open_db/open_jsonl 双后端、合法性一等公民函数）；技术栈调整（SQLAlchemy 2 替代 SQLModel、PRAGMA user_version 替代 Alembic）；补充 2.6 开源对标；验收标准与里程碑同步更新<br>v1.4：task 007 按赛制页正文逐名核定——开放赛制过去系列白名单 **34 种→32 种**（多出 6 种而非 8 种），§2.1/FR-5.4/A1/A4/附录 A 同步修正；种子文件 `config/legality/` 落为白名单结构化事实来源<br>v1.4（续，task 012 统一修订）：合并 M1/M2 实测偏差——①FR-2.3 对账改**条目 setCode + (setCode, cardIndex) 全局去重**口径（附赠能量卡跨系列重复列出，目录口径产生 15 个假缺口），§7.1 expected_count=mik cardsNum 含编号外卡、expected_secret_count 留 NULL；②attacks 子结构新增 **`cost_modifier`** 增量字段（TAG TEAM GX "WWC+" 追加费用，§7.2 示例同步）；③§7.1 主键口径：特典系列 product setCode='PROMO' 与目录 setId 不一致，sets 主键用目录 set_id；④FR-2.3 规则 6 本期为 DB vs raw 同源自验（单源，跨源比对待 Phase 2）、规则 1 增源数据缺失豁免（SSP-195）与基本能量标记可空豁免；⑤简中暂无太晶卡样本（§2.1 补注、A3 改样本出现后补验）；⑥task 011 已并入 legality.json `errata` 键（JSONL 后端 effective_text 用）；⑦D1 决策结果全文同步（§2.3 定位、FR-1.1/1.2 主源= mik.moe、§7.4 规模改实测值 12,420/5,320、§8 架构图、风险登记册、第 14 章改决策记录）<br>v1.4（续，task 014 实测订正）：§2.1 "特别的卡牌"外链（`/tcg-rules-regulation-extra/`）实测为**特殊机制图文说明页**（GX/棱镜之星/究极异兽/TAG TEAM/V-UNION），非"视作覆盖"清单——L1 对其只做正文 hash 监控 + needs_manual 提案，v1.3 推测作废<br>v1.5：按 2026-08-01 校验源与映射源调研（task 021）修订——**跨语言映射取消繁中方向、新增日文原版**：链路改为 简中 ──(mik raw 英文桥 `setCodeEn/cardIndexEn/nameEn`)──▶ EN ──(TCGdex 同 card ID 多语言共构)──▶ JP，官方 pokemon-card.com 卡查仅作 JP 抽样权威核对，不爬繁中站；`name_zh_tw` 保留预留不填充；**校验源矩阵更新**：TCGdex 已收录全部简中系列壳（set_id 与本库一致）但卡级数据 0%——**系列级跨源对账**（系列名+卡数）落地（FR-1.2 / FR-2.3 规则 6），卡级跨源仍待 zh-cn 实装（风险登记册跟踪）；mik.moe 赛事数据库（2023 广州大师赛以来官方积分赛卡组）列为 `validate_deck` 真实卡组校验源；`external_ids.system` 枚举改 `{mik_en, tcgdex, pokemon_card_jp}`<br>v1.5（续，排期调整）：M5 瘦身为 derive 跨系列进化解析（技术债先行）；A2/A3 卡面人工比对独立为 M8 收尾里程碑（需用户在场），M6/M7 不依赖其完成 |
+| 修订记录 | v1.1：移除卡图采集与存储（数据形态为纯文本/结构化数据）；明确交互形态为 CLI/TUI<br>v1.2：按评审意见修订——card_id 与卡号口径、编号外卡对账口径、白名单关联语义、基本能量建模；修正"宝可装置3.0/宝可齿轮3.0"同名规则来源；快照 override 冻结；JSON 字段示例、索引、服务条款风险；移除 D2<br>v1.3：按外部调研（简中赛制核查 / 开源项目对标 / 数据基建接口调研）修订——**重构基本能量合法性**（妖能量反例：标准 8 种 / 开放 9 种，进快照，废弃全局特判）；新增赛制标记**"视作"覆盖**（天空之柱视作B）、V-UNION 部件建模、`is_tera`、owner 进化封闭泛化（5 组训练家宝可梦）、开放赛制白名单（34 种）与"特别的卡牌"外链监控；**导出契约扩为七件套**（manifest/checksums/sets/relations）+ **双轨版本化**（日历版本 + schema SemVer）；新增**下游 SDK 设计**（open_db/open_jsonl 双后端、合法性一等公民函数）；技术栈调整（SQLAlchemy 2 替代 SQLModel、PRAGMA user_version 替代 Alembic）；补充 2.6 开源对标；验收标准与里程碑同步更新<br>v1.4：task 007 按赛制页正文逐名核定——开放赛制过去系列白名单 **34 种→32 种**（多出 6 种而非 8 种），§2.1/FR-5.4/A1/A4/附录 A 同步修正；种子文件 `config/legality/` 落为白名单结构化事实来源<br>v1.4（续，task 012 统一修订）：合并 M1/M2 实测偏差——①FR-2.3 对账改**条目 setCode + (setCode, cardIndex) 全局去重**口径（附赠能量卡跨系列重复列出，目录口径产生 15 个假缺口），§7.1 expected_count=mik cardsNum 含编号外卡、expected_secret_count 留 NULL；②attacks 子结构新增 **`cost_modifier`** 增量字段（TAG TEAM GX "WWC+" 追加费用，§7.2 示例同步）；③§7.1 主键口径：特典系列 product setCode='PROMO' 与目录 setId 不一致，sets 主键用目录 set_id；④FR-2.3 规则 6 本期为 DB vs raw 同源自验（单源，跨源比对待 Phase 2）、规则 1 增源数据缺失豁免（SSP-195）与基本能量标记可空豁免；⑤简中暂无太晶卡样本（§2.1 补注、A3 改样本出现后补验）；⑥task 011 已并入 legality.json `errata` 键（JSONL 后端 effective_text 用）；⑦D1 决策结果全文同步（§2.3 定位、FR-1.1/1.2 主源= mik.moe、§7.4 规模改实测值 12,420/5,320、§8 架构图、风险登记册、第 14 章改决策记录）<br>v1.4（续，task 014 实测订正）：§2.1 "特别的卡牌"外链（`/tcg-rules-regulation-extra/`）实测为**特殊机制图文说明页**（GX/棱镜之星/究极异兽/TAG TEAM/V-UNION），非"视作覆盖"清单——L1 对其只做正文 hash 监控 + needs_manual 提案，v1.3 推测作废<br>v1.5：按 2026-08-01 校验源与映射源调研（task 021）修订——**跨语言映射取消繁中方向、新增日文原版**：链路改为 简中 ──(mik raw 英文桥 `setCodeEn/cardIndexEn/nameEn`)──▶ EN ──(TCGdex 同 card ID 多语言共构)──▶ JP，官方 pokemon-card.com 卡查仅作 JP 抽样权威核对，不爬繁中站；`name_zh_tw` 保留预留不填充；**校验源矩阵更新**：TCGdex 已收录全部简中系列壳（set_id 与本库一致）但卡级数据 0%——**系列级跨源对账**（系列名+卡数）落地（FR-1.2 / FR-2.3 规则 6），卡级跨源仍待 zh-cn 实装（风险登记册跟踪）；mik.moe 赛事数据库（2023 广州大师赛以来官方积分赛卡组）列为 `validate_deck` 真实卡组校验源；`external_ids.system` 枚举改 `{mik_en, tcgdex, pokemon_card_jp}`<br>v1.5（续，排期调整）：M5 瘦身为 derive 跨系列进化解析（技术债先行）；A2/A3 卡面人工比对独立为 M8 收尾里程碑（需用户在场），M6/M7 不依赖其完成<br>v1.6：按 task 023 实测修订——**v1.5「TCGdex 同 ID 多语言共构取 JP」前提证伪**（EN/JA 卡 id 不共构，交集仅个位数；列表端点无 dexId）：§2.4 JP 映射改**名字级 dexId 链**（EN TCGdex id → pokemon-tcg-data 卡数据 `nationalPokedexNumbers` → PokéAPI 物种名表日文名 + 形态/机制开放词表；基本能量词表定名；训练家/特殊能量本里程碑不填充入 question 清单）；EN 桥 → TCGdex set 映射改**名字连接 + 词表覆盖**（ptcd/TCGdex set id 自 SV 代分叉实测），实测解析率 99.88%；置信度分档新增 `species-linked`；数据源矩阵新增 PokéAPI CSV |
 | 项目代号 | ptcg-cn-db |
 | 上游目标 | 为"AI模拟对战 + 卡组强度/胜率测试"本地工具提供卡牌数据与规则基建 |
 
@@ -73,24 +73,26 @@
 | **官网公告（pokemon.cn/category/tcg）** | 赛制调整说明、规则调整、卡牌补充说明（勘误）、新品预告 | 公开网页[^3^] | **变更信号源**（L1/L2 监控对象） |
 | **日文官方卡查 pokemon-card.com/card-search** | 日文全部卡牌的官方网页卡查（卡名/编号/赛制标记） | 公开网页 | **JP 映射抽样权威核对源**（v1.5 新增；低频抽样核对，不爬全量） |
 | **繁中训练家网站 asia.pokemon-card.com** | 繁中全部卡牌公开网页卡查；繁中标准赛制已含 H/I/J 标[^8^] | 公开网页 | 赛制参考；**v1.5 起取消繁中映射方向**（不做采集，`name_zh_tw` 预留不填充） |
-| **pokemon-tcg-data / TCGdex** | 英文全部卡牌开源 JSON / 免费 API；TCGdex 14 语言、MIT 协议，**英/日卡级数据 100% 覆盖且同一 card ID 多语言共构**（`/v2/en/cards/SV8-001` 与 `/v2/ja/cards/SV8-001` 同 ID）；**已收录全部简中系列壳（set_id 与本库一致）但卡级数据 0%**（2026-08-01 实测）[^10^][^11^] | GitHub / api.tcgdex.net | **EN/JP 映射源**（见 2.4）+ **系列级跨源对账源**（FR-1.2）；zh-cn 卡级实装后可降级为消费方（风险登记册） |
+| **pokemon-tcg-data / TCGdex** | 英文全部卡牌开源 JSON / 免费 API；TCGdex 14 语言、MIT 协议，英/日卡级数据覆盖高但 **EN/JA 卡 id 不共构**（2026-08-01 task 023 实测，交集仅个位数，v1.5「同 ID 共构」假设作废）；pokemon-tcg-data 卡数据含 `nationalPokedexNumbers`（dexId，JP 映射锚点）；**已收录全部简中系列壳（set_id 与本库一致）但卡级数据 0%**（2026-08-01 实测）[^10^][^11^] | GitHub / api.tcgdex.net | **EN 映射源 + JP 映射 dexId 锚点**（见 2.4）+ **系列级跨源对账源**（FR-1.2）；zh-cn 卡级实装后可降级为消费方（风险登记册） |
+| **PokéAPI（pokeapi/pokeapi CSV）** | 全物种多语言名表（`pokemon_species_names.csv`，含日文） | GitHub 静态 CSV | **JP 映射物种名源**（v1.6 新增；dexId → 日文物种名） |
 | **神奇宝贝百科（wiki.52poke.com）** | 按赛制标记分类的卡牌索引等[^12^] | 公开 wiki | 兜底交叉校验 |
 
 **关键事实**：简中卡牌是**独立产品池**（从太阳&月亮既有卡池精选起步、后续套装结构与国际版不同、朱&紫为独占 CSV 编号），任何国际版数据库都不含简中卡[^9^]，无法直接套用，只能自建。
 
 ### 2.4 跨语言映射路径（为 AI 模拟与效果解析服务）
 
-国际版（英文/日文）卡牌数据结构化程度高，且有公开的上位卡组/赛事数据可借鉴。映射链路（v1.5 调研修订）：
+国际版（英文/日文）卡牌数据结构化程度高，且有公开的上位卡组/赛事数据可借鉴。映射链路（v1.6 实测修订）：
 
 ```
-简中卡 ──(mik raw 英文桥 setCodeEn/cardIndexEn/nameEn，主源自带)──▶ EN 卡（TCGdex 交叉校验）
-      ──(TCGdex 同一 card ID 多语言共构：/v2/en/ 与 /v2/ja/ 同 ID)──▶ JP 名
+简中卡 ──(mik raw 英文桥 setCodeEn/cardIndexEn/nameEn，主源自带)──▶ EN 卡（TCGdex ID 解析 + 交叉校验）
+      ──(EN 卡 dexId〔pokemon-tcg-data 卡数据〕→ PokéAPI 物种名表日文名 + 形态/机制词表)──▶ JP 名
 ```
 
 - **EN 映射主路径 = 提取 mik raw 已有英文桥字段**（task 001 意外收获），不做模糊匹配；TCGdex / pokemon-tcg-data 静态数据作交叉校验与兜底。
-- **JP 映射 = TCGdex 同 ID 多语言共构直接取名**，英/日卡级数据 100% 覆盖，零新增爬虫；官方 pokemon-card.com 卡查只做 ≥30 张分层低频抽样权威核对（限速 ≥2s/请求、只读）。
+- **EN 桥 → TCGdex ID 解析**（task 023 实测三类形态，均数据驱动处理）：①ptcd set id 与 TCGdex set id 自 SV 代分叉（sv2 vs sv02）——set 映射用**名字连接**（ptcd ptcgoCode→name × TCGdex en-sets name→id）+ 词表覆盖兜底（促销/能量 mik 自造码）；②编号形态差异（零填充 / SM25·SWSH017 字母前缀 / GG·TG·SV 子集套编号）；③命名惯例差异（TCGdex 人物括注尾缀、棱镜星 Prism Star vs ◇、变音符）仅作校验豁免。实测解析率 **99.88%**（12,322/12,337），未解析全量归类入报告。
+- **JP 映射 = 名字级映射（v1.6 修订）**：v1.5 设想的「TCGdex 同 ID 多语言共构」**实测证伪**（EN/JA 卡 id 不共构，交集仅个位数；列表端点无 dexId）。修订为：宝可梦走 **dexId → 日文物种名**（同一卡日文名跨印刷不变，无需定位 JA 印刷）+ 形态/归属/机制前后缀开放词表；基本能量封闭集词表定名；**训练家/特殊能量本里程碑不填充**（无可靠批量源，全量入 question 清单）；官方 pokemon-card.com 卡查做 ≥30 张分层低频抽样权威核对（限速 ≥2s/请求、只读）。
 - **v1.5 取消繁中方向**：不做 asia.pokemon-card.com 采集；`name_zh_tw` 字段保留预留不填充（字段只加不删）。
-- 置信度分档：`bridge`（mik 英文桥直取）/ `tcgdex-linked`（TCGdex 同 ID 链出）/ `manual`（人工核对）；冲突与多候选不猜测，记 question 清单。
+- 置信度分档：`bridge`（mik 英文桥直取）/ `tcgdex-linked`（EN 桥解析出 TCGdex ID）/ `species-linked`（dexId 链出日文物种名）/ `manual`（人工核对）；冲突与多候选不猜测，记 question 清单。
 - 简中套装结构与国际版不一致（精选/独占 CSV 编号）——映射**按卡级桥字段逐卡对齐**，天然不受套装结构差异影响。
 - 映射**只在 Phase 2 建设**，Phase 1 仅预留字段（`name_en/name_ja/name_zh_tw` + `external_ids` 表）。
 
@@ -378,7 +380,7 @@ V-UNION：4 个部件卡面同名（如"超梦V-UNION"），归同 name_group，
 | is_basic_energy | BOOL | 派生：基本能量（草/火/水/雷/超/斗/恶/钢/妖；妖仅日月时代发行）。合法性按快照 `allowed_basic_energy_types` 判定（FR-3.2），**无全局特判** |
 | text_raw | TEXT | 卡面全部文字逐字保留（含特性/招式/规则框文本） |
 | effect_tags | JSON NULL | 粗粒度标签（6.4） |
-| name_en / name_ja / name_zh_tw | TEXT NULL | 跨语言映射（Phase 2 填充；name_en 来源 mik raw 英文桥 + TCGdex 交叉校验，name_ja 来源 TCGdex 同 ID 多语言 + pokemon-card.com 抽样核对；**name_zh_tw 预留不填充**，v1.5 取消繁中方向） |
+| name_en / name_ja / name_zh_tw | TEXT NULL | 跨语言映射（Phase 2 填充；name_en 来源 mik raw 英文桥 + TCGdex 交叉校验，name_ja 来源 dexId 链日文物种名 + 形态/机制词表（v1.6，v1.5 同 ID 共构作废）+ pokemon-card.com 抽样核对；**name_zh_tw 预留不填充**，v1.5 取消繁中方向） |
 | source | TEXT | official_miniprogram / mik_moe / manual… |
 | fetched_at | DATETIME | |
 | status | TEXT | draft / active / deprecated |

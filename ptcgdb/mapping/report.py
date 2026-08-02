@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from ptcgdb.mapping.en import EnFillResult
+from ptcgdb.mapping.ja import JaFillResult
 from ptcgdb.mapping.tcgdex import ResolveResult, SetReconcileReport
 
 
@@ -97,6 +98,58 @@ def write_tcgdex_report(
         lines += [f"### {status}", ""]
         for row in rows:
             lines.append(f"- `{row.set_id}` {row.note}")
+        lines.append("")
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path
+
+
+def write_ja_report(result: JaFillResult, total_bridge: int, out_dir: Path) -> Path:
+    """JP 映射覆盖率报告（task 024）：置信度分布 + 分类 question 清单。"""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(UTC).strftime("%Y%m%d")
+    path = out_dir / f"mapping-ja-{stamp}.md"
+    q_total = sum(len(v) for v in result.questions.values())
+    lines = [
+        f"# JP 映射覆盖率报告（{stamp}）",
+        "",
+        "- 链路：CN → mik 英文桥 → TCGdex EN id → ptcd dexId → PokéAPI 日文物种名"
+        " + 形态/机制词表（PRD v1.6 名字级映射）",
+        f"- mik_en 桥总数：{total_bridge}",
+        f"- external_ids(system='tcgdex') 落库：{result.external_ids_written}"
+        "（置信度 tcgdex-linked）",
+        f"- name_ja 填充：{result.name_ja_filled}（{result.name_ja_filled / total_bridge:.1%}，"
+        "置信度 species-linked = dexId 链 + 词表）",
+        f"- 已有值冲突（保留原值，需人工裁决）：{len(result.conflicts)}",
+        f"- 未填充（question 清单，不猜测）：{q_total}",
+        "",
+        "## 未填充分类",
+        "",
+        "| 类别 | 数量 | 说明 |",
+        "|---|---|---|",
+    ]
+    category_notes = {
+        "trainer": "训练家卡：无可靠批量 JA 名源，本里程碑不填充",
+        "energy_special": "特殊能量：同上",
+        "no_set_map": "mik 桥无法解析出 TCGdex id（含 task 023 missing 6 张）",
+        "no_dex": "TCGdex id 命中但 ptcd 卡数据无 dexId（非宝可梦或数据缺口）",
+        "name_unmatched": "EN 卡名核心与物种名校验不符 / 词表外前后缀（含 TAG TEAM 成分不齐）",
+    }
+    for category in sorted(result.questions):
+        ids = result.questions[category]
+        lines.append(f"| {category} | {len(ids)} | {category_notes.get(category, '')} |")
+    lines.append("")
+    for category in sorted(result.questions):
+        ids = result.questions[category]
+        lines += [f"### {category}（前 100）", ""]
+        for card_id in ids[:100]:
+            lines.append(f"- `{card_id}`")
+        if len(ids) > 100:
+            lines.append(f"- ……共 {len(ids)} 张")
+        lines.append("")
+    if result.conflicts:
+        lines += ["## 冲突清单", ""]
+        for card_id in result.conflicts:
+            lines.append(f"- `{card_id}`")
         lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
     return path
