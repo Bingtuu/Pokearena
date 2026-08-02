@@ -5,13 +5,13 @@
 
 ## 当前状态
 
-**阶段：M6 ✅ 完成；M7 进行中（task 025 ✅ / 026 待做）** —— 跨语言映射 EN+JP 收官：task 022 EN 桥 12,337（99.3%=raw 上限）、task 023 TCGdex ID 解析 12,322（99.88%）+ 系列级对账、task 024 名字级 JP 映射 name_ja 9,480（76.8%）+ 官方抽样 31 张修复后一致率 100%（PRD 升 v1.6：同 ID 共构证伪 → dexId 链）。M7-1 task 025 完成：FR-3.4 同名计数引擎纯函数核 + Violation 语义全集（PRD 升 v1.7）。194 测试全绿。下一步 task 026 validate_deck SDK + M7 验收。M8（A2/A3 人工比对，需用户在场）收尾做。
+**阶段：M6 ✅ 完成；M7 进行中（task 025 ✅ / 026 待做）** —— 跨语言映射 EN+JP 收官：task 022 EN 桥 12,337（99.3%=raw 上限）、task 023 TCGdex ID 解析 12,322（99.88%）+ 系列级对账、task 024 名字级 JP 映射 name_ja 9,480（76.8%）+ 官方抽样 31 张修复后一致率 100%（PRD 升 v1.6：同 ID 共构证伪 → dexId 链）。M7-1 task 025 完成：FR-3.4 同名计数引擎纯函数核 + Violation 语义全集（PRD 升 v1.7）。194 测试全绿。M9 设计段完成：task 027 数据源三路调研 + FR-9（PRD v1.8）、FR-9.4 三指标体系 WUR/WR/WWS（v1.9）、FR-9.6/9.7 可复算性契约与统计查询层（v1.10，task 029 设计：canonical SQL + stats 子命令组 + 只读 query + 导出三件套）。下一步 task 026 validate_deck SDK + M7 验收 / task 027 实现段（顺序待定）。M8（A2/A3 人工比对，需用户在场）收尾做。
 
 ## 入口
 
 | 内容 | 位置 |
 |---|---|
-| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.9） |
+| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.10） |
 | 工程约定 | `AGENTS.md` |
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
 | **数据源与接口文档** | `docs/data-sources.md`（全部数据源获取方式：mik.moe 主源 API / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对） |
@@ -30,7 +30,7 @@
 - [x] **M6 (Phase 2)** 跨语言映射 EN+JP（task 022~024）—— **2026-08-02 完成**：EN 桥 12,337/12,420（99.3%=raw 上限）；TCGdex ID 解析 12,322（99.88%）+ 系列级对账（TCGdex zh-cn 仅壳级参照）；JP 改名字级 dexId 链（PRD v1.6，同 ID 共构证伪），name_ja 9,480（76.8%）+ external_ids(tcgdex) 12,331，官方抽样 31 张修复后一致率 100%（不符项全部裁决：地区前缀空格/后缀修饰/はくば・こくば/◇保留）
 - [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025 ✅ / 026）
 - [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场，收尾做）
-- [ ] **M9 (Phase 2 扩展，PRD v1.8)** 赛事卡组管线 + 统计基建（task 027 CN mik / 028 EN Limitless；统计范围=宝可梦/支援者/竞技场）
+- [ ] **M9 (Phase 2 扩展，PRD v1.8~v1.10)** 赛事卡组管线 + 统计基建：M9-1 task 027 CN mik（设计✅→实现段）/ M9-2 task 029 统计与查询层（设计✅）/ M9-3 task 028 EN Limitless；统计范围=宝可梦/支援者/竞技场
 
 ## 决策日志
 
@@ -84,3 +84,4 @@
 - **2026-08-02**：**文档维护（M6 收尾后）**。`docs/mikmoe-api.md` 扩编重命名为 `docs/data-sources.md`——汇总全部数据源获取方式（mik.moe 主源 / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对）；官方小程序验证信息收敛为结论性说明（接口细节不入库文档），测试记录显式 gitignore，`tasks/done/001` 同步脱敏。CHANGELOG [Unreleased] 补 M5/M6 条目；README/AGENTS/PRD 引用同步。
 - **2026-08-02**：**task 027 设计完成（M9-1 设计段）**。赛事卡组数据源三路调研实证落地：**CN mik.moe 赛事 API 全端点实测打通**（series-list→list→rank-individual→deck/detail，卡标识=setCode+cardIndex 零映射成本，regulationMark/formatEnd 直连快照语境，Meta 聚合端点可对账）；**EN Limitless TCG 官方开放 API**（匿名 50req/5min，decklist=PTCGO set+number+英文名 → name_en 桥；pairings=逐局 matchup 唯一源，Phase 4 后置）；**JP players.pokemon-card.com JSON 壳**（名次+官方卡组码，卡表渲染后置）。用户拍板两条硬约束：只入可映射简中环境的卡组（mapping_status 分档，统计仅消费 full）；**统计范围=宝可梦/支援者/竞技场**（能量/物品/道具不进统计），粒度=name_group。PRD 升 **v1.8**（FR-9 赛事卡组与统计基建 + §7.5 tournaments/decks/deck_cards 三表 + 数据源矩阵加 Limitless/players + 里程碑 M9）；docs/data-sources.md 补 §1 赛事 API / §7 Limitless / §8 players；胜率语义诚实声明为名次加权使用率+top-cut 转化率（mik 无逐局对阵）。任务文档 `tasks/027`，下一步三表迁移 + mik 采集器。
 - **2026-08-02**：**task 027 统计指标体系定稿（M9-1 设计段收尾）**。三指标设计落 PRD **v1.9**（FR-9.4 展开）：**①加权出场率 WUR** = Σ_t W_t·Σ_{d∋c} w̃_d / Σ_t W_t（卡组名次权重 w̃_d 赛事内份额化：官方积分优先、无则 1/rank；赛事权重 W_t = tier 系数[开放词表 `config/vocabularies/tournament_tiers.yml`] × log₁₀参赛人数 × 半衰期 90 天时间衰减）；**②胜率 WR 分层**——A 层 Limitless 有逐局数据 = (wins+0.5·ties)/(W+L+T)、pairings 可得时剔除镜像对局，B 层 mik 无逐局 = top-cut 转化率代理并与 deck-static-by-tour 端点抽样对账；**③加权胜率 WWS** = WUR × 贝叶斯收缩胜率（A 层 k=20 等效局收缩向 0.5，B 层 k=10 等效卡组收缩向赛事基准转化率 q0=topcut 名额/参赛人数——**非 0.5**，业务解释=该卡对环境胜利的贡献份额）。每指标附样本量 n + 口径标签（usage_basis/winrate_layer），低样本打 low_confidence；统计仅消费 stat_scope 三类且 mapping_status='full' 的卡组。任务文档 `tasks/027` 同步，下一步由用户定序：task 026（validate_deck，M7 收尾）或 task 027 实现段（三表迁移 user_version 3→4 + mik 采集器）。
+- **2026-08-02**：**task 029 设计完成（M9-2 设计段）**。**统计可复算性契约**定稿（用户要求：下游像写 SQL 一样自行复算三指标）：可行性实证通过（SQLite 3.50 具备 log10/pow/julianday/窗口函数，三指标可纯 SQL 表达；name_groups/cards_name_group 归组物化已在库）。PRD 升 **v1.10**：**FR-9.6 可复算性契约**（事实完整性=权重输入全量落库[tier_coef 物化/topcut_slots/record 三列]，SQL 消费方免读词表；派生非真相；canonical SQL 单一事实源 `ptcgdb/stats/sql/` 三处共用[CLI/SDK/schema.md 附录]；口径版本化=name_group/tiers 词表 hash 入 meta+manifest；as_of 回显；数据质量门=60 张合计/唯一性/{source}:{源侧id} 主键口径/FK 检查）；**FR-9.7 接口**（物化视图 v_stat_deck_cards/v_tournament_weights 随导出 DB 自带；`ptcgdb stats` 升子命令组[裸调用兼容旧对账] + `ptcgdb query` 只读 ad-hoc SQL[mode=ro 仅 SELECT/WITH]；SDK stats_* 返回 frozen CardStat；FR-7 导出追加赛事三件套[deck_cards 附 group_key/stat_scope 冗余列]）；§7.5 三表修订 + M9 拆分 M9-1/2/3。任务文档 `tasks/029`（TODO，前置=task 027 三表迁移与首批数据）。

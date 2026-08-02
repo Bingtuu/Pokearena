@@ -7,6 +7,7 @@
 
 ### Added
 
+- 统计可复算性与查询层设计（M9-2，task 029 设计）：FR-9.6 可复算性契约（指标=库存事实+公开公式可复算、派生非真相、canonical SQL 单一事实源、口径词表 hash 版本化、as_of 回显、数据质量门）+ FR-9.7 接口（物化视图 v_stat_deck_cards/v_tournament_weights、`ptcgdb stats` 子命令组 usage/winrate/wws/card + `ptcgdb query` 只读 SQL、SDK stats_* 函数、导出追加赛事三件套）
 - 赛事卡组数据源调研与设计（M9 设计段，task 027）：mik.moe 赛事 API 端点文档化（`docs/data-sources.md` §1 赛事 API）；EN Limitless TCG / JP players.pokemon-card.com 源评估入档（§7/§8）；PRD §7.5 tournaments/decks/deck_cards 三表设计
 - FR-3.4 同名计数引擎（M7-1，task 025）：`ptcgdb/legal/deck.py` 纯函数核 `check_counts`（deck_size / 同名组双层上限 / ACE SPEC 与光辉全卡组 ≤1 / V-UNION 部件各 1 / 基本能量豁免）；`Violation` frozen schema（kind 全集含 additive 新增 `unknown_card` / `radiant_limit`）
 - 跨语言映射（M6，task 022~024）：`name_en` 填充 12,337/12,420（99.3% = raw 英文桥上限）+ `external_ids(system='mik_en')`；EN 桥 → TCGdex card ID 解析 12,322（99.88%）+ 系列级跨源对账；`name_ja` 名字级映射 9,480（76.8%，dexId 链 + 开放词表）+ `external_ids(system='tcgdex')` 12,331；pokemon-card.com 官方抽样核对 31 张一致率 100%
@@ -17,6 +18,7 @@
 
 ### Changed
 
+- PRD 升 v1.10（task 029 设计）：FR-9.6 可复算性契约 + FR-9.7 统计与查询接口（见 Added）；§7.5 修订（tournaments 加 topcut_slots/tier_coef、decks 加 record 三列、主键 {source}:{源侧id} 口径）；FR-7 导出追加赛事三件套；FR-8 SDK 追加 stats_*；M9 拆分 M9-1/2/3
 - PRD 升 v1.9（task 027 统计指标定稿）：FR-9.4 展开为三指标体系——①加权出场率 WUR（卡组名次权重 w̃_d × 赛事权重 W_t[tier 系数 × log₁₀参赛人数 × 半衰期 90 天时间衰减]，统计单元=name_group × 滚动赛季窗）；②胜率 WR 分层（A 层 Limitless 真实胜率含镜像对局剔除；B 层 mik 无逐局数据时用 top-cut 转化率代理并与 deck-static 端点对账）；③加权胜率 WWS = WUR × 贝叶斯收缩胜率（A 层 k=20 等效局/B 层 k=10 等效卡组、收缩基准 q0=赛事基准转化率而非 0.5）；每指标附样本量 + 口径标签 + low_confidence 低样本标记
 - PRD 升 v1.8（task 027 设计）：新增 FR-9 赛事卡组与统计基建（范围限定=可映射简中环境的卡组；统计范围=宝可梦/支援者/竞技场，能量/物品/道具不进统计；胜率=名次加权使用率/top-cut 转化率代理指标）+ §7.5 三表 + 数据源矩阵加 Limitless/players + 里程碑 M9
 - PRD 升 v1.7（task 025）：FR-3.4 形式化计数语义（含基本能量豁免）+ FR-8 Violation 语义全集（evolution_chain 定死为预留类型）+ DeckReport 字段定稿
