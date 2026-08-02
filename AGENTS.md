@@ -2,13 +2,13 @@
 
 简中 PTCG 标准环境卡牌数据库。本地 SQLite 卡牌库 + 数据管线 + 更新机制，为下游（规则引擎 / AI 对战模拟 / 胜率统计）提供数据基建。
 
-**权威文档**：`docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.6）——一切设计以它为准。
+**权威文档**：`docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.7）——一切设计以它为准。
 **进展记录**：`STATUS.md`——当前阶段、里程碑、决策日志，开始工作前先读。
 **数据源**：`docs/data-sources.md`——全部数据源的获取方式与端点约定（mik.moe 主源 / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对）。
 
 ## 当前状态
 
-Phase 1 全部完成（2026-08-01，M4 验收 A1~A8 全过）：1a 首批入库 129 系列 / 12,420 张；1b 合法性引擎 + 导出七件套 + SDK 双后端；1c L0/L1 监控管线。D1 = 路线 B（tcg.mik.moe 主源，PRD 第 14 章）。Phase 2 进行中：M5 进化解析（task 019）、M6 跨语言映射 EN+JP（task 022~024，name_en 12,337 / name_ja 9,480）已完成；下一步 M7 同名计数引擎 + validate_deck（task 025~026）。
+Phase 1 全部完成（2026-08-01，M4 验收 A1~A8 全过）：1a 首批入库 129 系列 / 12,420 张；1b 合法性引擎 + 导出七件套 + SDK 双后端；1c L0/L1 监控管线。D1 = 路线 B（tcg.mik.moe 主源，PRD 第 14 章）。Phase 2 进行中：M5 进化解析（task 019）、M6 跨语言映射 EN+JP（task 022~024，name_en 12,337 / name_ja 9,480）、M7-1 同名计数引擎（task 025，PRD v1.7）已完成；下一步 task 026 validate_deck SDK + M7 验收。
 代码结构已按 PRD 第 8 章落地：`ptcgdb/`（orm/schemas/migrations/scrapers/normalize/validate/legal/monitor/export/sdk/accept/mapping），不要自行发明布局。
 
 ## 技术栈与约束

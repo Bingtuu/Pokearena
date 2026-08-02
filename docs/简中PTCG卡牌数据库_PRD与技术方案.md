@@ -2,10 +2,10 @@
 
 | 项目 | 内容 |
 |---|---|
-| 文档版本 | v1.6 |
+| 文档版本 | v1.7 |
 | 日期 | 2026-08-01 |
 | 状态 | D1 已定（M0：路线 B，tcg.mik.moe 为主源，见第 14 章）；M1~M4 已完成（Phase 1a/1b/1c + 验收 A1~A8 全过），Phase 1 收官 |
-| 修订记录 | v1.1：移除卡图采集与存储（数据形态为纯文本/结构化数据）；明确交互形态为 CLI/TUI<br>v1.2：按评审意见修订——card_id 与卡号口径、编号外卡对账口径、白名单关联语义、基本能量建模；修正"宝可装置3.0/宝可齿轮3.0"同名规则来源；快照 override 冻结；JSON 字段示例、索引、服务条款风险；移除 D2<br>v1.3：按外部调研（简中赛制核查 / 开源项目对标 / 数据基建接口调研）修订——**重构基本能量合法性**（妖能量反例：标准 8 种 / 开放 9 种，进快照，废弃全局特判）；新增赛制标记**"视作"覆盖**（天空之柱视作B）、V-UNION 部件建模、`is_tera`、owner 进化封闭泛化（5 组训练家宝可梦）、开放赛制白名单（34 种）与"特别的卡牌"外链监控；**导出契约扩为七件套**（manifest/checksums/sets/relations）+ **双轨版本化**（日历版本 + schema SemVer）；新增**下游 SDK 设计**（open_db/open_jsonl 双后端、合法性一等公民函数）；技术栈调整（SQLAlchemy 2 替代 SQLModel、PRAGMA user_version 替代 Alembic）；补充 2.6 开源对标；验收标准与里程碑同步更新<br>v1.4：task 007 按赛制页正文逐名核定——开放赛制过去系列白名单 **34 种→32 种**（多出 6 种而非 8 种），§2.1/FR-5.4/A1/A4/附录 A 同步修正；种子文件 `config/legality/` 落为白名单结构化事实来源<br>v1.4（续，task 012 统一修订）：合并 M1/M2 实测偏差——①FR-2.3 对账改**条目 setCode + (setCode, cardIndex) 全局去重**口径（附赠能量卡跨系列重复列出，目录口径产生 15 个假缺口），§7.1 expected_count=mik cardsNum 含编号外卡、expected_secret_count 留 NULL；②attacks 子结构新增 **`cost_modifier`** 增量字段（TAG TEAM GX "WWC+" 追加费用，§7.2 示例同步）；③§7.1 主键口径：特典系列 product setCode='PROMO' 与目录 setId 不一致，sets 主键用目录 set_id；④FR-2.3 规则 6 本期为 DB vs raw 同源自验（单源，跨源比对待 Phase 2）、规则 1 增源数据缺失豁免（SSP-195）与基本能量标记可空豁免；⑤简中暂无太晶卡样本（§2.1 补注、A3 改样本出现后补验）；⑥task 011 已并入 legality.json `errata` 键（JSONL 后端 effective_text 用）；⑦D1 决策结果全文同步（§2.3 定位、FR-1.1/1.2 主源= mik.moe、§7.4 规模改实测值 12,420/5,320、§8 架构图、风险登记册、第 14 章改决策记录）<br>v1.4（续，task 014 实测订正）：§2.1 "特别的卡牌"外链（`/tcg-rules-regulation-extra/`）实测为**特殊机制图文说明页**（GX/棱镜之星/究极异兽/TAG TEAM/V-UNION），非"视作覆盖"清单——L1 对其只做正文 hash 监控 + needs_manual 提案，v1.3 推测作废<br>v1.5：按 2026-08-01 校验源与映射源调研（task 021）修订——**跨语言映射取消繁中方向、新增日文原版**：链路改为 简中 ──(mik raw 英文桥 `setCodeEn/cardIndexEn/nameEn`)──▶ EN ──(TCGdex 同 card ID 多语言共构)──▶ JP，官方 pokemon-card.com 卡查仅作 JP 抽样权威核对，不爬繁中站；`name_zh_tw` 保留预留不填充；**校验源矩阵更新**：TCGdex 已收录全部简中系列壳（set_id 与本库一致）但卡级数据 0%——**系列级跨源对账**（系列名+卡数）落地（FR-1.2 / FR-2.3 规则 6），卡级跨源仍待 zh-cn 实装（风险登记册跟踪）；mik.moe 赛事数据库（2023 广州大师赛以来官方积分赛卡组）列为 `validate_deck` 真实卡组校验源；`external_ids.system` 枚举改 `{mik_en, tcgdex, pokemon_card_jp}`<br>v1.5（续，排期调整）：M5 瘦身为 derive 跨系列进化解析（技术债先行）；A2/A3 卡面人工比对独立为 M8 收尾里程碑（需用户在场），M6/M7 不依赖其完成<br>v1.6：按 task 023 实测修订——**v1.5「TCGdex 同 ID 多语言共构取 JP」前提证伪**（EN/JA 卡 id 不共构，交集仅个位数；列表端点无 dexId）：§2.4 JP 映射改**名字级 dexId 链**（EN TCGdex id → pokemon-tcg-data 卡数据 `nationalPokedexNumbers` → PokéAPI 物种名表日文名 + 形态/机制开放词表；基本能量词表定名；训练家/特殊能量本里程碑不填充入 question 清单）；EN 桥 → TCGdex set 映射改**名字连接 + 词表覆盖**（ptcd/TCGdex set id 自 SV 代分叉实测），实测解析率 99.88%；置信度分档新增 `species-linked`；数据源矩阵新增 PokéAPI CSV |
+| 修订记录 | v1.1：移除卡图采集与存储（数据形态为纯文本/结构化数据）；明确交互形态为 CLI/TUI<br>v1.2：按评审意见修订——card_id 与卡号口径、编号外卡对账口径、白名单关联语义、基本能量建模；修正"宝可装置3.0/宝可齿轮3.0"同名规则来源；快照 override 冻结；JSON 字段示例、索引、服务条款风险；移除 D2<br>v1.3：按外部调研（简中赛制核查 / 开源项目对标 / 数据基建接口调研）修订——**重构基本能量合法性**（妖能量反例：标准 8 种 / 开放 9 种，进快照，废弃全局特判）；新增赛制标记**"视作"覆盖**（天空之柱视作B）、V-UNION 部件建模、`is_tera`、owner 进化封闭泛化（5 组训练家宝可梦）、开放赛制白名单（34 种）与"特别的卡牌"外链监控；**导出契约扩为七件套**（manifest/checksums/sets/relations）+ **双轨版本化**（日历版本 + schema SemVer）；新增**下游 SDK 设计**（open_db/open_jsonl 双后端、合法性一等公民函数）；技术栈调整（SQLAlchemy 2 替代 SQLModel、PRAGMA user_version 替代 Alembic）；补充 2.6 开源对标；验收标准与里程碑同步更新<br>v1.4：task 007 按赛制页正文逐名核定——开放赛制过去系列白名单 **34 种→32 种**（多出 6 种而非 8 种），§2.1/FR-5.4/A1/A4/附录 A 同步修正；种子文件 `config/legality/` 落为白名单结构化事实来源<br>v1.4（续，task 012 统一修订）：合并 M1/M2 实测偏差——①FR-2.3 对账改**条目 setCode + (setCode, cardIndex) 全局去重**口径（附赠能量卡跨系列重复列出，目录口径产生 15 个假缺口），§7.1 expected_count=mik cardsNum 含编号外卡、expected_secret_count 留 NULL；②attacks 子结构新增 **`cost_modifier`** 增量字段（TAG TEAM GX "WWC+" 追加费用，§7.2 示例同步）；③§7.1 主键口径：特典系列 product setCode='PROMO' 与目录 setId 不一致，sets 主键用目录 set_id；④FR-2.3 规则 6 本期为 DB vs raw 同源自验（单源，跨源比对待 Phase 2）、规则 1 增源数据缺失豁免（SSP-195）与基本能量标记可空豁免；⑤简中暂无太晶卡样本（§2.1 补注、A3 改样本出现后补验）；⑥task 011 已并入 legality.json `errata` 键（JSONL 后端 effective_text 用）；⑦D1 决策结果全文同步（§2.3 定位、FR-1.1/1.2 主源= mik.moe、§7.4 规模改实测值 12,420/5,320、§8 架构图、风险登记册、第 14 章改决策记录）<br>v1.4（续，task 014 实测订正）：§2.1 "特别的卡牌"外链（`/tcg-rules-regulation-extra/`）实测为**特殊机制图文说明页**（GX/棱镜之星/究极异兽/TAG TEAM/V-UNION），非"视作覆盖"清单——L1 对其只做正文 hash 监控 + needs_manual 提案，v1.3 推测作废<br>v1.5：按 2026-08-01 校验源与映射源调研（task 021）修订——**跨语言映射取消繁中方向、新增日文原版**：链路改为 简中 ──(mik raw 英文桥 `setCodeEn/cardIndexEn/nameEn`)──▶ EN ──(TCGdex 同 card ID 多语言共构)──▶ JP，官方 pokemon-card.com 卡查仅作 JP 抽样权威核对，不爬繁中站；`name_zh_tw` 保留预留不填充；**校验源矩阵更新**：TCGdex 已收录全部简中系列壳（set_id 与本库一致）但卡级数据 0%——**系列级跨源对账**（系列名+卡数）落地（FR-1.2 / FR-2.3 规则 6），卡级跨源仍待 zh-cn 实装（风险登记册跟踪）；mik.moe 赛事数据库（2023 广州大师赛以来官方积分赛卡组）列为 `validate_deck` 真实卡组校验源；`external_ids.system` 枚举改 `{mik_en, tcgdex, pokemon_card_jp}`<br>v1.5（续，排期调整）：M5 瘦身为 derive 跨系列进化解析（技术债先行）；A2/A3 卡面人工比对独立为 M8 收尾里程碑（需用户在场），M6/M7 不依赖其完成<br>v1.6：按 task 023 实测修订——**v1.5「TCGdex 同 ID 多语言共构取 JP」前提证伪**（EN/JA 卡 id 不共构，交集仅个位数；列表端点无 dexId）：§2.4 JP 映射改**名字级 dexId 链**（EN TCGdex id → pokemon-tcg-data 卡数据 `nationalPokedexNumbers` → PokéAPI 物种名表日文名 + 形态/机制开放词表；基本能量词表定名；训练家/特殊能量本里程碑不填充入 question 清单）；EN 桥 → TCGdex set 映射改**名字连接 + 词表覆盖**（ptcd/TCGdex set id 自 SV 代分叉实测），实测解析率 99.88%；置信度分档新增 `species-linked`；数据源矩阵新增 PokéAPI CSV<br>v1.7：task 025 同名计数引擎设计定稿——FR-3.4 展开为**逐条形式化计数语义**（deck_size=60；单卡/同名组双层上限判定；ACE SPEC 与光辉全卡组 ≤1；◇ 同名 ≤1；V-UNION 部件各 1 且组总 ≤4）；FR-8 `validate_deck` **Violation 语义全集定义**（kind 新增 `unknown_card`/`radiant_limit`（additive）；`evolution_chain` 定死为**预留类型**——官方卡组构筑规则无进化链完整性要求，当前规则集不产生）；DeckReport 字段定稿（ok/deck_size/format/date/snapshot_id/violations，Violation 增 `count`） |
 | 项目代号 | ptcg-cn-db |
 | 上游目标 | 为"AI模拟对战 + 卡组强度/胜率测试"本地工具提供卡牌数据与规则基建 |
 
@@ -195,7 +195,12 @@
   5. **基本能量**：`is_basic_energy=TRUE` 且能量种类 ∈ 快照 `allowed_basic_energy_types`（当前 standard 8 种；open 9 种含妖[^13^]）→ 合法。
   基本能量不走赛制标记路径，种类合法性完全由快照维护，**不做全局特判**（妖能量为标准赛制反例）。
 - FR-3.3 白名单旧卡使用时，文本按"最新描述"解析：提供 `effective_text(card_id, date)`，返回最新印刷文本 ∪ 生效勘误。`latest_text_overrides` 仅随**当前快照**维护（维护时机见 FR-5.1 后处理步骤）；**历史快照的 override 一经生成即冻结**，保证 S5 历史回放不漂移。
-- FR-3.4 同名计数规则引擎：输入卡表，按 name_group 规则计数（默认 4；ACE SPEC 全卡组 1；光辉 1；V-UNION 部件各 1；"博士的研究"/"老大的指令"跨插画同名——按简中官方赛制页注释维护[^1^]）。注：繁中赛制页另有"寶可裝置3.0 與 寶可齒輪3.0 視同名"规则[^8^]，系繁中朱&紫起译名变更所致；**简中不存在该译名对，此规则不适用**，不进入简中归组规则表。
+- FR-3.4 同名计数规则引擎（v1.7 形式化）：输入卡表（card_id 列表，可重复），逐条判定输出结构化违规（供 CLI 与 SDK 双后端复用的纯函数核）：
+  1. **deck_size**：卡表总数 ≠ 60 → `deck_size` 违规（detail 记实际数）；
+  2. **name_limit 双层判定**：① 单 card_id 数量 ≤ 其 `deck_limit`；② 同 name_group 总数 ≤ **组上限**——组上限 = 4（组内含 V-UNION 部件时）否则 max(成员 deck_limit)。普通卡 4/4；◇ 卡（deck_limit=1）同名 ≤1（不同名 ◇ 可共存，无全局限制）；V-UNION 部件各 ≤1 且组总 ≤4。**基本能量（`is_basic_energy`）不受同名上限约束**（官方规则：基本能量不列入 4 张限制）；
+  3. **ace_spec_limit**：全卡组 `is_ace_spec` 卡总数 ≤ 1（跨卡名全局约束）；
+  4. **radiant_limit**：全卡组 `rule_box_type=radiant`（光辉）卡总数 ≤ 1（跨卡名全局约束）；
+  5. 跨插画同名（"博士的研究"/"老大的指令"）经 name_group 归组后按 ② 计数——归组规则按简中官方赛制页注释维护[^1^]。注：繁中赛制页另有"寶可裝置3.0 與 寶可齒輪3.0 視同名"规则[^8^]，系繁中朱&紫起译名变更所致；**简中不存在该译名对，此规则不适用**，不进入简中归组规则表。
 
 ### FR-4 查询 CLI（Phase 1a 起）
 
@@ -281,10 +286,26 @@ db.changelog(since="2026-07-01")          # -> list[ChangeEntry]
 
 # —— Phase 2 提供 ——
 db.validate_deck(deck=[...60 个 card_id], date="2026-08-01", format="standard")
-#    -> DeckReport: ok: bool; violations: list[Violation]
-#    Violation: kind ∈ {deck_size, name_limit, ace_spec_limit, banned,
-#                       not_legal, evolution_chain}; detail: str; cards: list[str]
+#    -> DeckReport: ok: bool; deck_size: int; format: str; date: str;
+#                   snapshot_id: str; violations: list[Violation]
+#    Violation: kind ∈ {deck_size, unknown_card, not_legal, banned,
+#                       name_limit, ace_spec_limit, radiant_limit,
+#                       evolution_chain}; detail: str; cards: list[str];
+#                  count: int | None（实际数量，供 AI 策略消费）
 ```
+
+**Violation 语义全集（v1.7 定死）**：
+
+| kind | 判定规则 |
+|---|---|
+| `deck_size` | 卡表总数 ≠ 60（FR-3.4 ①） |
+| `unknown_card` | card_id 不在库（v1.7 新增，additive） |
+| `not_legal` | 卡不在该日期/赛制合法卡池内（且未命中禁卡表） |
+| `banned` | 命中快照禁卡表（名称 + 特性/招式名限定匹配，FR-3.2 第 1 步）——与 `not_legal` 互斥，禁卡优先报告为 `banned` |
+| `name_limit` | 违反 FR-3.4 ② 双层计数（单 card_id 超 deck_limit，或同名组超组上限） |
+| `ace_spec_limit` | 违反 FR-3.4 ③（ACE SPEC 全卡组 >1） |
+| `radiant_limit` | 违反 FR-3.4 ④（光辉全卡组 >1；v1.7 新增，additive） |
+| `evolution_chain` | **预留类型**——官方卡组构筑规则无进化链完整性要求，当前规则集不产生该违规；保留枚举供未来赛制/特殊规则启用，`validate_deck` 默认不返回 |
 
 设计原则：
 

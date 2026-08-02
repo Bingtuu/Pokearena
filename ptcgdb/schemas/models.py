@@ -172,3 +172,18 @@ class EffectiveText(BaseModel):
     resolved_card_id: str  # 实际文本来源卡（经 latest_text_overrides 解析）
     text: str
     source: str  # errata / latest_print / text_raw
+
+
+class Violation(BaseModel):
+    """validate_deck / 计数引擎的结构化违规（FR-3.4 / FR-8，v1.7 语义全集）。
+
+    kind ∈ {deck_size, unknown_card, not_legal, banned, name_limit,
+            ace_spec_limit, radiant_limit, evolution_chain(预留)}
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    kind: str  # 违规类型（开放字符串，PRD FR-8 语义表）
+    detail: str  # 人类可读说明
+    cards: list[str]  # 涉及的 card_id（排序去重）
+    count: int | None = None  # 实际数量（供 AI 策略消费）
