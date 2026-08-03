@@ -24,8 +24,11 @@ class Set(Base):
     era: Mapped[str] = mapped_column(String)  # 太阳&月亮/剑&盾/朱&紫/特典/未划分（开放词表）
     release_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     regulation_mark: Mapped[str] = mapped_column(String)  # 该系列卡牌的赛制标记
-    expected_count: Mapped[int | None] = mapped_column(Integer)  # 官方公布收录数（分母口径）
+    # 官方公布收录数（mik cardsNum 全量口径，≠卡面分母）
+    expected_count: Mapped[int | None] = mapped_column(Integer)
     expected_secret_count: Mapped[int | None] = mapped_column(Integer)  # 官方公布的编号外卡数
+    # 卡面分母种子（v1.11；NULL=未覆盖）
+    card_face_total: Mapped[int | None] = mapped_column(Integer)
     source: Mapped[str] = mapped_column(String)  # 溯源
     fetched_at: Mapped[str] = mapped_column(String)  # PRD §7.1 定为 TEXT
 
@@ -72,6 +75,8 @@ class Card(Base):
     is_basic_energy: Mapped[bool] = mapped_column(Boolean, index=True)  # 派生：基本能量
     text_raw: Mapped[str] = mapped_column(Text)  # 卡面全部文字逐字保留，绝不规范化
     effect_tags: Mapped[list[str] | None] = mapped_column(JSON)  # 粗粒度标签（PRD §6.4）
+    # mik 双重列示别名→正本（v1.11）
+    alias_of: Mapped[str | None] = mapped_column(ForeignKey("cards.card_id"))
     name_en: Mapped[str | None] = mapped_column(String)  # 跨语言映射（Phase 2 填充）
     name_ja: Mapped[str | None] = mapped_column(String)
     name_zh_tw: Mapped[str | None] = mapped_column(String)

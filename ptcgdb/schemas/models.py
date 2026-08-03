@@ -97,6 +97,7 @@ class Card(BaseModel):
     is_basic_energy: bool
     text_raw: str
     effect_tags: list[str] | None
+    alias_of: str | None = None  # mik 双重列示别名→正本 card_id（v1.11 增量，只加不删）
     name_en: str | None
     name_ja: str | None
     name_zh_tw: str | None
@@ -117,6 +118,7 @@ class Set(BaseModel):
     regulation_mark: str
     expected_count: int | None
     expected_secret_count: int | None
+    card_face_total: int | None = None  # 卡面分母种子（v1.11 增量，只加不删）
     source: str
     fetched_at: str
 

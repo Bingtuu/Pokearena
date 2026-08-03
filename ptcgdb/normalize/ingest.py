@@ -15,7 +15,7 @@ from sqlalchemy import create_engine, delete, select
 from sqlalchemy.orm import Session
 
 from ptcgdb.migrations import apply_migrations
-from ptcgdb.normalize import derive, fields
+from ptcgdb.normalize import derive, face_totals, fields
 from ptcgdb.normalize.fields import Questions, UnknownEnumError
 from ptcgdb.orm import Card, CardNameGroup, CardRelation, NameGroup, Set
 from ptcgdb.scrapers.raw_store import read_raw
@@ -39,7 +39,7 @@ class _Context:
     rarities: set[str]
     owners: list[str]
     name_group_rules: list[dict[str, str]]
-    cards_num: int | None
+    face_seed: dict | None  # 卡面分母种子条目（v1.11 F-01；None=只显分子）
     questions: Questions
 
 
@@ -49,7 +49,9 @@ def normalize_card(
     """单卡 card-detail data → Card 表字段 dict。未知枚举抛 UnknownEnumError。"""
     card_id = f"{data['setCode']}-{data['cardIndex']}"
     card_type, trainer_subtype = fields.map_card_type(data["cardType"], ctx.card_type_map)
-    number, number_display = fields.split_number(data["cardIndex"], ctx.cards_num)
+    # 分母 = 卡面分母种子（v1.11：实测/TCGdex壳/CBB按包）；无种子只显分子，不用 cardsNum 伪装
+    denominator = face_totals.display_denominator(ctx.face_seed, str(data["cardIndex"]))
+    number, number_display = fields.split_number(data["cardIndex"], denominator)
     name_full = data["name"]
     owner, species = derive.split_owner_species(name_full, ctx.owners)
     mechanic = data.get("mechanic")
@@ -169,6 +171,10 @@ def ingest_set(
     """把 raw_dir/mikmoe/{set_id} 下的 raw 入库为 draft。raw 层只读。"""
     questions = Questions()
     vocab_dir = (Path(config_dir) / "vocabularies") if config_dir else fields.VOCAB_DIR
+    if config_dir:
+        seed_path = Path(config_dir) / face_totals.SEED_PATH.name
+    else:
+        seed_path = face_totals.SEED_PATH
     ctx = _Context(
         code_map=fields.load_energy_code_map(vocab_dir),
         card_type_map=fields.load_card_type_map(vocab_dir),
@@ -176,7 +182,7 @@ def ingest_set(
         rarities=fields.load_rarities(vocab_dir),
         owners=fields.load_owners(vocab_dir),
         name_group_rules=derive.load_name_group_rules(config_dir),
-        cards_num=None,
+        face_seed=face_totals.load_seed(seed_path).get(set_id),
         questions=questions,
     )
     result = IngestResult(set_id=set_id, questions=questions)
@@ -185,7 +191,6 @@ def ingest_set(
     cards_doc = read_raw(set_dir / "cards.json")
     if cards_doc is None:
         raise FileNotFoundError(f"raw 缺失或 hash 无效: {set_dir / 'cards.json'}")
-    ctx.cards_num = (cards_doc.get("data") or {}).get("cardsNum")
 
     records: list[dict[str, Any]] = []
     card_files = sorted(
@@ -233,21 +238,40 @@ def ingest_set(
     rule_notes = {r["base"]: r.get("note") for r in ctx.name_group_rules}
 
     with Session(engine) as session:
-        session.merge(
-            _build_set_row(cards_doc, records, fields.load_era_map(vocab_dir), questions, set_id)
+        set_row = _build_set_row(
+            cards_doc, records, fields.load_era_map(vocab_dir), questions, set_id
         )
+        # task 030：card_face_total 为种子层富化（非 raw 可再得），merge 前随身带走
+        existing_total = session.execute(
+            select(Set.card_face_total).where(Set.set_id == set_id)
+        ).scalar_one_or_none()
+        set_row.card_face_total = existing_total
+        session.merge(set_row)
         # 幂等：清掉本系列旧的归组/关系/卡牌行再写入；
         # 重入库保留既有 status（task 013：L0 增量重入库不降级已 active 的卡）
+        # 与富化字段（task 030：is_tera/alias_of/name_ja 为 mapping/修复层富化，
+        # raw 重放不可再得，删除前行需随身带走）
         card_ids = [r["card_id"] for r in records]
         old_status: dict[str, str] = {}
+        old_enrich: dict[str, tuple] = {}
         if card_ids:
-            old_status = dict(
-                session.execute(
-                    select(Card.card_id, Card.status).where(Card.card_id.in_(card_ids))
-                ).all()
-            )
+            old_rows = session.execute(
+                select(Card.card_id, Card.status, Card.is_tera, Card.alias_of, Card.name_ja)
+                .where(Card.card_id.in_(card_ids))
+            ).all()
+            old_status = {r[0]: r[1] for r in old_rows}
+            old_enrich = {r[0]: (r[2], r[3], r[4]) for r in old_rows}
             session.execute(
                 delete(CardRelation).where(CardRelation.card_id.in_(card_ids))
+            )
+            # 跨系列反向行（evolves_to 回指，card_id 属他系列）也是本系列卡的
+            # 关系投影，重入库前一并清除，否则 UNIQUE 冲突（task 030 实测）；
+            # 注意 (他系列→本系列, evolves_from) 由他系列入库自建，绝不可删
+            session.execute(
+                delete(CardRelation).where(
+                    CardRelation.related_card_id.in_(card_ids),
+                    CardRelation.relation_type == "evolves_to",
+                )
             )
             session.execute(
                 delete(CardNameGroup).where(CardNameGroup.card_id.in_(card_ids))
@@ -256,6 +280,8 @@ def ingest_set(
         for rec in records:
             if old_status.get(rec["card_id"]) == "active":
                 rec["status"] = "active"
+            if rec["card_id"] in old_enrich:
+                rec["is_tera"], rec["alias_of"], rec["name_ja"] = old_enrich[rec["card_id"]]
             session.add(Card(**rec))
         for key in sorted(set(group_keys.values())):
             session.merge(
@@ -277,6 +303,28 @@ def ingest_set(
                     source=SOURCE,
                 )
             )
+        # 跨系列反向行补写：他系列卡 evolves_from_id 指向本系列时，
+        # (本系列→他系列, evolves_to) 也只能由本系列入库重建
+        # （删除按 card_id∈本系列已清，records 只覆盖本系列卡——task 030 实测
+        # 顺序相关丢行 151 条的根因），补写后单系列重入库结果与顺序无关
+        if card_ids:
+            session.flush()
+            outward = session.execute(
+                select(Card.card_id, Card.evolves_from_id).where(
+                    Card.evolves_from_id.in_(card_ids),
+                    Card.card_id.notin_(card_ids),
+                )
+            ).all()
+            for out_id, src_id in sorted(outward):
+                session.add(
+                    CardRelation(
+                        card_id=src_id,
+                        related_card_id=out_id,
+                        relation_type="evolves_to",
+                        confidence="high",
+                        source=SOURCE,
+                    )
+                )
         for card_id, related_id, rel_type in derive.union_relations(records):
             session.add(
                 CardRelation(

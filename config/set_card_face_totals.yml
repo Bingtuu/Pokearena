@@ -1,0 +1,148 @@
+'#': 卡面分母种子（PRD §7.1 card_face_total，task 030）——ptcgdb seed-face-totals 生成，勿手改
+sets:
+  CS1.5C:
+    total: 55
+    source: tcgdex
+  CS1DC:
+    total: 207
+    source: measured
+  CS1aC:
+    total: 135
+    source: tcgdex
+  CS1bC:
+    total: 136
+    source: tcgdex
+  CS2.5C:
+    total: 59
+    source: tcgdex
+  CS2aC:
+    total: 115
+    source: tcgdex
+  CS2bC:
+    total: 115
+    source: tcgdex
+  CS3.5C:
+    total: 66
+    source: tcgdex
+  CS3aC:
+    total: 125
+    source: tcgdex
+  CS3bC:
+    total: 122
+    source: tcgdex
+  CS4.5C:
+    total: 63
+    source: tcgdex
+  CS4DaC:
+    total: 414
+    source: measured
+  CS4aC:
+    total: 132
+    source: tcgdex
+  CS4bC:
+    total: 132
+    source: tcgdex
+  CS5.5C:
+    total: 66
+    source: tcgdex
+  CS5aC:
+    total: 127
+    source: tcgdex
+  CS5bC:
+    total: 128
+    source: tcgdex
+  CS6.5C:
+    total: 72
+    source: tcgdex
+  CS6aC:
+    total: 131
+    source: tcgdex
+  CS6bC:
+    total: 131
+    source: tcgdex
+  CSM1.5C:
+    total: 60
+    source: tcgdex
+  CSM1aC:
+    total: 151
+    source: tcgdex
+  CSM1bC:
+    total: 151
+    source: tcgdex
+  CSM1cC:
+    total: 151
+    source: measured
+  CSM2.1C:
+    total: 45
+    source: measured
+  CSM2.5C:
+    total: 61
+    source: tcgdex
+  CSM2aC:
+    total: 150
+    source: tcgdex
+  CSM2bC:
+    total: 150
+    source: tcgdex
+  CSM2cC:
+    total: 150
+    source: tcgdex
+  CSMPiC:
+    total: 24
+    source: tcgdex
+  CSV10C:
+    total: 222
+    source: measured
+  CSV1C:
+    total: 127
+    source: tcgdex
+  CSV2C:
+    total: 128
+    source: tcgdex
+  CSV3C:
+    total: 130
+    source: tcgdex
+  CSV4C:
+    total: 129
+    source: tcgdex
+  CSV5C:
+    total: 129
+    source: tcgdex
+  CSV6C:
+    total: 128
+    source: tcgdex
+  CSV7C:
+    total: 204
+    source: tcgdex
+  CSV8C:
+    total: 207
+    source: tcgdex
+  CSV9.5C:
+    total: 208
+    source: tcgdex
+  CSV9C:
+    total: 208
+    source: tcgdex
+  CBB3C:
+    packs:
+      '01': 7
+      '02': 7
+      '03': 7
+      '04': 7
+      '05': 7
+      '06': 7
+      '07': 7
+      08: 7
+      09: 7
+      '10': 7
+      '11': 7
+      '12': 7
+      '13': 7
+      '14': 7
+      '15': 7
+      '16': 7
+      '17': 7
+      '18': 7
+      '19': 4
+      '20': 6
+    source: derived_cbb

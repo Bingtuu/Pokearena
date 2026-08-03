@@ -153,3 +153,38 @@ def write_ja_report(result: JaFillResult, total_bridge: int, out_dir: Path) -> P
         lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
     return path
+
+
+def write_tera_report(result, out_dir: Path) -> Path:
+    """太晶识别报告（task 030 F-03）：命中率 + 未解析清单（如实记录，不猜测）。"""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(UTC).strftime("%Y%m%d")
+    path = out_dir / f"mapping-tera-{stamp}.md"
+    lines = [
+        f"# 太晶识别报告（{stamp}）",
+        "",
+        "链路：external_ids(mik_en) 印刷级桥 → ptcd sets-en ptcgoCode"
+        " → ptcd 卡 subtypes 含 'Tera'。",
+        "",
+        f"- 全库卡数：{result.total}",
+        f"- 有 mik_en 桥：{result.bridged}",
+        f"- **判定太晶（is_tera=1）：{result.tera}**",
+        f"- 解析为非太晶：{result.resolved_non_tera}",
+        f"- 无桥（不猜测）：{len(result.no_bridge)}",
+        f"- ptcgoCode 无 ptcd 系列（不猜测）：{len(result.unmapped_set)}",
+        f"- ptcd 系列内查无编号（不猜测）：{len(result.missing_card)}",
+        "",
+        "## 无桥清单",
+        "",
+    ]
+    for card_id in result.no_bridge:
+        lines.append(f"- `{card_id}`")
+    lines += ["", "## ptcgoCode 无 ptcd 系列清单", ""]
+    for card_id in result.unmapped_set:
+        lines.append(f"- `{card_id}`")
+    lines += ["", "## ptcd 系列内查无编号清单", ""]
+    for card_id in result.missing_card:
+        lines.append(f"- `{card_id}`")
+    lines.append("")
+    path.write_text("\n".join(lines), encoding="utf-8")
+    return path

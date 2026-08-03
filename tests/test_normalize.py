@@ -246,7 +246,9 @@ def test_ingest_golden_charizard_gx(ingested):
     with Session(engine) as session:
         c = session.get(Card, "CSM1aC-004")
         assert c.number == "004"
-        assert c.number_display == "004/211"
+        # v1.11（task 030 F-01）：分母=卡面分母种子（CSM1aC=151，TCGdex 壳过 sanity 门）
+        # 不再用 mik cardsNum
+        assert c.number_display == "004/151"
         assert c.name_full == "喷火龙GX"
         assert c.species == "喷火龙"
         assert c.owner is None
@@ -377,6 +379,72 @@ def test_ingest_idempotent_rerun(ingested, tmp_path):
     assert result2.card_count == len(FIXTURE_CARDS)
     with Session(engine) as session:
         assert session.query(Card).count() == len(FIXTURE_CARDS)
+
+
+def test_ingest_cross_set_evolves_to_rerun(tmp_path):
+    """跨系列反向行顺序无关（task 030 回归）：CSM1bC-001 进化自 CSM1aC-002，
+    重入库先行侧系列（CSM1aC）后 (CSM1aC-002 → CSM1bC-001, evolves_to) 必须仍在。"""
+    raw_dir = make_raw_dir(tmp_path)
+    db_path = tmp_path / "test.db"
+    ingest_set(raw_dir, "CSM1aC", db_path)
+
+    # 第二个系列：单卡 CSM1bC-001（火恐龙，进化自小火龙=CSM1aC-002）
+    set_dir = raw_dir / "mikmoe" / "CSM1bC"
+    set_dir.mkdir(parents=True)
+    card = json.loads((FIXTURE_DIR / "003.json").read_text(encoding="utf-8"))
+    card["data"]["setCode"] = "CSM1bC"
+    card["data"]["cardIndex"] = "001"
+    payload = {k: v for k, v in card.items() if k != "_meta"}
+    write_raw(set_dir / "001.json", payload, source="mik_moe")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "横空出世 苍",
+                "setCode": "CSM1bC",
+                "setId": "CSM1bC",
+                "releaseDate": "2022-10-28T00:00:00+08:00",
+                "series": "Sun & Moon",
+                "mainExpansion": True,
+                "cardsNum": 1,
+                "cards": [],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+    ingest_set(raw_dir, "CSM1bC", db_path)
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    expected = ("CSM1aC-002", "CSM1bC-001", "evolves_to")
+    forward = ("CSM1bC-001", "CSM1aC-002", "evolves_from")
+    with Session(engine) as session:
+        rels = {
+            (r.card_id, r.related_card_id, r.relation_type)
+            for r in session.query(CardRelation)
+        }
+        assert expected in rels
+        assert forward in rels
+
+    # 重入库先行侧系列：修复前反向行被删且不重建（顺序相关丢行）
+    ingest_set(raw_dir, "CSM1aC", db_path)
+    with Session(engine) as session:
+        rels = {
+            (r.card_id, r.related_card_id, r.relation_type)
+            for r in session.query(CardRelation)
+        }
+        assert expected in rels
+        assert forward in rels
+    # 重入库后行侧系列亦不丢不重
+    ingest_set(raw_dir, "CSM1bC", db_path)
+    with Session(engine) as session:
+        rels = [
+            (r.card_id, r.related_card_id, r.relation_type)
+            for r in session.query(CardRelation)
+        ]
+        assert rels.count(expected) == 1
+        assert rels.count(forward) == 1
 
 
 def test_unknown_enum_zero_guess(tmp_path):

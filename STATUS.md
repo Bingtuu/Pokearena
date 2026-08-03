@@ -1,22 +1,22 @@
 # STATUS.md — 开发进展
 
 > 每次工作会话开始时先读本文件；完成阶段性工作后更新。
-> 最近更新：2026-08-02
+> 最近更新：2026-08-03
 
 ## 当前状态
 
-**阶段：M9-2 ✅ 完成（task 029）；M7 进行中（task 025 ✅ / 026 待做）** —— 统计可复算性与查询层落地：migration 006 两物化视图（user_version=6）+ canonical SQL 五文件（公式单一事实源，CLI/SDK/schema.md 三处共用）+ CLI `stats usage/winrate/wws/card` 子命令组与 `query` 只读 SQL + SDK `stats_*` 双后端（真实库 stats_usage 289 行等双端 meta 全等）+ 导出追加赛事四件套（十二件套）+ 黄金数据集三指标容差 1e-9 对平。已知缺口：mik 源 topcut_slots 全 NULL → 真实库 WR/WWS 暂空（WUR 正常，老大的指令 89.7% 居首），补全立项待定。M9-1 ✅（26 赛/1252 内容/1396 出战）。M6 ✅（name_en 12,337 / name_ja 9,480）。M7-1 task 025 完成（PRD v1.7）。293 测试全绿。下一步 task 026 validate_deck SDK + M7 验收 / task 028 EN Limitless（M9-3）/ topcut 补全立项。**M8 进行中（task 020，用户协作比对）**：**A2 100/100 全部核销（2026-08-03）**——11 字段全量一致，差异归集三件立案技术债：F-01 卡号分母口径（5 系列数据点）、F-02 字母编号能量卡=mik 双重列示别名（16 张）、F-03 太晶机制无信号（确诊 3 例，ptcd subtypes 识别路径实证）；修复批次待立项（先改 PRD）。裁决记录 `.scratch/task020-findings.md`，核销落 `reports/sampling-a2-20260801.md`（git 跟踪）。下一步 A3 50 张比对（清单 `reports/sampling-a3-20260802.md`）/ task 026 / task 028。
+**阶段：M9-2 ✅ 完成（task 029）；A2 三件技术债 ✅ 清偿（task 030）；M7 进行中（task 025 ✅ / 026 待做）** —— task 030（2026-08-03，PRD v1.11）：F-01 number_display 分母改逐系列种子口径（migration 007 `sets.card_face_total`，41 套 total 型+1 套 packs 型，5 实测数据点全对平，未覆盖系列只显分子）；F-02 十六张字母能量条目 `alias_of` 指向数字正本；F-03 `map-tera` 走 ptcd EN subtypes，is_tera 166 张（确诊 3 例全中、猛雷鼓ex 不误判）。顺路修复 ingest 跨系列 evolves_to 反向行顺序相关丢行缺陷（重 ingest 后 evolves_from=evolves_to=3,741 完全对称）。user_version=7，validate 六规则 0 失败，303 测试全绿，dist 导出复跑（relations 22,610）。验收 `reports/task030-tech-debt-20260803.md`。统计可复算性与查询层落地（task 029）：migration 006 两物化视图 + canonical SQL 五文件 + CLI `stats`/`query` + SDK `stats_*` 双后端 + 导出十二件套。已知缺口：mik 源 topcut_slots 全 NULL → 真实库 WR/WWS 暂空（WUR 正常，老大的指令 89.7% 居首），补全立项待定。M9-1 ✅（26 赛/1252 内容/1396 出战）。M6 ✅（name_en 12,337 / name_ja 9,480）。M7-1 task 025 完成（PRD v1.7）。下一步 task 026 validate_deck SDK + M7 验收 / task 028 EN Limitless（M9-3）/ topcut 补全立项 / A3 50 张比对。**M8 进行中（task 020，用户协作比对）**：**A2 100/100 全部核销（2026-08-03）**——11 字段全量一致，三件技术债已由 task 030 清偿；裁决记录 `.scratch/task020-findings.md`，核销落 `reports/sampling-a2-20260801.md`（git 跟踪）。
 
 ## 入口
 
 | 内容 | 位置 |
 |---|---|
-| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.10） |
+| 产品需求与技术方案（权威设计） | `docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.11） |
 | 工程约定 | `AGENTS.md` |
 | 任务队列（开发标准循环） | `tasks/`（规范见 `tasks/README.md`，归档在 `tasks/done/`） |
 | **数据源与接口文档** | `docs/data-sources.md`（全部数据源获取方式：mik.moe 主源 API / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对） |
 | 代码 | `ptcgdb/`（orm/schemas/migrations/cli + scrapers/normalize/validate + legal（引擎/种子/版本化）+ monitor（L0/L1/提案）+ export/sdk + accept（验收）） |
-| 数据 | `data/ptcg-cn.db`（schema user_version=6；**12,420 张去重卡 active**；name_en 12,337 / name_ja 9,480；external_ids mik_en 12,337 + tcgdex 12,331；2 条环境快照；**赛事四表：26 赛 / 1,252 卡组内容 / 1,396 出战 / 38,105 卡表行** + 统计视图 v_stat_deck_cards / v_tournament_weights）、`data/raw/`（mikmoe 全量[卡牌+赛事 1,327 文件] + tcgdex/pokemon-tcg-data/pokeapi 静态源，append-only + manifest）、`dist/`（导出十二件套，gitignore）、`reports/`（校验报告，git 跟踪） |
+| 数据 | `data/ptcg-cn.db`（schema user_version=7；**12,420 张去重卡 active**；name_en 12,337 / name_ja 9,480；is_tera 166 / alias_of 16；external_ids mik_en 12,337 + tcgdex 12,331；2 条环境快照；**赛事四表：26 赛 / 1,252 卡组内容 / 1,396 出战 / 38,105 卡表行** + 统计视图 v_stat_deck_cards / v_tournament_weights）、`data/raw/`（mikmoe 全量[卡牌+赛事 1,327 文件] + tcgdex/pokemon-tcg-data/pokeapi 静态源，append-only + manifest）、`dist/`（导出十二件套，gitignore）、`reports/`（校验报告，git 跟踪） |
 | 合法性种子 | `config/legality/`（standard/open 双赛制快照种子，官方赛制页 2026-07-16 版） |
 
 ## 里程碑（PRD 第 11 章）
@@ -29,7 +29,7 @@
 - [x] **M5 (Phase 2)** derive 跨系列进化解析（task 019）—— **2026-08-02 完成**：全库回退解析，未解析 401→5（仅剩化石无收录豁免），31 系列重 ingest skipped=0，FR-2.3 六规则全过，A3 复跑 5,122 项次全过
 - [x] **M6 (Phase 2)** 跨语言映射 EN+JP（task 022~024）—— **2026-08-02 完成**：EN 桥 12,337/12,420（99.3%=raw 上限）；TCGdex ID 解析 12,322（99.88%）+ 系列级对账（TCGdex zh-cn 仅壳级参照）；JP 改名字级 dexId 链（PRD v1.6，同 ID 共构证伪），name_ja 9,480（76.8%）+ external_ids(tcgdex) 12,331，官方抽样 31 张修复后一致率 100%（不符项全部裁决：地区前缀空格/后缀修饰/はくば・こくば/◇保留）
 - [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025 ✅ / 026）
-- [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场）—— **A2 ✅ 100/100（2026-08-03）**：三件技术债立案 F-01/F-02/F-03；A3 待比对
+- [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场）—— **A2 ✅ 100/100（2026-08-03）**：三件技术债 F-01/F-02/F-03 已由 task 030 清偿（2026-08-03）；A3 待比对
 - [ ] **M9 (Phase 2 扩展，PRD v1.8~v1.10)** 赛事卡组管线 + 统计基建：M9-1 task 027 CN mik ✅（2026-08-02）/ M9-2 task 029 统计与查询层 ✅（2026-08-02）/ M9-3 task 028 EN Limitless；统计范围=宝可梦/支援者/竞技场
 
 ## 决策日志
@@ -50,12 +50,13 @@
 
 ## 已知技术债 / 待立项
 
-- **F-01 `number_display` 分母口径偏差（task 020 实测发现）**：卡面编号分母 ≠ mik 系列总卡数，两类形态——①宝石包 CBB* 复合编号 `PPNN/包内卡数`（前两位=小包号、后两位=包内序号，用户实测 0913/15、11 05/07 等 5 例与库内分组统计自洽）；②普通系列卡面分母=商品主列表收录数（CS1DC 卡面 /207 vs 库内 222 张 vs mik cardsNum 230，三数互不相等，mik 差 8 张口径存疑待查）。分子（cardIndex 逐字）始终正确、主键与映射不受影响；mik 卡级 `setCardsNum` 为空 → 卡面分母无法从 mik 推出。修复方向待用户比对完成后定（分母改注"我方收录数" / 去分母 / 逐系列种子录入）。详见 `.scratch/task020-findings.md`。
+- ~~F-01 `number_display` 分母口径偏差~~：**已清偿（task 030，2026-08-03）**——分母改逐系列种子口径（migration 007 `sets.card_face_total`，实测 5 点 > TCGdex zh-cn 壳 sanity 门 > CBB 按包），5 实测数据点全对平，未覆盖系列只显分子；6 项冲突未播种入报告。
+- ~~F-02 字母编号能量卡=mik 双重列示别名~~：**已清偿（task 030，2026-08-03）**——`cards.alias_of` 标记 16 张（CS4DaC/CSVL1C 各 8 → 数字正本可溯）；CSVH5C `NaN1` 无孪生保留入 questions；12,420 总数与主键口径不变。
+- ~~F-03 太晶机制无信号~~：**已清偿（task 030，2026-08-03）**——`map-tera` 走 ptcd EN 卡 subtypes 'Tera' 印刷级识别，is_tera 166 张（确诊 3 例全中、猛雷鼓ex 不误判、太乐巴戈斯印刷级=1）；rule_box_type 维持 ex 不变；text_raw 口径订正为不含规则框文本（PRD v1.11）。太晶规则文结构化仍为预留缺口（mik 源不提供）。
+- **CBB 宝石包包计数与实测不符（task 030 种子 sanity 门拦截）**：CBB1C/CBB2C 包内计数与实测不符 + CBB2C/3C/4C/5C tcgdex 壳缺口，共 6 项未播种——疑似 mik 同号异画去重缺口，需核查 mik 原始列示，另立案候选。
 - **topcut_slots 数据缺口（task 029 实测）**：mik 源 26 场赛事 topcut_slots 全 NULL → 真实库 WR / WWS 统计当前为空集（WUR 正常）。补全路径：deck-static 接口 topcutTimes 字段反推或人工登记，可并入 task 028 立项。
 - **mik `isQual` 语义存疑（task 029 实测）**：3,215/3,348 名为"预赛"的赛事 isQual=false，与"预赛=瑞士轮"假设不符；已如实落库不猜，待核实。
 - ~~derive 跨系列进化解析缺口~~：**已清偿（task 019，2026-08-02）**——`resolve_evolution` 全库回退解析，401 → 5（仅剩化石道具库内无收录的合理豁免；另修正 10 条原误判豁免：化石道具卡在 SVP 有收录）。收敛报告 `reports/task019-evolution-resolution-20260802.md`。
-- **F-02 字母编号能量卡=mik 双重列示别名（task 020 A2 第 3 批发现）**：CS4DaC/CSVL1C 各 8 张字母编号能量条目与同系列数字编号条目 raw 逐字段全等（仅 cardIndex 不同），卡面以数字编号为准（实测 431/414）；另 CSVH5C 基本草能量 cardIndex 字面值 `NaN1`。修复影响 12,420 总数口径与主键，待与 F-01 合并裁决。详见 `.scratch/task020-findings.md`。
-- **F-03 太晶机制无信号（task 020 A2 第 7 批发现）**：task 005「简中暂无太晶卡样本」结论推翻——mik 对太晶卡不给标记，is_tera 全库 0；确诊 3 例（CSV5C-162 喷火龙ex / CSV9.5C-245 伊布ex / CSV9C-259 拉普拉斯ex），太晶备战区保护规则文无字段承载。**识别路径已实证**：ptcd EN 卡 `subtypes` 含结构化 'Tera'（印刷级，EN 桥覆盖 99.3%），3/3 命中；属性错配与系列级判据均被证伪（猛雷鼓ex 非太晶）。规则文结构化方案待 PRD 裁决。
 - **A2/A3 卡面人工比对（M8）**：**A2 ✅ 100/100 核销（2026-08-03）**；A3 清单已就绪（`reports/sampling-a3-20260802.md` 50 张——已随 task 019 复跑刷新），需用户在场比对（小程序无 API），另约协作 session。
 
 ## 进展日志

@@ -300,6 +300,62 @@ def map_ja(
     typer.echo(f"报告: {path}")
 
 
+@app.command("map-tera")
+def map_tera(
+    db_path: Path = DEFAULT_DB_PATH,
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    out_dir: Path = Path("reports"),
+) -> None:
+    """太晶识别：ptcd EN 卡 subtypes 'Tera' 印刷级富化 is_tera（task 030 F-03）。"""
+    from ptcgdb.mapping.report import write_tera_report
+    from ptcgdb.mapping.tera import fill_tera
+
+    result = fill_tera(db_path, raw_dir)
+    path = write_tera_report(result, out_dir)
+    typer.echo(
+        f"total={result.total} bridged={result.bridged} tera={result.tera} "
+        f"non_tera={result.resolved_non_tera} no_bridge={len(result.no_bridge)} "
+        f"unmapped_set={len(result.unmapped_set)} missing_card={len(result.missing_card)}"
+    )
+    typer.echo(f"报告: {path}")
+
+
+@app.command("seed-face-totals")
+def seed_face_totals(
+    db_path: Path = DEFAULT_DB_PATH,
+    raw_dir: Path = DEFAULT_RAW_DIR,
+) -> None:
+    """卡面分母种子：生成/校验 config/set_card_face_totals.yml 并入 sets（task 030 F-01）。"""
+    from ptcgdb.normalize import face_totals
+
+    result = face_totals.generate_seed(db_path, raw_dir)
+    path = face_totals.write_seed(result)
+    applied = face_totals.apply_seed_to_sets(db_path)
+    typer.echo(
+        f"种子: total 型 {len(result.totals)} 套 / packs 型 {len(result.packs)} 套；"
+        f"sets.card_face_total 播种 {applied} 套"
+    )
+    if result.conflicts:
+        typer.echo(f"冲突（未播种 {len(result.conflicts)} 项）:")
+        for c in result.conflicts:
+            typer.echo(f"  - {c}")
+    typer.echo(f"种子文件: {path}")
+
+
+@app.command("mark-aliases")
+def mark_aliases_cmd(db_path: Path = DEFAULT_DB_PATH) -> None:
+    """mik 双重列示别名标记：字母编号能量 → 数字正本 alias_of（task 030 F-02）。"""
+    from ptcgdb.normalize.aliases import mark_aliases
+
+    result = mark_aliases(db_path)
+    typer.echo(
+        f"alias 标记 {len(result.marked)} 张 / 清除 {len(result.cleared)} 张 / "
+        f"待裁决 {len(result.questions)} 张"
+    )
+    for card_id, reason in sorted(result.questions.items()):
+        typer.echo(f"  - {card_id}: {reason}")
+
+
 @app.command()
 def rollback(db_path: Path = DEFAULT_DB_PATH) -> None:
     """回滚：用最新备份覆盖当前 DB（FR-6.3）。"""
