@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M9-2 ✅ 完成（task 029）；M7 进行中（task 025 ✅ / 026 待做）** —— 统计可复算性与查询层落地：migration 006 两物化视图（user_version=6）+ canonical SQL 五文件（公式单一事实源，CLI/SDK/schema.md 三处共用）+ CLI `stats usage/winrate/wws/card` 子命令组与 `query` 只读 SQL + SDK `stats_*` 双后端（真实库 stats_usage 289 行等双端 meta 全等）+ 导出追加赛事四件套（十二件套）+ 黄金数据集三指标容差 1e-9 对平。已知缺口：mik 源 topcut_slots 全 NULL → 真实库 WR/WWS 暂空（WUR 正常，老大的指令 89.7% 居首），补全立项待定。M9-1 ✅（26 赛/1252 内容/1396 出战）。M6 ✅（name_en 12,337 / name_ja 9,480）。M7-1 task 025 完成（PRD v1.7）。293 测试全绿。下一步 task 026 validate_deck SDK + M7 验收 / task 028 EN Limitless（M9-3）/ topcut 补全立项。**M8 进行中（task 020，2026-08-02 启动，用户协作比对）**：A2 第 1 批 10/10 核销（唯一差异=F-01 卡号分母口径，见技术债），第 2 批（11~20 号卡）已发给用户待比对；批次生成器 `.scratch/a2_batches.py`，裁决记录 `.scratch/task020-findings.md`，核销勾选落 `reports/sampling-a2-20260801.md`（git 跟踪）。
+**阶段：M9-2 ✅ 完成（task 029）；M7 进行中（task 025 ✅ / 026 待做）** —— 统计可复算性与查询层落地：migration 006 两物化视图（user_version=6）+ canonical SQL 五文件（公式单一事实源，CLI/SDK/schema.md 三处共用）+ CLI `stats usage/winrate/wws/card` 子命令组与 `query` 只读 SQL + SDK `stats_*` 双后端（真实库 stats_usage 289 行等双端 meta 全等）+ 导出追加赛事四件套（十二件套）+ 黄金数据集三指标容差 1e-9 对平。已知缺口：mik 源 topcut_slots 全 NULL → 真实库 WR/WWS 暂空（WUR 正常，老大的指令 89.7% 居首），补全立项待定。M9-1 ✅（26 赛/1252 内容/1396 出战）。M6 ✅（name_en 12,337 / name_ja 9,480）。M7-1 task 025 完成（PRD v1.7）。293 测试全绿。下一步 task 026 validate_deck SDK + M7 验收 / task 028 EN Limitless（M9-3）/ topcut 补全立项。**M8 进行中（task 020，用户协作比对）**：**A2 100/100 全部核销（2026-08-03）**——11 字段全量一致，差异归集三件立案技术债：F-01 卡号分母口径（5 系列数据点）、F-02 字母编号能量卡=mik 双重列示别名（16 张）、F-03 太晶机制无信号（确诊 3 例，ptcd subtypes 识别路径实证）；修复批次待立项（先改 PRD）。裁决记录 `.scratch/task020-findings.md`，核销落 `reports/sampling-a2-20260801.md`（git 跟踪）。下一步 A3 50 张比对（清单 `reports/sampling-a3-20260802.md`）/ task 026 / task 028。
 
 ## 入口
 
@@ -29,7 +29,7 @@
 - [x] **M5 (Phase 2)** derive 跨系列进化解析（task 019）—— **2026-08-02 完成**：全库回退解析，未解析 401→5（仅剩化石无收录豁免），31 系列重 ingest skipped=0，FR-2.3 六规则全过，A3 复跑 5,122 项次全过
 - [x] **M6 (Phase 2)** 跨语言映射 EN+JP（task 022~024）—— **2026-08-02 完成**：EN 桥 12,337/12,420（99.3%=raw 上限）；TCGdex ID 解析 12,322（99.88%）+ 系列级对账（TCGdex zh-cn 仅壳级参照）；JP 改名字级 dexId 链（PRD v1.6，同 ID 共构证伪），name_ja 9,480（76.8%）+ external_ids(tcgdex) 12,331，官方抽样 31 张修复后一致率 100%（不符项全部裁决：地区前缀空格/后缀修饰/はくば・こくば/◇保留）
 - [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025 ✅ / 026）
-- [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场）—— **进行中**：A2 第 1 批 10/10 核销（2026-08-02），第 2 批待用户比对
+- [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场）—— **A2 ✅ 100/100（2026-08-03）**：三件技术债立案 F-01/F-02/F-03；A3 待比对
 - [ ] **M9 (Phase 2 扩展，PRD v1.8~v1.10)** 赛事卡组管线 + 统计基建：M9-1 task 027 CN mik ✅（2026-08-02）/ M9-2 task 029 统计与查询层 ✅（2026-08-02）/ M9-3 task 028 EN Limitless；统计范围=宝可梦/支援者/竞技场
 
 ## 决策日志
@@ -54,7 +54,9 @@
 - **topcut_slots 数据缺口（task 029 实测）**：mik 源 26 场赛事 topcut_slots 全 NULL → 真实库 WR / WWS 统计当前为空集（WUR 正常）。补全路径：deck-static 接口 topcutTimes 字段反推或人工登记，可并入 task 028 立项。
 - **mik `isQual` 语义存疑（task 029 实测）**：3,215/3,348 名为"预赛"的赛事 isQual=false，与"预赛=瑞士轮"假设不符；已如实落库不猜，待核实。
 - ~~derive 跨系列进化解析缺口~~：**已清偿（task 019，2026-08-02）**——`resolve_evolution` 全库回退解析，401 → 5（仅剩化石道具库内无收录的合理豁免；另修正 10 条原误判豁免：化石道具卡在 SVP 有收录）。收敛报告 `reports/task019-evolution-resolution-20260802.md`。
-- **A2/A3 卡面人工比对（M8）**：清单已就绪（`reports/sampling-a2-20260801.md` 100 张 / `sampling-a3-20260802.md` 50 张——A3 清单已随 task 019 复跑刷新），需用户在场比对（小程序无 API），另约协作 session。
+- **F-02 字母编号能量卡=mik 双重列示别名（task 020 A2 第 3 批发现）**：CS4DaC/CSVL1C 各 8 张字母编号能量条目与同系列数字编号条目 raw 逐字段全等（仅 cardIndex 不同），卡面以数字编号为准（实测 431/414）；另 CSVH5C 基本草能量 cardIndex 字面值 `NaN1`。修复影响 12,420 总数口径与主键，待与 F-01 合并裁决。详见 `.scratch/task020-findings.md`。
+- **F-03 太晶机制无信号（task 020 A2 第 7 批发现）**：task 005「简中暂无太晶卡样本」结论推翻——mik 对太晶卡不给标记，is_tera 全库 0；确诊 3 例（CSV5C-162 喷火龙ex / CSV9.5C-245 伊布ex / CSV9C-259 拉普拉斯ex），太晶备战区保护规则文无字段承载。**识别路径已实证**：ptcd EN 卡 `subtypes` 含结构化 'Tera'（印刷级，EN 桥覆盖 99.3%），3/3 命中；属性错配与系列级判据均被证伪（猛雷鼓ex 非太晶）。规则文结构化方案待 PRD 裁决。
+- **A2/A3 卡面人工比对（M8）**：**A2 ✅ 100/100 核销（2026-08-03）**；A3 清单已就绪（`reports/sampling-a3-20260802.md` 50 张——已随 task 019 复跑刷新），需用户在场比对（小程序无 API），另约协作 session。
 
 ## 进展日志
 
