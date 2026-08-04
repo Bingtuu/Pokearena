@@ -110,3 +110,23 @@ def test_default_date_is_today(db_path, tmp_path):
     f = write_deck(tmp_path, {"TS-001": 4, "TS-006": 56})
     result = runner.invoke(app, ["deck-check", "--file", f, "--db-path", str(db_path)])
     assert result.exit_code == 0, result.output
+
+
+# ---- Batch 1: DB 不存在友好错误 ----
+
+def test_deck_check_db_not_found(tmp_path):
+    """deck-check 对不存在的数据库文件输出友好错误（exit 2）。"""
+    missing = tmp_path / "no.db"
+    f = tmp_path / "deck.yml"
+    f.write_text("cards:\n  TS-001: 4\n", encoding="utf-8")
+    result = runner.invoke(app, ["deck-check", "--file", str(f), "--db-path", str(missing)])
+    assert result.exit_code == 2, result.output
+    assert "init-db" in result.output
+
+
+def test_legal_db_not_found(tmp_path):
+    """legal 命令对不存在的数据库文件输出友好错误（exit 2）。"""
+    missing = tmp_path / "no.db"
+    result = runner.invoke(app, ["legal", "--date", "2026-08-01", "--db-path", str(missing)])
+    assert result.exit_code == 2, result.output
+    assert "init-db" in result.output

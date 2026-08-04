@@ -64,41 +64,43 @@ def fill_tera(db_path: Path, raw_dir: Path) -> TeraMapResult:
     tera_index = _load_ptcd_tera_index(raw_dir)
     engine = create_engine(f"sqlite:///{db_path}")
     result = TeraMapResult()
-    with Session(engine) as session:
-        bridges = dict(
-            session.execute(
-                select(ExternalId.card_id, ExternalId.external_id).filter_by(system="mik_en")
-            ).all()
-        )
-        cards = list(session.scalars(select(Card)))
-        result.total = len(cards)
-        for card in cards:
-            ext = bridges.get(card.card_id)
-            if not ext or "-" not in ext:
-                result.no_bridge.append(card.card_id)
-                continue
-            result.bridged += 1
-            code, _, num = ext.partition("-")
-            ptcd_set = set_map.get(code)
-            if ptcd_set is None:
-                result.unmapped_set.append(card.card_id)
-                continue
-            bucket = tera_index.get(ptcd_set) or {}
-            hit = None
-            for variant in {num, num.lstrip("0") or "0", num.zfill(3)}:
-                if variant in bucket:
-                    hit = bucket[variant]
-                    break
-            if hit is None:
-                result.missing_card.append(card.card_id)
-                continue
-            card.is_tera = hit
-            if hit:
-                result.tera += 1
-            else:
-                result.resolved_non_tera += 1
-        session.commit()
-    engine.dispose()
+    try:
+        with Session(engine) as session:
+            bridges = dict(
+                session.execute(
+                    select(ExternalId.card_id, ExternalId.external_id).filter_by(system="mik_en")
+                ).all()
+            )
+            cards = list(session.scalars(select(Card)))
+            result.total = len(cards)
+            for card in cards:
+                ext = bridges.get(card.card_id)
+                if not ext or "-" not in ext:
+                    result.no_bridge.append(card.card_id)
+                    continue
+                result.bridged += 1
+                code, _, num = ext.partition("-")
+                ptcd_set = set_map.get(code)
+                if ptcd_set is None:
+                    result.unmapped_set.append(card.card_id)
+                    continue
+                bucket = tera_index.get(ptcd_set) or {}
+                hit = None
+                for variant in {num, num.lstrip("0") or "0", num.zfill(3)}:
+                    if variant in bucket:
+                        hit = bucket[variant]
+                        break
+                if hit is None:
+                    result.missing_card.append(card.card_id)
+                    continue
+                card.is_tera = hit
+                if hit:
+                    result.tera += 1
+                else:
+                    result.resolved_non_tera += 1
+            session.commit()
+    finally:
+        engine.dispose()
     result.no_bridge.sort()
     result.unmapped_set.sort()
     result.missing_card.sort()

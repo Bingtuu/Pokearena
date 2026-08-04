@@ -8,7 +8,12 @@ from typing import Any
 
 import httpx
 
-from ptcgdb.monitor.notify import Notifier, make_event_handler
+from ptcgdb.monitor.notify import (
+    Notifier,
+    _osascript_escape,
+    desktop_command,
+    make_event_handler,
+)
 
 
 def _ok_runner(*args: Any, **kwargs: Any) -> None:
@@ -116,3 +121,33 @@ def test_event_handler_notifies_important_only():
     assert any("CSM1aC" in m and "系列对账" in m for _t, m in sent)
     assert any("needs_manual" in m for _t, m in sent)
     assert any("赛制调整" in m for _t, m in sent)
+
+
+# ---- osascript 转义 ----
+
+
+def test_osascript_escape_double_quote():
+    assert _osascript_escape('hello "world"') == 'hello \\"world\\"'
+
+
+def test_osascript_escape_backslash():
+    assert _osascript_escape("path\\to\\file") == "path\\\\to\\\\file"
+
+
+# ---- PowerShell toast 大括号 ----
+
+
+def test_pwsh_toast_braces_in_title(monkeypatch):
+    """标题含 {ex} 时 str.replace 不抛 KeyError（非 .format）。"""
+    monkeypatch.setattr("ptcgdb.monitor.notify.platform.system", lambda: "Windows")
+    cmd = desktop_command("测试 {ex} 标题", "hello")
+    joined = " ".join(cmd)
+    assert "{ex}" in joined  # 原样保留
+
+
+def test_pwsh_toast_braces_in_message(monkeypatch):
+    """消息含 JSON（含 {}）不触发格式化错误。"""
+    monkeypatch.setattr("ptcgdb.monitor.notify.platform.system", lambda: "Windows")
+    cmd = desktop_command("标题", '{"key": "value"}')
+    joined = " ".join(cmd)
+    assert '{"key": "value"}' in joined  # 原样保留

@@ -35,7 +35,7 @@ class TournamentRecord(BaseModel):
     is_qual: bool | None  # 预赛场次
     is_team: bool | None  # 双卡组/团体赛制
     official_url: str | None  # 官方公告链接（交叉核对）
-    fetched_at: datetime
+    fetched_at: datetime | None
 
 
 class DeckRecord(BaseModel):
@@ -50,7 +50,7 @@ class DeckRecord(BaseModel):
     mapping_status: str  # full(≥95%) / partial / unmapped（FR-9.1）
     mapped_ratio: float | None
     source: str
-    fetched_at: datetime
+    fetched_at: datetime | None
 
 
 class AppearanceRecord(BaseModel):
@@ -66,14 +66,14 @@ class AppearanceRecord(BaseModel):
 
     deck_id: str  # mik_moe:{deckId}
     tournament_id: str
-    rank: int | None
+    rank: int
     points: float | None
     player_ref: str | None  # pinCode
     record_wins: int | None = None
     record_losses: int | None = None
     record_ties: int | None = None
     source: str = "mik_moe"
-    fetched_at: datetime
+    fetched_at: datetime | None
 
 
 class DeckCardRecord(BaseModel):

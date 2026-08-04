@@ -107,13 +107,19 @@ def _parse_date(raw: Any) -> date | None:
 def _to_int(raw: Any) -> int | None:
     if raw is None or raw == "":
         return None
-    return int(raw)
+    try:
+        return int(raw)
+    except (ValueError, TypeError):
+        return None
 
 
 def _to_float(raw: Any) -> float | None:
     if raw is None or raw == "":
         return None
-    return float(raw)
+    try:
+        return float(raw)
+    except (ValueError, TypeError):
+        return None
 
 
 def parse_tournament(

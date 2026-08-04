@@ -192,7 +192,7 @@ def _run_a5(db_path: Path, work_dir: Path) -> SectionResult:
                 select(LegalitySnapshot).where(
                     LegalitySnapshot.format == "standard",
                     LegalitySnapshot.snapshot_id != new_id,
-                )
+                ).order_by(LegalitySnapshot.effective_from.desc())
             ).first()
             checks = [
                 ("新快照生效（effective_to=None）", new_snap and new_snap.effective_to is None),
@@ -202,13 +202,16 @@ def _run_a5(db_path: Path, work_dir: Path) -> SectionResult:
             for label, ok in checks:
                 sec.lines.append(f"- {'✓' if ok else '✗'} {label}")
                 sec.passed = sec.passed and bool(ok)
-        engine.dispose()
-        try:
-            update_text_overrides(copy, old_id, {"X": "Y"})
-            sec.passed = False
-            sec.lines.append("- ✗ 冻结守卫未拦截历史快照写入")
-        except FrozenSnapshotError:
-            sec.lines.append("- ✓ 冻结守卫拒绝历史快照 override 写入")
+            if old_id is None:
+                sec.passed = False
+                sec.lines.append("- ✗ 未找到历史快照，冻结守卫测试不可执行")
+            else:
+                try:
+                    update_text_overrides(copy, old_id, {"X": "Y"})
+                    sec.passed = False
+                    sec.lines.append("- ✗ 冻结守卫未拦截历史快照写入")
+                except FrozenSnapshotError:
+                    sec.lines.append("- ✓ 冻结守卫拒绝历史快照 override 写入")
     except (ValueError, LookupError) as exc:
         sec.passed = False
         sec.lines.append(f"- ✗ 异常：{exc}")

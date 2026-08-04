@@ -6,11 +6,14 @@ pending_review / needs_manual →（人工确认 → legal-apply）→ applied�
 
 from __future__ import annotations
 
+import logging
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+logger = logging.getLogger(__name__)
 
 
 def list_proposals(proposals_dir: Path) -> list[dict[str, Any]]:
@@ -22,7 +25,8 @@ def list_proposals(proposals_dir: Path) -> list[dict[str, Any]]:
     for path in sorted(proposals_dir.glob("*.yaml")):
         try:
             doc = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-        except yaml.YAMLError:
+        except yaml.YAMLError as exc:
+            logger.warning("YAML 解析失败 %s: %s", path, exc)
             doc = {}
         rows.append({
             "path": str(path),

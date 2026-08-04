@@ -6,6 +6,7 @@ from typing import Annotated
 
 import typer
 from sqlalchemy import create_engine, select, update
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from ptcgdb.export.exporter import export_all
@@ -32,6 +33,12 @@ app.command("query", help="只读 ad-hoc SQL（mode=ro，仅 SELECT/WITH，FR-9.
 
 DEFAULT_DB_PATH = Path("data/ptcg-cn.db")
 DEFAULT_RAW_DIR = Path("data/raw")
+
+
+def _db_not_found_exit(db_path: Path) -> typer.Exit:
+    typer.echo(f"错误：数据库不存在或无法打开：{db_path}", err=True)
+    typer.echo("请先运行 ptcgdb init-db 初始化数据库", err=True)
+    return typer.Exit(code=2)
 
 
 @app.command("init-db")
@@ -134,13 +141,15 @@ def activate(
 @app.command()
 def search() -> None:
     """检索卡牌（未实现）。"""
-    typer.echo("not implemented")
+    typer.echo("not implemented", err=True)
+    raise typer.Exit(code=1)
 
 
 @app.command()
 def get() -> None:
     """按 card_id 点查（未实现）。"""
-    typer.echo("not implemented")
+    typer.echo("not implemented", err=True)
+    raise typer.Exit(code=1)
 
 
 @app.command("legal-apply")
@@ -388,13 +397,17 @@ def legal(
 
     d = date_cls.fromisoformat(date_)
     engine = create_engine(f"sqlite:///{db_path}")
-    with Session(engine) as session:
-        try:
-            pool = legal_at(session, d, format_)
-        except LookupError as exc:
-            typer.echo(str(exc), err=True)
-            raise typer.Exit(code=1) from exc
-    engine.dispose()
+    try:
+        with Session(engine) as session:
+            try:
+                pool = legal_at(session, d, format_)
+            except LookupError as exc:
+                typer.echo(str(exc), err=True)
+                raise typer.Exit(code=1) from exc
+    except OperationalError:
+        raise _db_not_found_exit(db_path) from None
+    finally:
+        engine.dispose()
     typer.echo(
         f"snapshot={pool.snapshot_id} date={pool.date} format={pool.format} "
         f"legal_cards={len(pool.card_ids)}"
@@ -446,9 +459,14 @@ def deck_check(
         raise typer.Exit(code=2) from exc
     fmt = format_ or data.get("format") or "standard"
 
-    db = open_db(db_path)
+    try:
+        db = open_db(db_path)
+    except Exception:
+        raise _db_not_found_exit(db_path) from None
     try:
         report = db.validate_deck(deck, date=d, format=fmt)
+    except OperationalError:
+        raise _db_not_found_exit(db_path) from None
     except LookupError as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=2) from exc

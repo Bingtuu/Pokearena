@@ -249,18 +249,19 @@ def ingest_set(
         session.merge(set_row)
         # 幂等：清掉本系列旧的归组/关系/卡牌行再写入；
         # 重入库保留既有 status（task 013：L0 增量重入库不降级已 active 的卡）
-        # 与富化字段（task 030：is_tera/alias_of/name_ja 为 mapping/修复层富化，
+        # 与富化字段（task 030：is_tera/alias_of/name_ja/name_zh_tw 为 mapping/修复层富化，
         # raw 重放不可再得，删除前行需随身带走）
         card_ids = [r["card_id"] for r in records]
         old_status: dict[str, str] = {}
         old_enrich: dict[str, tuple] = {}
         if card_ids:
             old_rows = session.execute(
-                select(Card.card_id, Card.status, Card.is_tera, Card.alias_of, Card.name_ja)
+                select(Card.card_id, Card.status, Card.is_tera, Card.alias_of, Card.name_ja,
+                       Card.name_zh_tw)
                 .where(Card.card_id.in_(card_ids))
             ).all()
             old_status = {r[0]: r[1] for r in old_rows}
-            old_enrich = {r[0]: (r[2], r[3], r[4]) for r in old_rows}
+            old_enrich = {r[0]: (r[2], r[3], r[4], r[5]) for r in old_rows}
             session.execute(
                 delete(CardRelation).where(CardRelation.card_id.in_(card_ids))
             )
@@ -281,7 +282,9 @@ def ingest_set(
             if old_status.get(rec["card_id"]) == "active":
                 rec["status"] = "active"
             if rec["card_id"] in old_enrich:
-                rec["is_tera"], rec["alias_of"], rec["name_ja"] = old_enrich[rec["card_id"]]
+                rec["is_tera"], rec["alias_of"], rec["name_ja"], rec["name_zh_tw"] = (
+                    old_enrich[rec["card_id"]]
+                )
             session.add(Card(**rec))
         for key in sorted(set(group_keys.values())):
             session.merge(

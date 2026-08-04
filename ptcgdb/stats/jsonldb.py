@@ -31,6 +31,8 @@ CREATE TABLE deck_cards (
 	deck_id TEXT, card_id TEXT, count INTEGER, raw_name TEXT, stat_scope TEXT,
 	group_key TEXT, PRIMARY KEY (deck_id, card_id, raw_name));
 CREATE TABLE name_groups (group_key TEXT PRIMARY KEY, display_name TEXT, rule_note TEXT);
+CREATE TABLE cards_name_group (card_id TEXT, group_key TEXT,
+    PRIMARY KEY (card_id, group_key));
 CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
 
 CREATE VIEW v_tournament_weights AS
@@ -42,10 +44,12 @@ FROM tournaments;
 CREATE VIEW v_stat_deck_cards AS
 SELECT a.tournament_id, a.deck_id, a.rank, a.points,
        a.record_wins, a.record_losses, a.record_ties,
-       dc.card_id, dc.count, dc.raw_name, dc.stat_scope, dc.group_key
+       dc.card_id, dc.count, dc.raw_name, dc.stat_scope,
+       cng.group_key
 FROM deck_cards dc
 JOIN decks d ON d.deck_id = dc.deck_id AND d.mapping_status = 'full'
 JOIN deck_appearances a ON a.deck_id = dc.deck_id
+LEFT JOIN cards_name_group cng ON cng.card_id = dc.card_id
 WHERE dc.stat_scope IN ('pokemon', 'supporter', 'stadium');
 """
 
@@ -100,6 +104,12 @@ def build_stats_conn(dist_dir: str | Path) -> sqlite3.Connection:
                 "INSERT OR IGNORE INTO name_groups (group_key, display_name, rule_note)"
                 " VALUES (?, ?, ?)",
                 (r["group_key"], r.get("display_name"), r.get("rule_note")),
+            )
+        elif r.get("kind") == "cards_name_group":
+            conn.execute(
+                "INSERT OR IGNORE INTO cards_name_group (card_id, group_key)"
+                " VALUES (?, ?)",
+                (r["card_id"], r["group_key"]),
             )
     manifest = json.loads((dist_dir / "manifest.json").read_text(encoding="utf-8"))
     for key, value in (manifest.get("caliber") or {}).items():

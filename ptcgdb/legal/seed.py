@@ -93,6 +93,12 @@ def seed_snapshots(
                 "source_url": seed.source_url,
             }
             row = session.get(LegalitySnapshot, seed.snapshot_id)
+            if row is not None and row.effective_to is not None:
+                raise ValueError(
+                    f"快照 {seed.snapshot_id} 已冻结"
+                    f"（effective_to={row.effective_to}），不可覆盖。"
+                    f"请使用 legal-apply 创建新快照。"
+                )
             if row is None:
                 session.add(
                     LegalitySnapshot(

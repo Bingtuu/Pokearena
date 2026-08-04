@@ -14,6 +14,8 @@ from pathlib import Path
 import pytest
 
 from ptcgdb.normalize.tournaments import (
+    _to_float,
+    _to_int,
     compose_card_id,
     make_deck_id,
     make_tournament_id,
@@ -288,3 +290,60 @@ def test_division_vocabulary():
     assert division_map["master"] == "master"
     assert division_map["senior"] == "senior"
     assert division_map["junior"] == "junior"
+
+
+# ---- Batch 1: _to_int / _to_float 异常保护 ----
+
+def test_to_int_non_numeric_returns_none():
+    assert _to_int("DQ") is None
+    assert _to_int("-") is None
+
+
+def test_to_int_none_returns_none():
+    assert _to_int(None) is None
+    assert _to_int("") is None
+
+
+def test_to_float_non_numeric_returns_none():
+    assert _to_float("N/A") is None
+    assert _to_float("-") is None
+
+
+# ---- Batch 1: fetched_at null schema 校验 ----
+
+def test_tournament_fetched_at_null():
+    data = {
+        "tournament_id": "mik_moe:1",
+        "source": "mik_moe",
+        "series_id": None,
+        "name": "测试",
+        "tier": None,
+        "tier_coef": None,
+        "division": None,
+        "date": None,
+        "location": None,
+        "participant_count": None,
+        "topcut_slots": None,
+        "format": None,
+        "regulation_mark": None,
+        "format_end": None,
+        "is_qual": None,
+        "is_team": None,
+        "official_url": None,
+        "fetched_at": None,
+    }
+    record = TournamentRecord.model_validate(data)
+    assert record.fetched_at is None
+
+
+def test_appearance_fetched_at_null():
+    data = {
+        "deck_id": "mik_moe:1",
+        "tournament_id": "mik_moe:1",
+        "rank": 1,
+        "points": None,
+        "player_ref": None,
+        "fetched_at": None,
+    }
+    record = AppearanceRecord.model_validate(data)
+    assert record.fetched_at is None

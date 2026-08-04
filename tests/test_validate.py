@@ -130,7 +130,8 @@ def test_all_rules_pass_on_clean_ingest(db_env):
     raw_dir, db_path = db_env
     results = run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir)
     assert [r.rule for r in results] == [
-        "必填非空", "枚举合法", "能量成本合法且保序", "系列对账", "V-UNION 完整性", "抽样比对",
+        "必填非空", "枚举合法", "赛制标记格式", "HP 数值范围", "evolves_from 外键",
+        "能量成本合法且保序", "系列对账", "V-UNION 完整性", "抽样比对",
     ]
     assert all(r.passed for r in results)
     # 对账表：5 == 5 + 0
@@ -464,3 +465,375 @@ def test_cli_activate_blocked_keeps_draft(db_env):
     with Session(engine) as session:
         assert {c.status for c in session.query(Card)} == {"draft"}
     engine.dispose()
+
+
+# ============================================================
+# 新增辅助函数与夹具（task 032 扩展测试）
+# ============================================================
+
+
+def make_trainer_raw_dir(tmp_path: Path) -> Path:
+    """合成只含训练家卡的 raw 目录（用于 energy trainer skip 测试）。"""
+    set_dir = tmp_path / "raw" / "mikmoe" / "TRNR"
+    set_dir.mkdir(parents=True)
+    payload = {
+        "code": 200,
+        "data": {
+            "name": "测试支援者",
+            "nameEn": "",
+            "setCode": "TRNR",
+            "cardIndex": "001",
+            "cardType": "Supporter",
+            "regulationMark": "A",
+            "rarity": "U",
+            "description": "从卡组抽3张",
+            "mechanic": None,
+            "label": None,
+        },
+        "msg": "OK.",
+    }
+    write_raw(set_dir / "001.json", payload, source="mik_moe")
+    write_raw(
+        set_dir / "cards.json",
+        {
+            "code": 200,
+            "data": {
+                "name": "测试训练家系列",
+                "setCode": "TRNR",
+                "setId": "TRNR",
+                "releaseDate": "2024-01-01T00:00:00+08:00",
+                "series": "Sun & Moon",
+                "mainExpansion": True,
+                "cardsNum": 1,
+                "cards": [
+                    {
+                        "setCode": "TRNR",
+                        "cardIndex": "001",
+                        "cardName": "测试支援者",
+                        "rarity": "U",
+                        "cardType": "Supporter",
+                    }
+                ],
+            },
+            "msg": "OK.",
+        },
+        source="mik_moe",
+    )
+    return tmp_path / "raw"
+
+
+@pytest.fixture()
+def trainer_env(tmp_path):
+    """只含训练家卡的 DB（用于 check_energy trainer skip 测试）。"""
+    raw_dir = make_trainer_raw_dir(tmp_path)
+    db_path = tmp_path / "trainer.db"
+    result = ingest_set(raw_dir, "TRNR", db_path)
+    assert result.card_count == 1 and not result.skipped
+    return raw_dir, db_path
+
+
+# ============================================================
+# 规则 1：必填非空 — 源数据缺失豁免
+# ============================================================
+
+
+def test_required_source_missing_exemption(db_env):
+    """text_raw 为空且 raw description 也为空 → 豁免（不算失败）。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", text_raw="", is_basic_energy=False)
+    # 同时覆写 raw：description 置空，让 read_raw 发现源数据同样缺失
+    base = card_payload("001", name="测试宝可梦001")
+    write_raw(
+        raw_dir / "mikmoe" / SET_ID / "001.json",
+        base | {"data": {**base["data"], "description": ""}},
+        source="mik_moe",
+        force=True,
+    )
+    res = get_rule(run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "必填非空")
+    assert res.passed
+    assert res.note and "源数据缺失豁免" in res.note
+    assert f"{SET_ID}-001" in res.note
+
+
+def test_required_source_missing_not_exempted_when_raw_has_text(db_env):
+    """text_raw 为空但 raw description 有文字 → 判失败（管线丢失）。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", text_raw="", is_basic_energy=False)
+    res = get_rule(run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "必填非空")
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["field"] == "text_raw" for f in res.failures
+    )
+
+
+# ============================================================
+# 规则 2：枚举合法 — card_type 失败 + regulation_mark 无词表
+# ============================================================
+
+
+def test_enum_card_type_invalid_fails(db_env):
+    """card_type 不在词表 → 规则 2 失败。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", card_type="Trickster")
+    res = get_rule(run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "枚举合法")
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["field"] == "card_type" and f["value"] == "Trickster"
+        for f in res.failures
+    )
+
+
+def test_enum_trainer_subtype_invalid_fails(db_env):
+    """trainer_subtype 不在词表 → 规则 2 失败。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", card_type="trainer", trainer_subtype="魔导师")
+    res = get_rule(run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "枚举合法")
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["field"] == "trainer_subtype"
+        for f in res.failures
+    )
+
+
+def test_enum_regulation_mark_no_vocab_note(db_env):
+    """regulation_mark 无词表文件 → 规则 2 note 注明，不做枚举校验。"""
+    raw_dir, db_path = db_env
+    # 设置一个奇怪的 regulation_mark，枚举规则不应报错
+    mutate_card(db_path, f"{SET_ID}-001", regulation_mark="???")
+    res = get_rule(run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "枚举合法")
+    # 枚举规则不应因 regulation_mark 失败（但赛制标记格式规则会失败）
+    assert res.note and "regulation_mark" in res.note
+    # 确认没有 regulation_mark 相关的 failures
+    has_mark_failure = any(
+        f.get("field") == "regulation_mark" for f in res.failures
+    )
+    assert not has_mark_failure
+
+
+# ============================================================
+# 规则 2 扩展：赛制标记格式
+# ============================================================
+
+
+def test_regulation_mark_format_valid_passes(db_env):
+    """有效赛制标记 "G" → 通过。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", regulation_mark="G")
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "赛制标记格式"
+    )
+    assert res.passed
+    assert res.checked == CARD_COUNT
+
+
+def test_regulation_mark_format_invalid_fails(db_env):
+    """无效赛制标记 "XYZ" → 失败。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", regulation_mark="XYZ")
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "赛制标记格式"
+    )
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["value"] == "XYZ"
+        for f in res.failures
+    )
+
+
+def test_regulation_mark_format_none_passes(db_env):
+    """regulation_mark=None → 通过（无赛制标记不校验格式）。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", regulation_mark=None, is_basic_energy=True)
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "赛制标记格式"
+    )
+    assert res.passed
+    # 确认这张卡没有被报 failure
+    assert not any(
+        f.get("card_id") == f"{SET_ID}-001" for f in res.failures
+    )
+
+
+# ============================================================
+# 规则 N：HP 数值范围
+# ============================================================
+
+
+def test_hp_range_valid_passes(db_env):
+    """hp=120 在合理范围 → 通过。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", hp=120)
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "HP 数值范围"
+    )
+    assert res.passed
+    assert res.checked == CARD_COUNT
+
+
+def test_hp_range_negative_fails(db_env):
+    """hp=-1 → 失败。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", hp=-1)
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "HP 数值范围"
+    )
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["value"] == -1 for f in res.failures
+    )
+
+
+def test_hp_range_zero_fails(db_env):
+    """hp=0 低于 HP_MIN(10) → 失败。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", hp=0)
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "HP 数值范围"
+    )
+    assert not res.passed
+
+
+def test_hp_range_above_max_fails(db_env):
+    """hp=9999 高于 HP_MAX(340) → 失败。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", hp=9999)
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "HP 数值范围"
+    )
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["value"] == 9999 for f in res.failures
+    )
+
+
+def test_hp_range_none_non_pokemon_passes(db_env):
+    """非宝可梦卡 hp=None → 不校验（通过）。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", card_type="trainer", hp=None, stage=None,
+                types=None, weakness=None, resistance=None, retreat_cost=None,
+                attacks=None, trainer_subtype="物品")
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "HP 数值范围"
+    )
+    # 训练家卡 card_type != "pokemon"，不参与 HP 校验
+    assert res.passed
+    assert not any(
+        f.get("card_id") == f"{SET_ID}-001" for f in res.failures
+    )
+
+
+def test_hp_range_boundary_min_passes(db_env):
+    """hp=10 刚好在边界 → 通过。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", hp=10)
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "HP 数值范围"
+    )
+    assert res.passed
+
+
+def test_hp_range_boundary_max_passes(db_env):
+    """hp=340 刚好在边界 → 通过。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", hp=340)
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "HP 数值范围"
+    )
+    assert res.passed
+
+
+# ============================================================
+# 规则 N+1：evolves_from 外键
+# ============================================================
+
+
+def test_evolves_from_invalid_fk_fails(db_env):
+    """evolves_from_id 指向不存在的卡 → 失败。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", evolves_from_id="NONEXISTENT-999")
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "evolves_from 外键"
+    )
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["value"] == "NONEXISTENT-999"
+        for f in res.failures
+    )
+
+
+def test_evolves_from_id_none_passes(db_env):
+    """evolves_from_id=None → 通过（无需校验外键）。"""
+    raw_dir, db_path = db_env
+    mutate_card(db_path, f"{SET_ID}-001", evolves_from_id=None)
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "evolves_from 外键"
+    )
+    assert res.passed
+    assert not any(
+        f.get("card_id") == f"{SET_ID}-001" for f in res.failures
+    )
+
+
+# ============================================================
+# 规则 3：能量成本合法且保序 — trainer skip + retreat_cost 不匹配
+# ============================================================
+
+
+def test_energy_trainer_card_passes(trainer_env):
+    """训练家卡无招式 → 能量成本校验自然通过。"""
+    raw_dir, db_path = trainer_env
+    # raw_dir=None：仅做词表校验，训练家卡无 attacks，cost 循环不执行
+    res = get_rule(
+        run_validations(db_path, set_id="TRNR", raw_dir=None), "能量成本合法且保序"
+    )
+    assert res.passed
+    assert res.checked == 1
+
+
+def test_energy_retreat_cost_mismatch_fails(db_env):
+    """DB retreat_cost 与 raw 不一致 → 失败。"""
+    raw_dir, db_path = db_env
+    # raw retreatCost=1，篡改 DB 为 3
+    mutate_card(db_path, f"{SET_ID}-001", retreat_cost=3)
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=raw_dir), "能量成本合法且保序"
+    )
+    assert not res.passed
+    assert any(
+        f["card_id"] == f"{SET_ID}-001" and f["field"] == "retreat_cost"
+        for f in res.failures
+    )
+
+
+# ============================================================
+# 规则 4：系列对账 — raw_dir=None 回退
+# ============================================================
+
+
+def test_reconciliation_raw_dir_none_fallback(db_env):
+    """raw_dir=None → 回退 expected_count 口径对账。"""
+    _, db_path = db_env
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=None), "系列对账"
+    )
+    # 干净环境 expected_count=5, actual=5 → 通过
+    assert res.passed
+    assert res.details[0]["ok"] is True
+    assert res.details[0]["expected"] == 5
+    assert res.details[0]["actual"] == 5
+
+
+# ============================================================
+# 规则 6：抽样比对 — raw_dir=None 跳过
+# ============================================================
+
+
+def test_sampling_raw_dir_none_skip(db_env):
+    """raw_dir=None → 抽样比对整条跳过。"""
+    _, db_path = db_env
+    res = get_rule(
+        run_validations(db_path, set_id=SET_ID, raw_dir=None), "抽样比对"
+    )
+    assert res.passed
+    assert res.checked == 0
+    assert res.note and "未提供 raw_dir" in res.note

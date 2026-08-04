@@ -8,6 +8,7 @@
 在 task 024 前需修订；本任务只做 EN 侧解析与 zh-cn 系列壳对账。
 """
 
+import logging
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -18,6 +19,8 @@ from sqlalchemy.orm import Session
 
 from ptcgdb.orm import Card, ExternalId, Set
 from ptcgdb.scrapers.raw_store import read_raw
+
+logger = logging.getLogger(__name__)
 
 TCGDEX_BASE = "https://api.tcgdex.net/v2"
 PTCD_SETS_URL = (
@@ -136,6 +139,7 @@ def _suffix_index(en_cards: dict[str, str]) -> dict[tuple[str, str], str]:
             ambiguous.add(key)
         hits.setdefault(key, card_id)
     for key in ambiguous:
+        logger.warning("_suffix_index: 歧义键 %s 已丢弃，涉及 card_id %s", key, hits.get(key, "?"))
         hits.pop(key, None)
     return hits
 
@@ -189,13 +193,15 @@ def resolve_en(
     suffix_index = _suffix_index(en_cards)
     engine = create_engine(f"sqlite:///{db_path}")
     result = ResolveResult()
-    with Session(engine) as session:
-        rows = session.execute(
-            select(ExternalId.card_id, ExternalId.external_id, Card.name_en)
-            .join(Card, Card.card_id == ExternalId.card_id)
-            .where(ExternalId.system == "mik_en")
-        ).all()
-    engine.dispose()
+    try:
+        with Session(engine) as session:
+            rows = session.execute(
+                select(ExternalId.card_id, ExternalId.external_id, Card.name_en)
+                .join(Card, Card.card_id == ExternalId.card_id)
+                .where(ExternalId.system == "mik_en")
+            ).all()
+    finally:
+        engine.dispose()
     result.total = len(rows)
     for card_id, external_id, name_en in rows:
         set_code_en, _, card_index_en = external_id.partition("-")
@@ -263,14 +269,16 @@ def reconcile_sets(db_path: Path, raw_dir: Path) -> SetReconcileReport:
     """系列级跨源对账：TCGdex zh-cn 系列壳（名称+卡数）vs 本库 sets。"""
     zhcn = _load(raw_dir, "tcgdex/zh-cn-sets.json", "sets")
     engine = create_engine(f"sqlite:///{db_path}")
-    with Session(engine) as session:
-        db_sets = {s.set_id: s for s in session.scalars(select(Set))}
-        db_counts = dict(
-            session.execute(
-                select(Card.set_id, func.count()).group_by(Card.set_id)
-            ).all()
-        )
-    engine.dispose()
+    try:
+        with Session(engine) as session:
+            db_sets = {s.set_id: s for s in session.scalars(select(Set))}
+            db_counts = dict(
+                session.execute(
+                    select(Card.set_id, func.count()).group_by(Card.set_id)
+                ).all()
+            )
+    finally:
+        engine.dispose()
     report = SetReconcileReport()
     seen: set[str] = set()
     for entry in zhcn:

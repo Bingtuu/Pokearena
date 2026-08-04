@@ -143,15 +143,24 @@ class ScrapeRunner:
         try:
             products_doc = self.ensure_products()
             all_set_ids = [p.get("setId") for p in _product_entries(products_doc)]
+            cards_num_map = {
+                p.get("setId"): p.get("cardsNum")
+                for p in _product_entries(products_doc)
+            }
             targets = set_ids if set_ids else [s for s in all_set_ids if s]
             for set_id in targets:
-                self._scrape_set_cards(set_id, stats, force=force)
+                self._scrape_set_cards(
+                    set_id, stats, force=force, cards_num_map=cards_num_map,
+                )
         except CircuitOpenError:
             stats.aborted = True
 
         return self._finish_run(run_id, started_at, stats)
 
-    def _scrape_set_cards(self, set_id: str, stats: RunStats, *, force: bool) -> None:
+    def _scrape_set_cards(
+        self, set_id: str, stats: RunStats, *, force: bool,
+        cards_num_map: dict[str, int] | None = None,
+    ) -> None:
         # 系列详情缺失时先补抓
         if force or not is_valid_raw(self.set_cards_path(set_id)):
             payload = self.scraper.fetch_product_detail(set_id)
@@ -163,6 +172,21 @@ class ScrapeRunner:
                  "reason": "系列详情不可用，跳过该系列"}
             )
             return
+        # cardsNum 对账：缓存条目数与 product-list 中的 cardsNum 不一致时自动重拉
+        if not force and cards_num_map and set_id in cards_num_map:
+            expected = cards_num_map[set_id]
+            if expected is not None and isinstance(expected, int):
+                data_check = doc.get("data") or {}
+                cached_count = len(data_check.get("cards") or [])
+                if expected != cached_count:
+                    import logging
+                    logging.warning(
+                        f"{set_id}: cardsNum={expected} ≠ cached={cached_count}，重新拉取"
+                    )
+                    payload = self.scraper.fetch_product_detail(set_id)
+                    write_raw(self.set_cards_path(set_id), payload,
+                              source=mikmoe.SOURCE, force=True)
+                    doc = read_raw(self.set_cards_path(set_id))
         data = doc.get("data") or {}
         cards = data.get("cards") or []
         stats.total += len(cards)

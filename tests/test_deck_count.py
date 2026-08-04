@@ -137,11 +137,11 @@ def test_radiant_global_limit():
 
 
 def test_prism_star_same_name_limit_but_no_global():
-    """◇ 同名 ≤1；不同名 ◇ 可共存（无全局限制）。"""
+    """◇ 同名 ≤1；不同名 ◇ 全卡组 ≤1（全局限制）。"""
     v_same = check_counts(pad(["T-011"] * 2), CARDS, GROUPS)
-    assert kinds(v_same) == ["name_limit"]
+    assert sorted(kinds(v_same)) == sorted(["name_limit", "prism_star_limit"])
     v_diff = check_counts(pad(["T-011", "T-012"]), CARDS, GROUPS)
-    assert v_diff == []
+    assert kinds(v_diff) == ["prism_star_limit"]
 
 
 def test_v_union_parts_each_one():

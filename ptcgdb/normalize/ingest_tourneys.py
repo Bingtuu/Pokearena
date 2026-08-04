@@ -120,7 +120,11 @@ def _load_appearance_records(
     result: TournamentIngestResult,
 ) -> list[AppearanceRecord]:
     """tournaments/rank-individual/{tid}/page-*.json → 出战条目列表。"""
-    rank_dir = base / "rank-individual" / tournament_id.split(":", 1)[1]
+    parts = tournament_id.split(":", 1)
+    if len(parts) != 2:
+        result.warnings.append(f"tournament_id 格式无效（缺 source 前缀），跳过: {tournament_id}")
+        return []
+    rank_dir = base / "rank-individual" / parts[1]
     records: list[AppearanceRecord] = []
     if not rank_dir.is_dir():
         return records
@@ -255,6 +259,7 @@ def _ingest_one_tournament(
                 continue
             # card_id 解析 + stat_scope 派生 + mapped_ratio 计算
             rows: list[DeckCard] = []
+            seen_null: set[tuple[str, str]] = set()  # (deck_id, raw_name) 去重
             mapped_count = 0
             for card in cards:
                 info = card_index.get(card.card_id) if card.card_id else None
@@ -267,6 +272,14 @@ def _ingest_one_tournament(
                             "count": card.count,
                         }
                     )
+                    # card_id 为 NULL 时按 (deck_id, raw_name) 去重（PRD §7.5）
+                    null_key = (card.deck_id, card.raw_name)
+                    if null_key in seen_null:
+                        result.warnings.append(
+                            f"deck_cards 重复行已跳过: deck={card.deck_id} raw_name={card.raw_name}"
+                        )
+                        continue
+                    seen_null.add(null_key)
                     rows.append(
                         DeckCard(
                             deck_id=card.deck_id,

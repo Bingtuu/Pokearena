@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import math
+import re
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -219,8 +220,16 @@ def check_energy(
         raw_path = (
             raw_index.get((c.set_id, c.number))
             if raw_index is not None
-            else Path(raw_dir) / "mikmoe" / c.set_id / f"{c.number}.json"
+            else None
         )
+        if raw_path is None and raw_index is not None:
+            res.fail(
+                card_id=c.card_id, field="raw",
+                note="raw 索引中未找到该卡（可能为跨系列能量卡），保序无法复核",
+            )
+            continue
+        if raw_path is None:
+            raw_path = Path(raw_dir) / "mikmoe" / c.set_id / f"{c.number}.json"
         raw = read_raw(raw_path) if raw_path else None
         if raw is None:
             res.fail(card_id=c.card_id, field="raw", note="raw 缺失或 hash 无效，保序无法复核")
@@ -443,6 +452,53 @@ def check_sampling(
     return res
 
 
+# —— 扩展校验规则（Batch 3）——
+
+_REGULATION_MARK_RE = re.compile(r"^[A-Z]$")
+_HP_MIN = 10
+_HP_MAX = 340
+
+
+def check_regulation_mark_format(cards: list[Card]) -> RuleResult:
+    """规则 2 扩展：赛制标记格式校验（单个大写字母）。"""
+    res = RuleResult(rule="赛制标记格式", checked=len(cards))
+    for c in cards:
+        if c.regulation_mark and not _REGULATION_MARK_RE.match(c.regulation_mark):
+            res.fail(
+                card_id=c.card_id, field="regulation_mark",
+                value=c.regulation_mark, note="赛制标记格式无效（期望单个大写字母）",
+            )
+    return res
+
+
+def check_hp_range(cards: list[Card]) -> RuleResult:
+    """规则 N：HP 数值范围校验（宝可梦卡 10~340）。"""
+    res = RuleResult(rule="HP 数值范围", checked=len(cards))
+    for c in cards:
+        if c.card_type == "pokemon" and c.hp is not None:
+            if not (_HP_MIN <= c.hp <= _HP_MAX):
+                res.fail(
+                    card_id=c.card_id, field="hp", value=c.hp,
+                    note=f"HP 值 {c.hp} 超出合理范围 [{_HP_MIN}, {_HP_MAX}]",
+                )
+    return res
+
+
+def check_evolves_from_fk(cards: list[Card], session) -> RuleResult:
+    """规则 N+1：evolves_from_id 外键有效性（全库范围）。"""
+    res = RuleResult(rule="evolves_from 外键", checked=len(cards))
+    all_ids = {c.card_id for c in cards}
+    db_ids = {r[0] for r in session.execute(select(Card.card_id)).all()}
+    all_ids |= db_ids
+    for c in cards:
+        if c.evolves_from_id and c.evolves_from_id not in all_ids:
+            res.fail(
+                card_id=c.card_id, field="evolves_from_id",
+                value=c.evolves_from_id, note="进化来源 card_id 不存在",
+            )
+    return res
+
+
 def run_validations(
     db_path: Path,
     *,
@@ -479,6 +535,9 @@ def run_validations(
         results = [
             check_required(cards, raw_index),
             check_enums(cards, vocabs),
+            check_regulation_mark_format(cards),
+            check_hp_range(cards),
+            check_evolves_from_fk(cards, session),
             check_energy(cards, vocabs, raw_dir, raw_index),
             check_reconciliation(sets, cards, raw_dir),
             check_vunion(cards, relations),

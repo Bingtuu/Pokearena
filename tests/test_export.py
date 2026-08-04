@@ -3,12 +3,13 @@
 import hashlib
 import json
 from datetime import UTC, date, datetime
+from unittest.mock import MagicMock, patch
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from ptcgdb.export.exporter import EXPORT_FILES, export_all
+from ptcgdb.export.exporter import EXPORT_FILES, _checkpoint_and_copy, export_all
 from ptcgdb.migrations import apply_migrations
 from ptcgdb.orm import (
     Card,
@@ -158,3 +159,44 @@ def test_export_rerun_overwrites(db_path, tmp_path):
     export_all(db_path, out)
     export_all(db_path, out)
     assert len(list(out.iterdir())) == len(EXPORT_FILES)
+
+
+# ---- WAL checkpoint + integrity_check ----
+
+
+def test_wal_checkpoint_busy_skips_db_copy(db_path, tmp_path):
+    """WAL checkpoint 返回 busy=1 时跳过 DB 复制（不抛异常、不 copy）。"""
+    out_dir = tmp_path / "dist"
+    out_dir.mkdir()
+
+    mock_conn = MagicMock()
+    mock_conn.execute.return_value.fetchone.return_value = (1, 0, 0)  # busy=1
+
+    with patch("ptcgdb.export.exporter.sqlite3.connect", return_value=mock_conn), \
+         patch("ptcgdb.export.exporter.shutil.copy2") as mock_copy2:
+        _checkpoint_and_copy(db_path, out_dir)
+
+    mock_copy2.assert_not_called()
+
+
+def test_integrity_check_fails_raises(db_path, tmp_path):
+    """integrity_check 返回非 ok 时抛 RuntimeError。"""
+    out_dir = tmp_path / "dist"
+    out_dir.mkdir()
+
+    # 第一个 connect：WAL checkpoint 正常（busy=0）
+    mock_conn1 = MagicMock()
+    mock_conn1.execute.return_value.fetchone.return_value = (0, 1, 1)
+
+    # 第二个 connect：integrity_check 失败
+    mock_conn2 = MagicMock()
+    mock_conn2.execute.return_value.fetchone.return_value = (
+        "database disk image is malformed",
+    )
+
+    with patch(
+        "ptcgdb.export.exporter.sqlite3.connect",
+        side_effect=[mock_conn1, mock_conn2],
+    ), patch("ptcgdb.export.exporter.shutil.copy2"):
+        with pytest.raises(RuntimeError, match="integrity_check"):
+            _checkpoint_and_copy(db_path, out_dir)

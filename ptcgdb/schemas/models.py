@@ -137,7 +137,7 @@ class LegalitySnapshot(BaseModel):
     whitelist_cards: list[dict]
     banned_cards: list[dict]
     mark_overrides: list[dict]
-    latest_text_overrides: dict[str, str]
+    latest_text_overrides: dict[str, Any]
     source_url: str | None
     created_at: datetime
 

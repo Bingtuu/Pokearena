@@ -130,6 +130,22 @@ def check_counts(
             cards=radiant_ids, count=radiant_total,
         ))
 
+    # 5. prism_star_limit（跨卡名全局 ≤1；◇ 卡全卡组最多 1 张）
+    prism_ids = sorted(
+        cid for cid in counts if "◇" in (cards_by_id[cid].name_full or "")
+    )
+    if not prism_ids:
+        prism_ids = sorted(
+            cid for cid in counts if cards_by_id[cid].rarity == "PR"
+        )
+    prism_total = sum(counts[cid] for cid in prism_ids)
+    if prism_total > 1:
+        violations.append(Violation(
+            kind="prism_star_limit",
+            detail=f"◇ 卡全卡组共 {prism_total} 张，上限 1",
+            cards=prism_ids, count=prism_total,
+        ))
+
     return violations
 
 

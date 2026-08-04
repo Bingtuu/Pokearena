@@ -1,6 +1,9 @@
 -- 002_cards_regulation_mark_nullable: cards.regulation_mark 改为可空
 -- task 005 CSM1DC 实测：基本能量 regulationMark=""（无赛制标记），统一存 NULL 而非空串。
 -- SQLite 不支持改列约束，按官方表重建流程；其余列定义与 001_init 一致。
+-- 
+-- 幂等性：依赖 apply_migrations 的 user_version 门控（if version <= current: continue），
+-- 不可独立重放。若需独立安全重放，请在 CREATE TABLE 前加 DROP TABLE IF EXISTS cards_new。
 
 PRAGMA foreign_keys = OFF;
 

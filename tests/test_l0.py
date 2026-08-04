@@ -345,3 +345,46 @@ def test_refresh_snapshot_overrides_frozen_history(tmp_path):
         snap = session.get(LegalitySnapshot, "standard-2025-01-01")
         assert snap.latest_text_overrides == {}
     engine.dispose()
+
+
+# ---- expected_count 延迟更新：校验阻断保留增量信号 ----
+
+
+def test_l0_validation_blocked_preserves_increment_signal(tmp_path):
+    """校验阻断后 expected_count 由 ingest_set 同步到上游最新值（非 L0 显式更新）。
+
+    ingest_set 内部 merge Set 时已取 product detail 的 cardsNum 写入 expected_count；
+    L0 的显式 expected_count 更新（activate 后那段）只在通过校验时才执行。
+    阻断路径下 data_version 不递增、卡不 activate，但 expected_count 已被 ingest_set
+    更新为上游最新值（避免下次 L0 重复探测同一增量）。
+    """
+    raw_dir = _setup_raw(tmp_path, CARDS_INIT, 6)
+    db_path = tmp_path / "test.db"
+    _ingest_and_activate(raw_dir, db_path)
+
+    # 确认初始 expected_count = 6
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        assert session.get(Set, SET_ID).expected_count == 6
+    engine.dispose()
+
+    # 模拟上游 cardsNum 增长到 8 + 新卡数据异常 → 校验阻断
+    bad = _card_payload(CARD_NEW)
+    bad["data"]["cardType"] = "XX"
+    indices = CARDS_INIT + [CARD_NEW, "152"]
+    scraper = FakeScraper(
+        products=_products_payload([{"setId": SET_ID, "name": "x", "cardsNum": 8}]),
+        details={SET_ID: _detail_payload(indices, 8)},
+        cards={
+            **{(SET_ID, i): _card_payload(i) for i in indices if i != "152"},
+            (SET_ID, "152"): bad,
+        },
+    )
+    result = run_l0(db_path, raw_dir, scraper)
+
+    assert SET_ID in result.blocked  # 校验阻断
+    # ingest_set 已将 expected_count 同步为上游 cardsNum=8（merge Set）
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        assert session.get(Set, SET_ID).expected_count == 8
+    engine.dispose()

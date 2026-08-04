@@ -282,53 +282,57 @@ def fill_ja(
 
     result = JaFillResult()
     engine = create_engine(f"sqlite:///{db_path}")
-    with Session(engine) as session:
-        for card_id, tcgdex_id in resolve.tcgdex_ids.items():
-            session.merge(
-                ExternalId(card_id=card_id, system="tcgdex", external_id=tcgdex_id)
-            )
-            result.external_ids_written += 1
-        # 无 TCGdex id 的卡也要分类（能量可仅凭名字填）
-        all_bridge = session.execute(
-            select(Card.card_id, Card.name_en, Card.card_type, Card.name_ja)
-            .join(ExternalId, Card.card_id == ExternalId.card_id)
-            .where(ExternalId.system == "mik_en")
-        ).all()
+    try:
+        with Session(engine) as session:
+            for card_id, tcgdex_id in resolve.tcgdex_ids.items():
+                session.merge(
+                    ExternalId(card_id=card_id, system="tcgdex", external_id=tcgdex_id)
+                )
+                result.external_ids_written += 1
+            # 无 TCGdex id 的卡也要分类（能量可仅凭名字填）
+            all_bridge = session.execute(
+                select(Card.card_id, Card.name_en, Card.card_type, Card.name_ja)
+                .join(ExternalId, Card.card_id == ExternalId.card_id)
+                .where(ExternalId.system == "mik_en")
+            ).all()
 
-        def ask(category: str, card_id: str) -> None:
-            result.questions.setdefault(category, []).append(card_id)
+            def ask(category: str, card_id: str) -> None:
+                result.questions.setdefault(category, []).append(card_id)
 
-        for card_id, name_en, card_type, existing_ja in all_bridge:
-            if card_type == "trainer":
-                ask("trainer", card_id)
-                continue
-            tcgdex_id = resolve.tcgdex_ids.get(card_id)
-            dex_ids: list[int] = []
-            if tcgdex_id is not None:
-                key = _dex_key(tcgdex_id)
-                dex_ids = dex_index.get(key, []) if key else []
-            if card_type == "pokemon" and tcgdex_id is None:
-                ask("no_set_map", card_id)
-                continue
-            built = build_ja_name(
-                name_en or "", dex_ids, rules, ja_species, en_species, species_by_en
-            )
-            if built is None:
-                if card_type != "pokemon":
-                    ask("energy_special", card_id)
-                elif not dex_ids:
-                    ask("no_dex", card_id)
-                else:
-                    ask("name_unmatched", card_id)
-                continue
-            card = session.get(Card, card_id)
-            if existing_ja and existing_ja != built:
-                result.conflicts.append(card_id)
-                continue
-            card.name_ja = built
-            result.name_ja_filled += 1
-        session.commit()
-    engine.dispose()
+            for card_id, name_en, card_type, existing_ja in all_bridge:
+                if card_type == "trainer":
+                    ask("trainer", card_id)
+                    continue
+                tcgdex_id = resolve.tcgdex_ids.get(card_id)
+                dex_ids: list[int] = []
+                if tcgdex_id is not None:
+                    key = _dex_key(tcgdex_id)
+                    dex_ids = dex_index.get(key, []) if key else []
+                if card_type == "pokemon" and tcgdex_id is None:
+                    ask("no_set_map", card_id)
+                    continue
+                built = build_ja_name(
+                    name_en or "", dex_ids, rules, ja_species, en_species, species_by_en
+                )
+                if built is None:
+                    if card_type != "pokemon":
+                        ask("energy_special", card_id)
+                    elif not dex_ids:
+                        ask("no_dex", card_id)
+                    else:
+                        ask("name_unmatched", card_id)
+                    continue
+                card = session.get(Card, card_id)
+                if card is None:
+                    continue  # 防御性：cards 表与 external_ids 不一致时的保护
+                if existing_ja and existing_ja != built:
+                    result.conflicts.append(card_id)
+                    continue
+                card.name_ja = built
+                result.name_ja_filled += 1
+            session.commit()
+    finally:
+        engine.dispose()
     for category in result.questions:
         result.questions[category].sort()
     return result

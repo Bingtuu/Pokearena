@@ -31,6 +31,11 @@ $toast = [Windows.UI.Notifications.ToastNotification]::new($xml)
 """
 
 
+def _osascript_escape(text: str) -> str:
+    """转义 osascript 字符串中的双引号和反斜杠。"""
+    return text.replace("\\", "\\\\").replace('"', '\\"')
+
+
 def _pwsh_escape(text: str) -> str:
     return text.replace("'", "''")
 
@@ -39,10 +44,15 @@ def desktop_command(title: str, message: str) -> list[str]:
     """按平台构造桌面通知命令。"""
     system = platform.system()
     if system == "Windows":
-        script = _PWSH_TOAST.format(title=_pwsh_escape(title), message=_pwsh_escape(message))
+        script = (_PWSH_TOAST
+            .replace("{title}", _pwsh_escape(title))
+            .replace("{message}", _pwsh_escape(message)))
         return ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script]
     if system == "Darwin":
-        script = f'display notification "{message}" with title "{title}"'
+        script = (
+            f'display notification "{_osascript_escape(message)}"'
+            f' with title "{_osascript_escape(title)}"'
+        )
         return ["osascript", "-e", script]
     return ["notify-send", title, message]
 

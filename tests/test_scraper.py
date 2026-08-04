@@ -323,3 +323,73 @@ def test_circuit_abort_marks_run_aborted(tmp_path):
         row = session.get(ScrapeRun, result.run_id)
         assert row.status == "aborted"
     engine.dispose()
+
+
+# ---- Batch 1: 增量采集 cardsNum 对账 ----
+
+PRODUCTS_WITH_CARDS_NUM = {
+    "code": 200,
+    "data": {
+        "list": [
+            {"setId": "TEST1", "name": "Test Set", "cardsNum": 5},
+        ]
+    },
+    "msg": "OK",
+}
+
+DETAIL_WITH_3_CARDS = {
+    "code": 200,
+    "data": {
+        "setId": "TEST1",
+        "cards": [
+            {"setCode": "TEST1", "cardIndex": "001"},
+            {"setCode": "TEST1", "cardIndex": "002"},
+            {"setCode": "TEST1", "cardIndex": "003"},
+        ],
+    },
+    "msg": "OK",
+}
+
+DETAIL_WITH_5_CARDS = {
+    "code": 200,
+    "data": {
+        "setId": "TEST1",
+        "cards": [
+            {"setCode": "TEST1", "cardIndex": "001"},
+            {"setCode": "TEST1", "cardIndex": "002"},
+            {"setCode": "TEST1", "cardIndex": "003"},
+            {"setCode": "TEST1", "cardIndex": "004"},
+            {"setCode": "TEST1", "cardIndex": "005"},
+        ],
+    },
+    "msg": "OK",
+}
+
+
+def test_incremental_cardsnum_mismatch_triggers_refetch(tmp_path):
+    """cardsNum 与缓存不一致时自动重新拉取 product-detail。"""
+    call_count = [0]
+
+    def handler(request):
+        if request.url.path == "/api/v3/card/product-list":
+            return httpx.Response(200, json=PRODUCTS_WITH_CARDS_NUM)
+        if request.url.path == "/api/v3/card/product-detail":
+            call_count[0] += 1
+            if call_count[0] == 1:
+                # 首次返回只有 3 张卡（与 cardsNum=5 不符）
+                return httpx.Response(200, json=DETAIL_WITH_3_CARDS)
+            else:
+                return httpx.Response(200, json=DETAIL_WITH_5_CARDS)
+        if request.url.path.startswith("/api/v3/card/card-detail"):
+            return httpx.Response(200, json={
+                "code": 200,
+                "data": {"setCode": "TEST1", "cardIndex": "001", "name": "Test"},
+                "msg": "OK",
+            })
+        raise AssertionError(f"unexpected {request.url.path}")
+
+    runner = make_runner(tmp_path, handler)
+
+    # 首次抓取：cardsNum=5 ≠ 缓存 3 张 → 自动触发重拉（product-detail 被调用两次）
+    runner.scrape_cards(set_ids=["TEST1"])
+    assert call_count[0] == 2  # 首次拉取 + cardsNum 对账触发的重拉

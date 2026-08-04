@@ -14,11 +14,12 @@ def write_en_report(result: EnFillResult, out_dir: Path) -> Path:
     stamp = datetime.now(UTC).strftime("%Y%m%d")
     path = out_dir / f"mapping-en-{stamp}.md"
     mapped = result.filled + result.already
+    pct = f"{mapped / result.total:.1%}" if result.total > 0 else "N/A"
     lines = [
         f"# EN 映射覆盖率报告（{stamp}）",
         "",
         f"- 全库卡数：{result.total}",
-        f"- 已映射（name_en + external_ids mik_en）：{mapped}（{mapped / result.total:.1%}）",
+        f"- 已映射（name_en + external_ids mik_en）：{mapped}（{pct}）",
         f"  - 本次补齐 name_en：{result.filled}；入库时已填充核实：{result.already}",
         f"- 无英文桥（简中独占等，不猜测）：{len(result.no_bridge)}",
         "",
@@ -50,13 +51,14 @@ def write_tcgdex_report(
     stamp = datetime.now(UTC).strftime("%Y%m%d")
     path = out_dir / f"mapping-tcgdex-{stamp}.md"
     resolved = len(result.resolved)
+    pct = f"{resolved / result.total:.1%}" if result.total > 0 else "N/A"
     lines = [
         f"# TCGdex EN 解析 + 系列级对账报告（{stamp}）",
         "",
         "## EN 桥 → TCGdex card ID 解析",
         "",
         f"- external_ids(mik_en) 总数：{result.total}",
-        f"- 解析成功（ID 命中 + 卡名归一一致）：{resolved}（{resolved / result.total:.1%}）",
+        f"- 解析成功（ID 命中 + 卡名归一一致）：{resolved}（{pct}）",
         f"- setCodeEn 无映射（pokemon-tcg-data 无 ptcgoCode）："
         f"{sum(len(v) for v in result.unmapped_set.values())} 张 / {len(result.unmapped_set)} 个码",
         f"- 候选 ID 不在 TCGdex：{len(result.missing_card)}",
@@ -109,6 +111,7 @@ def write_ja_report(result: JaFillResult, total_bridge: int, out_dir: Path) -> P
     stamp = datetime.now(UTC).strftime("%Y%m%d")
     path = out_dir / f"mapping-ja-{stamp}.md"
     q_total = sum(len(v) for v in result.questions.values())
+    ja_pct = f"{result.name_ja_filled / total_bridge:.1%}" if total_bridge > 0 else "N/A"
     lines = [
         f"# JP 映射覆盖率报告（{stamp}）",
         "",
@@ -117,7 +120,7 @@ def write_ja_report(result: JaFillResult, total_bridge: int, out_dir: Path) -> P
         f"- mik_en 桥总数：{total_bridge}",
         f"- external_ids(system='tcgdex') 落库：{result.external_ids_written}"
         "（置信度 tcgdex-linked）",
-        f"- name_ja 填充：{result.name_ja_filled}（{result.name_ja_filled / total_bridge:.1%}，"
+        f"- name_ja 填充：{result.name_ja_filled}（{ja_pct}，"
         "置信度 species-linked = dexId 链 + 词表）",
         f"- 已有值冲突（保留原值，需人工裁决）：{len(result.conflicts)}",
         f"- 未填充（question 清单，不猜测）：{q_total}",

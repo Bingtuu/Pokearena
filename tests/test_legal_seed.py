@@ -1,8 +1,9 @@
 """环境快照种子（task 007）：种子文件完整性 + 入库幂等 + upsert 语义。"""
 
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 
+import pytest
 import yaml
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
@@ -102,4 +103,102 @@ def test_seed_snapshots_upsert(tmp_path):
         assert len(list(session.scalars(select(LegalitySnapshot)))) == 2
         std = session.get(LegalitySnapshot, "standard-2026-07-16")
         assert "妖" in std.allowed_basic_energy_types
+    engine.dispose()
+
+
+# ---- 冻结快照拒绝 / 未冻结允许 ----
+
+
+def test_seed_frozen_snapshot_rejected(tmp_path):
+    """已冻结快照（effective_to 非空）拒绝种子覆盖，抛 ValueError。"""
+    db_path = tmp_path / "t.db"
+    apply_migrations(db_path)
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        session.add(LegalitySnapshot(
+            snapshot_id="standard-2026-01-01",
+            format="standard",
+            effective_from=date(2026, 1, 1),
+            effective_to=date(2026, 6, 30),  # 已冻结
+            allowed_marks=["G"],
+            allowed_basic_energy_types=["草"],
+            whitelist_cards=[],
+            banned_cards=[],
+            mark_overrides=[],
+            latest_text_overrides={},
+            source_url=None,
+            created_at=datetime.now(UTC),
+        ))
+        session.commit()
+    engine.dispose()
+
+    seed_dir = tmp_path / "legality"
+    seed_dir.mkdir()
+    seed_data = {
+        "snapshot_id": "standard-2026-01-01",
+        "format": "standard",
+        "effective_from": "2026-01-01",
+        "source_url": None,
+        "allowed_marks": ["G", "H"],
+        "allowed_basic_energy_types": ["草"],
+        "whitelist_cards": [],
+        "banned_cards": [],
+        "mark_overrides": [],
+    }
+    (seed_dir / "standard.yml").write_text(
+        yaml.safe_dump(seed_data, allow_unicode=True), encoding="utf-8"
+    )
+
+    with pytest.raises(ValueError, match="已冻结"):
+        seed_snapshots(db_path, seed_dir)
+
+
+def test_seed_unfrozen_snapshot_allowed(tmp_path):
+    """未冻结快照（effective_to=None）允许种子 upsert 覆盖。"""
+    db_path = tmp_path / "t.db"
+    apply_migrations(db_path)
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        session.add(LegalitySnapshot(
+            snapshot_id="standard-2026-01-01",
+            format="standard",
+            effective_from=date(2026, 1, 1),
+            effective_to=None,  # 未冻结
+            allowed_marks=["G"],
+            allowed_basic_energy_types=["草"],
+            whitelist_cards=[],
+            banned_cards=[],
+            mark_overrides=[],
+            latest_text_overrides={},
+            source_url=None,
+            created_at=datetime.now(UTC),
+        ))
+        session.commit()
+    engine.dispose()
+
+    seed_dir = tmp_path / "legality"
+    seed_dir.mkdir()
+    seed_data = {
+        "snapshot_id": "standard-2026-01-01",
+        "format": "standard",
+        "effective_from": "2026-01-01",
+        "source_url": None,
+        "allowed_marks": ["G", "H"],
+        "allowed_basic_energy_types": ["草"],
+        "whitelist_cards": [],
+        "banned_cards": [],
+        "mark_overrides": [],
+    }
+    (seed_dir / "standard.yml").write_text(
+        yaml.safe_dump(seed_data, allow_unicode=True), encoding="utf-8"
+    )
+
+    ids = seed_snapshots(db_path, seed_dir)
+    assert ids == ["standard-2026-01-01"]
+
+    # upsert 生效：种子字段已覆盖
+    engine = create_engine(f"sqlite:///{db_path}")
+    with Session(engine) as session:
+        snap = session.get(LegalitySnapshot, "standard-2026-01-01")
+        assert snap.allowed_marks == ["G", "H"]
     engine.dispose()

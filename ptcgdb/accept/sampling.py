@@ -154,7 +154,6 @@ def _check_union(cards: list[Card], session: Session, res: A3Result) -> None:
             continue
         group = {c.card_id, *partners.get(c.card_id, set())}
         visited |= group
-        res.checked += 1
         positions = {x.union_position for x in union_cards if x.card_id in group}
         if len(group) != 4 or positions != UNION_POSITIONS:
             res.failures.append(

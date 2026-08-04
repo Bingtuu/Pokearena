@@ -521,3 +521,43 @@ def test_cli_ingest_tourneys_clean_exit_0(tmp_path):
     )
     assert result.exit_code == 0
     assert "blocked=0" in result.output
+
+
+# ---- deck_cards card_id=NULL 去重 ----
+
+
+DECK_DEDUP = [
+    ("CSM1bC", "001", "超梦ex", 53),
+    ("XXXX", "999", "不存在卡A", 4),  # unknown → card_id=None
+    ("XXXX", "999", "不存在卡A", 3),  # 同上 raw_name → 去重
+]  # 合计 60
+
+
+def test_deck_cards_null_card_id_dedup(tmp_path):
+    """同一卡组内 card_id=NULL 的条目按 (deck_id, raw_name) 去重，只保留首条。"""
+    raw_dir, db_path = tmp_path / "raw", tmp_path / "t.db"
+    build_db(db_path)
+    items = load_fixture("tournament_list.json")["data"]["list"]
+    item = next(e for e in items if e["id"] == 3211)
+    detail = load_fixture("tournament_detail.json")["data"]
+    write_tournament_raw(
+        raw_dir,
+        series_id=54,
+        item=item,
+        detail=detail,
+        rank_entries=[rank_entry(1, 25.0, "P000123", [555010])],
+        decks={555010: deck_payload(555010, DECK_DEDUP)},
+    )
+    result = ingest_tourneys(raw_dir, db_path)
+
+    # deck_cards 中"不存在卡A"只入库一行（保留首次出现 count=4）
+    rows = query(
+        db_path,
+        select(DeckCard.raw_name, DeckCard.count).where(
+            DeckCard.deck_id == "mik_moe:555010", DeckCard.card_id.is_(None)
+        ),
+    )
+    assert len(rows) == 1
+    assert rows[0] == ("不存在卡A", 4)
+    # 去重警告已记录
+    assert any("重复行已跳过" in w and "不存在卡A" in w for w in result.warnings)

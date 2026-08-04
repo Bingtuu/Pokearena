@@ -4,6 +4,8 @@
 --   （mapping_status='full' ∧ stat_scope ∈ {pokemon,supporter,stadium}）+ group_key 预联；
 --   行粒度 = 出战条目 × 卡。v_tournament_weights：赛事静态权重件
 --   （tier_coef × log10(participant_count)；时间衰减因子由查询参数 as_of 在 SQL 中计算）。
+-- 注：tournament 维度由 v_tournament_weights 独立获取，canonical SQL 中与 v_stat_deck_cards
+--   通过 tournament_id 再联，整体为四表联查（deck_cards ⋈ decks ⋈ deck_appearances ⋈ tournaments）。
 
 CREATE VIEW IF NOT EXISTS v_tournament_weights AS
 SELECT

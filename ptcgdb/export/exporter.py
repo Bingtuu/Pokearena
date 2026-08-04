@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import shutil
 import sqlite3
 from datetime import UTC, date, datetime
@@ -113,6 +114,39 @@ def _schema_md() -> str:
     return "\n".join(lines)
 
 
+def _checkpoint_and_copy(db_path: Path, out_dir: Path) -> None:
+    """WAL checkpoint + DB 复制；checkpoint 失败或 busy 时跳过复制并告警。"""
+    logger = logging.getLogger(__name__)
+    conn = sqlite3.connect(str(db_path))
+    try:
+        busy, log, checkpointed = conn.execute("PRAGMA wal_checkpoint(TRUNCATE)").fetchone()
+        if busy:
+            logger.warning("WAL checkpoint busy，跳过 DB 复制（有其它连接持有锁）")
+            return
+        logger.debug("WAL checkpoint OK (log=%s, checkpointed=%s)", log, checkpointed)
+    except sqlite3.Error as exc:
+        logger.warning("WAL checkpoint 失败，跳过 DB 复制: %s", exc)
+        return
+    finally:
+        conn.close()
+    shutil.copy2(db_path, out_dir / "ptcg-cn.db")
+
+    # 导出后 DB 完整性校验（FR-9.6 数据质量门）
+    conn2 = sqlite3.connect(str(out_dir / "ptcg-cn.db"))
+    try:
+        ok = conn2.execute("PRAGMA integrity_check").fetchone()[0]
+        if ok != "ok":
+            raise RuntimeError(f"导出 DB integrity_check 失败: {ok}")
+        fk_violations = conn2.execute("PRAGMA foreign_key_check").fetchall()
+        if fk_violations:
+            logger.warning(
+                "导出 DB foreign_key_check 发现 %s 条违规（可能来自测试 fixtures）",
+                len(fk_violations),
+            )
+    finally:
+        conn2.close()
+
+
 def export_all(db_path: Path, out_dir: Path) -> dict:
     """导出全部文件，返回 manifest dict。重跑幂等（覆盖写）。"""
     db_path, out_dir = Path(db_path), Path(out_dir)
@@ -172,14 +206,8 @@ def export_all(db_path: Path, out_dir: Path) -> dict:
         json.dumps(legality, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    # 只读 DB 快照：WAL checkpoint 后复制（FR-7）
-    try:
-        conn = sqlite3.connect(db_path)
-        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
-        conn.close()
-    except sqlite3.Error:
-        pass
-    shutil.copy2(db_path, out_dir / "ptcg-cn.db")
+    # 只读 DB 快照：WAL checkpoint 后复制（FR-7）；失败时记录并跳过
+    _checkpoint_and_copy(db_path, out_dir)
 
     (out_dir / "schema.md").write_text(_schema_md(), encoding="utf-8")
 

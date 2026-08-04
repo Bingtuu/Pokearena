@@ -27,3 +27,6 @@ Thumbs.db
 # API 探测中间产物（真实端点探索脚本与输出，不进仓库）
 .scratch/probe_*
 .scratch/make_fixtures.py
+
+# Code Review 产物（本地工作文档，不进仓库）
+.scratch/code-review-*.md

@@ -99,6 +99,7 @@ class CardDatabase(ABC):
         is_tera: bool | None = None,
         set_ids: tuple[str, ...] | None = None,
         limit: int = 100,
+        offset: int = 0,
     ) -> list[CardSchema]: ...
 
     @abstractmethod
@@ -247,6 +248,7 @@ class DbBackend(CardDatabase):
         is_tera: bool | None = None,
         set_ids: tuple[str, ...] | None = None,
         limit: int = 100,
+        offset: int = 0,
     ) -> list[CardSchema]:
         with Session(self._engine) as s:
             rows = [_row_schema(CardSchema, c) for c in s.scalars(select(Card))]
@@ -255,7 +257,7 @@ class DbBackend(CardDatabase):
             "has_rule_box": has_rule_box, "is_tera": is_tera, "set_ids": set_ids,
         }
         matched = [c for c in rows if _match(c, **filters)]
-        return sorted(matched, key=lambda c: c.card_id)[:limit]
+        return sorted(matched, key=lambda c: c.card_id)[offset:offset + limit]
 
     def get_set(self, set_id: str) -> SetSchema | None:
         with Session(self._engine) as s:
@@ -391,13 +393,14 @@ class JsonlBackend(CardDatabase):
         is_tera: bool | None = None,
         set_ids: tuple[str, ...] | None = None,
         limit: int = 100,
+        offset: int = 0,
     ) -> list[CardSchema]:
         filters = {
             "name": name, "marks": marks, "card_type": card_type,
             "has_rule_box": has_rule_box, "is_tera": is_tera, "set_ids": set_ids,
         }
         matched = [c for c in self._cards if _match(c, **filters)]
-        return sorted(matched, key=lambda c: c.card_id)[:limit]
+        return sorted(matched, key=lambda c: c.card_id)[offset:offset + limit]
 
     def get_set(self, set_id: str) -> SetSchema | None:
         return next((s for s in self._sets if s.set_id == set_id), None)

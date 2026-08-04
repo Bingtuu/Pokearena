@@ -170,6 +170,7 @@ def run_l0(
         write_raw(runner.set_cards_path(sid), detail_payload, source=mikmoe.SOURCE, force=True)
         runner.scrape_cards(set_ids=[sid], force=False)
         ingest_set(raw_dir, sid, db_path)
+        # expected_count 更新延迟到 activate 成功后，避免校验阻断后永久孤立
         validations = run_validations(db_path, set_id=sid, raw_dir=raw_dir)
         failed = [r.rule for r in validations if not r.passed]
         if failed:
@@ -181,6 +182,11 @@ def run_l0(
             session.execute(
                 update(Card).where(Card.set_id == sid, Card.status == "draft")
                 .values(status="active")
+            )
+            # expected_count 在 activate 成功后才更新（FR-5.1：避免校验阻断后永久孤立）
+            session.execute(
+                update(Set).where(Set.set_id == sid)
+                .values(expected_count=inc.expected)
             )
             session.commit()
         engine.dispose()
