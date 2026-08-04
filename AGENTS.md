@@ -42,6 +42,7 @@ ptcgdb scrape sets | scrape cards [--set X]     # 采集 mik.moe → raw（限�
 ptcgdb ingest --set <setId>                     # raw → draft 入库
 ptcgdb validate [--set X] / activate            # FR-2.3 六规则校验 → active
 ptcgdb legal --date 2026-08-01 --format standard  # 指定日期的合法卡池
+ptcgdb deck-check --file deck.yml [--date --format]  # FR-8 卡组校验（ok 退 0/违规 1/错误 2）
 ptcgdb legal-seed                               # 快照种子入库（config/legality/）
 ptcgdb legal-apply --proposal p.yml             # 应用赛制变更提案
 ptcgdb legal-errata / rollback                  # L2 勘误导入 / 回滚

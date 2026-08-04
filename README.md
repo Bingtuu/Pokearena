@@ -27,7 +27,7 @@
 - **📊 可复算的统计三指标** —— 加权出场率 WUR / 胜率 WR（分层：逐局 or top-cut 转化）/ 加权胜率 WWS（贝叶斯收缩）；**公式只在 canonical SQL 文件里**（单一事实源），权重输入全量落库，任何人都能用 SQL 原样重放官方数字
 - **🔍 像写 SQL 一样查库** —— `ptcgdb query` 只读 ad-hoc SQL（mode=ro，拒写操作）；导出 DB 自带统计物化视图，口径词表 hash 版本化进 meta
 - **🌏 三语卡名映射** —— 简中卡 99.3% 挂英文桥（12,337 张），经 TCGdex + pokemon-tcg-data + PokéAPI 链路填充日文名 9,480 张；每条映射带置信度分档，pokemon-card.com 官方抽样 31 张核对一致率 100%
-- **🔌 规则语义一等公民的 SDK** —— `legal_at` / `effective_text` / `stats_usage` / `stats_winrate` / `stats_wws` 开箱即用（`validate_deck` 卡组校验为 M7 剩余目标）；`open_db` / `open_jsonl` 双后端同一接口、契约测试保一致
+- **🔌 规则语义一等公民的 SDK** —— `legal_at` / `effective_text` / `validate_deck`（结构化违规列表，banned/not_legal 互斥）/ `stats_usage` / `stats_winrate` / `stats_wws` 开箱即用；`open_db` / `open_jsonl` 双后端同一接口、契约测试保一致
 - **📦 十二件套导出契约** —— `manifest + cards/sets/relations/deck 四表.jsonl + legality.json + 只读 SQLite + checksums`，字段只加不删；双轨版本化（日历版本管数据，SemVer 管 schema），对齐 MTGJSON/Scryfall 惯例
 - **🔄 分级自动更新** —— L0 新卡每日增量入库、L1 赛制页变更自动生成提案、L2 勘误人工维护；新包发售 30 分钟内完成更新
 - **🛡️ 原文保真** —— `text_raw` 逐字保留绝不规范化，原文与派生字段严格分层；DB vs raw 同源自验 + 三清单日志保证数据质量
@@ -35,7 +35,7 @@
 
 ## 🚀 快速预览
 
-> 当前库内数据：**129 系列 / 12,420 张卡**（active，三语卡名 EN 12,337 / JA 9,480）· **26 场赛事 / 1,252 套卡组 / 1,396 条出战** · 合法卡池 standard 5,320 / open 12,413。以下接口均已可用（`validate_deck` 为 M7 剩余目标；开发进度见 Roadmap）。
+> 当前库内数据：**129 系列 / 12,420 张卡**（active，三语卡名 EN 12,337 / JA 9,480）· **26 场赛事 / 1,252 套卡组 / 1,396 条出战** · 合法卡池 standard 5,320 / open 12,413。以下接口均已可用（开发进度见 Roadmap）。
 
 **CLI**
 
@@ -46,6 +46,7 @@ ptcgdb ingest --set CSV10C                     # 卡牌入库（raw → draft）
 ptcgdb ingest-tourneys                         # 赛事入库（60 张质量门）
 ptcgdb validate && ptcgdb activate             # FR-2.3 六规则校验 → active
 ptcgdb legal --date 2026-08-01 --format standard   # 某日期的合法卡池（standard 5,320 / open 12,413）
+ptcgdb deck-check --file deck.yml              # FR-8 卡组校验（ok 退 0 / 违规 1 / 错误 2）
 ptcgdb stats usage --window-days 90            # 加权出场率 WUR（| winrate / wws / card <名>）
 ptcgdb query "SELECT * FROM v_stat_deck_cards LIMIT 5"   # 只读 ad-hoc SQL
 ptcgdb export --out dist/                      # 导出十二件套
@@ -66,7 +67,7 @@ text = db.effective_text("CSM2DC-339", date="2026-08-01")  # 勘误 > 最新印�
 usage = db.stats_usage(window_days=90)        # -> StatsResult[CardStat]，meta 回显口径+词表 hash
 boss = db.stats_card("老大的指令")             # 单卡 drilldown（按赛事/按系列）
 cards = db.search_cards(name="喵喵", marks=("G", "H", "I"))
-# M7 剩余：db.validate_deck(my_deck, ...) -> DeckReport（结构化违规列表）
+report = db.validate_deck(my_deck, date="2026-08-01", format="standard")   # -> DeckReport（结构化违规列表）
 ```
 
 ## 🏗️ 架构

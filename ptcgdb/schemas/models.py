@@ -192,6 +192,22 @@ class Violation(BaseModel):
     count: int | None = None  # 实际数量（供 AI 策略消费）
 
 
+class DeckReport(BaseModel):
+    """validate_deck 返回的卡组校验报告（FR-8，task 026）。
+
+    结构化 violations 不抛异常（AI 策略消费）；ok = 无任何违规。
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    ok: bool
+    deck_size: int
+    format: str
+    date: date
+    snapshot_id: str
+    violations: list[Violation]
+
+
 class CardStat(BaseModel):
     """stats_* 返回的单组统计（PRD FR-9.7 / FR-8 v1.10）。
 

@@ -24,12 +24,14 @@ from typing import Any
 from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
+from ptcgdb.legal.deck import validate_deck as _deck_validate
 from ptcgdb.legal.engine import build_pool, resolve_text, select_snapshot
 from ptcgdb.orm import Card, CardNameGroup, Errata, LegalitySnapshot, Meta, Set
 from ptcgdb.schemas.models import (
     Card as CardSchema,
 )
 from ptcgdb.schemas.models import (
+    DeckReport,
     DrilldownResult,
     EffectiveText,
     ErrataRecord,
@@ -112,6 +114,16 @@ class CardDatabase(ABC):
     def effective_text(self, card_id: str, date: str | date) -> EffectiveText: ...
 
     @abstractmethod
+    def validate_deck(
+        self, deck: list[str], date: str | date, format: str
+    ) -> DeckReport:
+        """FR-8 卡组校验：60 个 card_id（可重复）→ DeckReport（结构化违规，不抛异常）。
+
+        无覆盖日期/赛制的快照时抛 LookupError。
+        """
+        ...
+
+    @abstractmethod
     def snapshots(self, format: str | None = None) -> list[SnapshotSchema]: ...
 
     # —— 赛事统计（FR-8 Phase 2 追加，v1.10；薄封装 canonical SQL，双后端一致）——
@@ -185,6 +197,24 @@ def _do_wws(db: Any, kwargs: dict) -> StatsResult:
 def _do_card(db: Any, name: str, kwargs: dict) -> DrilldownResult:
     data, meta = stats_engine.card_drilldown(db, name, _stats_params(kwargs))
     return DrilldownResult(meta=meta, data=data)
+
+
+def _do_validate_deck(
+    cards: list[CardSchema],
+    groups: dict[str, set[str]],
+    snapshots: list[SnapshotSchema],
+    deck: list[str],
+    d: date,
+    fmt: str,
+) -> DeckReport:
+    """validate_deck 共用实现（FR-8：双后端同一语义）。
+
+    卡查找用全量卡（库外才报 unknown_card）；合法卡池按 status=active 构建
+    （与 legal_at 口径一致）。
+    """
+    snapshot = select_snapshot(snapshots, fmt, d)
+    pool = build_pool([c for c in cards if c.status == "active"], groups, snapshot, fmt, d)
+    return _deck_validate(deck, {c.card_id: c for c in cards}, groups, snapshot, pool)
 
 
 class DbBackend(CardDatabase):
@@ -267,6 +297,24 @@ class DbBackend(CardDatabase):
             ]
             errata = [_row_schema(ErrataRecord, e) for e in s.scalars(select(Errata))]
         return resolve_text(card_id, cards, snapshots, errata, d)
+
+    def validate_deck(
+        self, deck: list[str], date: str | date, format: str
+    ) -> DeckReport:
+        d = _as_date(date)
+        with Session(self._engine) as s:
+            cards = [
+                _row_schema(CardSchema, r) for r in s.scalars(select(Card))
+            ]
+            snapshots = [
+                _row_schema(SnapshotSchema, r) for r in s.scalars(select(LegalitySnapshot))
+            ]
+            groups: dict[str, set[str]] = {}
+            for cid, gk in s.execute(
+                select(CardNameGroup.card_id, CardNameGroup.group_key)
+            ):
+                groups.setdefault(cid, set()).add(gk)
+        return _do_validate_deck(cards, groups, snapshots, deck, d, format)
 
     def snapshots(self, format: str | None = None) -> list[SnapshotSchema]:
         with Session(self._engine) as s:
@@ -368,6 +416,13 @@ class JsonlBackend(CardDatabase):
     def effective_text(self, card_id: str, date: str | date) -> EffectiveText:
         return resolve_text(
             card_id, self._cards_by_id, self._snapshots, self._errata, _as_date(date)
+        )
+
+    def validate_deck(
+        self, deck: list[str], date: str | date, format: str
+    ) -> DeckReport:
+        return _do_validate_deck(
+            self._cards, self._groups, self._snapshots, deck, _as_date(date), format
         )
 
     def snapshots(self, format: str | None = None) -> list[SnapshotSchema]:

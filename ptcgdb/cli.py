@@ -404,6 +404,66 @@ def legal(
         typer.echo(f"  {group}: {len(ids)} 张")
 
 
+@app.command("deck-check")
+def deck_check(
+    file: Annotated[
+        Path, typer.Option("--file", help="卡表 YAML（cards = card_id → 数量，PRD FR-8）"),
+    ],
+    date_: Annotated[
+        str | None, typer.Option("--date", help="校验日期 YYYY-MM-DD（覆盖文件值，默认当天）"),
+    ] = None,
+    format_: Annotated[
+        str | None, typer.Option("--format", help="赛制（覆盖文件值，默认 standard）"),
+    ] = None,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """FR-8 卡组校验：卡表 → DeckReport。ok 退出 0，有违规退出 1，输入/快照错误退出 2。"""
+    from datetime import date as date_cls
+
+    import yaml
+
+    from ptcgdb.sdk import open_db
+
+    try:
+        data = yaml.safe_load(file.read_text(encoding="utf-8"))
+        if not isinstance(data, dict) or not isinstance(data.get("cards"), dict):
+            raise ValueError("卡表文件须含 cards 映射（card_id: 数量）")
+        deck = [cid for cid, n in data["cards"].items() for _ in range(int(n))]
+    except (OSError, ValueError, TypeError, yaml.YAMLError) as exc:
+        typer.echo(f"卡表文件错误: {exc}", err=True)
+        raise typer.Exit(code=2) from exc
+
+    raw_date = date_ if date_ is not None else data.get("date")
+    try:
+        if raw_date is None:
+            d = date_cls.today()
+        elif isinstance(raw_date, date_cls):
+            d = raw_date  # YAML 会把 YYYY-MM-DD 标量解析成 date
+        else:
+            d = date_cls.fromisoformat(str(raw_date))
+    except ValueError as exc:
+        typer.echo(f"日期格式错误: {raw_date}", err=True)
+        raise typer.Exit(code=2) from exc
+    fmt = format_ or data.get("format") or "standard"
+
+    db = open_db(db_path)
+    try:
+        report = db.validate_deck(deck, date=d, format=fmt)
+    except LookupError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=2) from exc
+    finally:
+        db.close()
+    typer.echo(
+        f"snapshot={report.snapshot_id} date={report.date} format={report.format} "
+        f"deck_size={report.deck_size} ok={report.ok}"
+    )
+    for v in report.violations:
+        typer.echo(f"  [{v.kind}] {v.detail}")
+    if not report.ok:
+        raise typer.Exit(code=1)
+
+
 @app.command()
 def export(
     out: Annotated[Path, typer.Option("--out", help="导出目录")] = Path("dist"),

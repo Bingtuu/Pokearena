@@ -7,6 +7,7 @@
 
 ### Added
 
+- FR-8 卡组校验器 `validate_deck`（M7-2，task 026，PRD v1.12）：`ptcgdb/legal/deck.py` 纯函数核 `validate_deck`（组合 build_pool + check_counts；合法性层 banned/not_legal 互斥禁卡优先，按 card_id 逐卡报告附 copies 数）；`DeckReport` frozen schema；SDK `validate_deck(deck, date, format)` 双后端同一契约（无覆盖快照抛 LookupError）；CLI `ptcgdb deck-check --file deck.yml [--date] [--format]`（ok 退出 0 / 有违规 1 / 输入错误 2）；卡表 YAML 输入格式（cards = card_id → 数量映射）
 - A2 比对三件技术债修复（task 030，PRD v1.11）：migration 007（user_version=7）——`sets.card_face_total`（卡面分母种子，F-01）+ `cards.alias_of`（mik 双重列示别名，F-02）；种子文件 `config/set_card_face_totals.yml`（实测 5 例 > TCGdex zh-cn 壳 official[sanity 门] > CBB 按包，41 套 total 型 + 1 套 packs 型播种，6 项冲突未播种如实入报告）；CLI `seed-face-totals` / `mark-aliases` / `map-tera`；`ptcgdb/mapping/tera.py`（ptcd EN 卡 subtypes 'Tera' 印刷级识别，is_tera 166 张，确诊 3 例全中、猛雷鼓ex 不误判）+ `ptcgdb/normalize/face_totals.py` / `aliases.py`；报告 `reports/mapping-tera-20260803.md`
 - 赛事卡组管线 CN mik 全链路（M9-1，task 027）：mik 赛事四端点采集器（series-list → list → rank-individual top64 → deck/detail，限速 2s、断点续传、进行中赛事 MikMoeNotReadyError 优雅跳过）+ `scrape tourneys` / `ingest-tourneys` CLI；赛事四表 tournaments / decks（卡组内容实体）/ deck_appearances（出战条目，deck_id+tournament_id+rank 复合主键）/ deck_cards（migration 004/005，user_version=5）；真实采集 3 批 1,327 raw 文件 → 26 赛 / 1,252 卡组内容 / 1,396 出战 / 38,105 卡表行（blocked=0 / unknown=0）；stat_scope 六组合派生；tier/division 开放词表 `config/vocabularies/tournament_tiers.yml`
 - 对账工具 `tools/reconcile_variant_share.py`：deck-static 全量口径 vs top64 口径 + variantIcon 最长前缀 rollup 粒度归并（full-coverage 2/2 精确一致）；验收报告 `reports/task027-ingest-20260802.md`
@@ -21,6 +22,7 @@
 
 ### Changed
 
+- PRD 升 v1.12（task 026）：FR-8 `validate_deck` 实装（见 Added）+ 卡表 YAML 输入格式 + DeckReport.date 类型定死为 date（与 LegalityPool 一致，原示意注记 str 作废）；`legal/engine.py` 禁卡判定 `_is_banned` 改公开 `is_banned`（build_pool 与 validate_deck 共用，语义不变）
 - **number_display 分母口径变更（F-01，破坏性语义修正）**：分母由 mik cardsNum（≠卡面分母，A2 实测翻案）改为种子口径 `sets.card_face_total`；种子未覆盖系列**只显示分子不带分母**；CBB* 宝石包按包分母（PPNN/包内卡数）。分子（cardIndex 逐字）始终不变，主键与映射不受影响
 - **is_tera 派生口径变更（F-03）**：v1.4⑤「简中暂无太晶卡样本」结论推翻——mik 源无太晶信号（判据永假），改走 mapping 层 ptcd EN 卡 subtypes 富化（`map-tera`）；rule_box_type 维持 ex 不变；text_raw 口径订正为**不含规则框文本**（mik 源不提供）
 - 16 张字母编号基本能量条目标记 `alias_of` → 数字编号正本（F-02：CS4DaC/CSVL1C 各 8，raw 逐字段全等的 mik 双重列示；alias 行保留，12,420 总数与主键口径不变）；CSVH5C `NaN1` 等无数字孪生条目如实保留入 questions

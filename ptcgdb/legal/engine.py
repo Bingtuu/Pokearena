@@ -49,8 +49,11 @@ def select_snapshot(snapshots: Iterable[SnapshotSchema], fmt: str, d: date) -> S
     return max(covering, key=lambda s: s.effective_from)
 
 
-def _is_banned(card: CardSchema, names: set[str], banned: list[dict]) -> bool:
-    """禁卡匹配：名称命中（含同组印刷）；带特性/招式名限定时需再命中该名称。"""
+def is_banned(card: CardSchema, names: set[str], banned: list[dict]) -> bool:
+    """禁卡匹配：名称命中（含同组印刷）；带特性/招式名限定时需再命中该名称。
+
+    公开核：build_pool 与 validate_deck（task 026，banned/not_legal 互斥判定）共用。
+    """
     for entry in banned:
         if entry["name"] not in names:
             continue
@@ -82,7 +85,7 @@ def build_pool(
     for card in cards:
         names = groups_of.get(card.card_id, set()) | {card.name_full}
         # 1. 禁卡表
-        if _is_banned(card, names, snapshot.banned_cards):
+        if is_banned(card, names, snapshot.banned_cards):
             continue
         # 2. 白名单（name_group 匹配）
         hit_groups = names & whitelist
