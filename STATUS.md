@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-**阶段：M9-2 ✅ 完成（task 029）；A2 三件技术债 ✅ 清偿（task 030）；M7 收尾中（task 025 ✅ / 026 DOING，2026-08-04 启动）** —— task 030（2026-08-03，PRD v1.11）：F-01 number_display 分母改逐系列种子口径（migration 007 `sets.card_face_total`，41 套 total 型+1 套 packs 型，5 实测数据点全对平，未覆盖系列只显分子）；F-02 十六张字母能量条目 `alias_of` 指向数字正本；F-03 `map-tera` 走 ptcd EN subtypes，is_tera 166 张（确诊 3 例全中、猛雷鼓ex 不误判）。顺路修复 ingest 跨系列 evolves_to 反向行顺序相关丢行缺陷（重 ingest 后 evolves_from=evolves_to=3,741 完全对称）。user_version=7，validate 六规则 0 失败，303 测试全绿，dist 导出复跑（relations 22,610）。验收 `reports/task030-tech-debt-20260803.md`。统计可复算性与查询层落地（task 029）：migration 006 两物化视图 + canonical SQL 五文件 + CLI `stats`/`query` + SDK `stats_*` 双后端 + 导出十二件套。已知缺口：mik 源 topcut_slots 全 NULL → 真实库 WR/WWS 暂空（WUR 正常，老大的指令 89.7% 居首），补全立项待定。M9-1 ✅（26 赛/1252 内容/1396 出战）。M6 ✅（name_en 12,337 / name_ja 9,480）。M7-1 task 025 完成（PRD v1.7）。下一步 task 026 validate_deck SDK + M7 验收 / task 028 EN Limitless（M9-3）/ topcut 补全立项 / A3 50 张比对。**M8 进行中（task 020，用户协作比对）**：**A2 100/100 全部核销（2026-08-03）**——11 字段全量一致，三件技术债已由 task 030 清偿；裁决记录 `.scratch/task020-findings.md`，核销落 `reports/sampling-a2-20260801.md`（git 跟踪）。
+**阶段：M7 ✅ 完成（task 026，2026-08-04）；M9-2 ✅（task 029）；A2 三件技术债 ✅（task 030）** —— task 026：FR-8 `validate_deck` 全链路落地（`legal/deck.py` 纯函数核[合法性层 banned/not_legal 互斥禁卡优先] + `DeckReport` frozen schema + SDK 双后端同一契约 + CLI `deck-check`[退出码 0/1/2] + 卡表 YAML 格式，PRD v1.12）；TDD 24 新用例（矩阵 14/契约 5/CLI 5），**327 测试全绿**；真实赛事卡组 1,396 出战全量校验——快照覆盖期 408/408 全过零违规、988 条早于快照生效期（2026-07-16）如实 no_snapshot；负向 sanity 5 例全中、真值核对 3/3。验收 `reports/task026-validate-deck-20260804.md`。task 030（2026-08-03，PRD v1.11）：F-01 number_display 分母改逐系列种子口径（migration 007 `sets.card_face_total`，41 套 total 型+1 套 packs 型，5 实测数据点全对平，未覆盖系列只显分子）；F-02 十六张字母能量条目 `alias_of` 指向数字正本；F-03 `map-tera` 走 ptcd EN subtypes，is_tera 166 张（确诊 3 例全中、猛雷鼓ex 不误判）。顺路修复 ingest 跨系列 evolves_to 反向行顺序相关丢行缺陷（重 ingest 后 evolves_from=evolves_to=3,741 完全对称）。user_version=7，validate 六规则 0 失败，303 测试全绿，dist 导出复跑（relations 22,610）。验收 `reports/task030-tech-debt-20260803.md`。统计可复算性与查询层落地（task 029）：migration 006 两物化视图 + canonical SQL 五文件 + CLI `stats`/`query` + SDK `stats_*` 双后端 + 导出十二件套。已知缺口：mik 源 topcut_slots 全 NULL → 真实库 WR/WWS 暂空（WUR 正常，老大的指令 89.7% 居首），补全立项待定。M9-1 ✅（26 赛/1252 内容/1396 出战）。M6 ✅（name_en 12,337 / name_ja 9,480）。M7-1 task 025 完成（PRD v1.7）。下一步 task 028 EN Limitless（M9-3，未立项）/ topcut 补全立项 / 历史环境快照补录立项（task 026 遗留：988 条出战早于快照生效期）/ A3 50 张比对。**M8 进行中（task 020，用户协作比对）**：**A2 100/100 全部核销（2026-08-03）**——11 字段全量一致，三件技术债已由 task 030 清偿；裁决记录 `.scratch/task020-findings.md`，核销落 `reports/sampling-a2-20260801.md`（git 跟踪）。
 
 ## 入口
 
@@ -28,7 +28,7 @@
 - [x] **M4** 验收 A1~A8 + 文档收尾（1 天）—— **2026-08-01 完成（task 016~018）**：验收 runner 一键全过（A1 standard 55/55、open 61/61；A4/A5/A6/A7/A8 证据报告六项 PASS）、A2 抽样 100 张清单 + A3 自动校验 5,122 项次全过、AGENTS/README/PRD/CHANGELOG 状态一致
 - [x] **M5 (Phase 2)** derive 跨系列进化解析（task 019）—— **2026-08-02 完成**：全库回退解析，未解析 401→5（仅剩化石无收录豁免），31 系列重 ingest skipped=0，FR-2.3 六规则全过，A3 复跑 5,122 项次全过
 - [x] **M6 (Phase 2)** 跨语言映射 EN+JP（task 022~024）—— **2026-08-02 完成**：EN 桥 12,337/12,420（99.3%=raw 上限）；TCGdex ID 解析 12,322（99.88%）+ 系列级对账（TCGdex zh-cn 仅壳级参照）；JP 改名字级 dexId 链（PRD v1.6，同 ID 共构证伪），name_ja 9,480（76.8%）+ external_ids(tcgdex) 12,331，官方抽样 31 张修复后一致率 100%（不符项全部裁决：地区前缀空格/后缀修饰/はくば・こくば/◇保留）
-- [ ] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025 ✅ / 026）
+- [x] **M7 (Phase 2)** 同名计数引擎 + 卡组校验器 SDK `validate_deck`（task 025 ✅ / 026 ✅）—— **2026-08-04 完成**：FR-8 全链路（纯函数核 + 双后端 + CLI deck-check + 卡表 YAML 格式，PRD v1.12）；真实赛事卡组 408/408 全过、负向 sanity 5 例全中、真值核对 3/3；327 测试全绿。验收 `reports/task026-validate-deck-20260804.md`
 - [ ] **M8 (Phase 2)** A2/A3 卡面人工比对 + Phase 2 收官（task 020，需用户在场）—— **A2 ✅ 100/100（2026-08-03）**：三件技术债 F-01/F-02/F-03 已由 task 030 清偿（2026-08-03）；A3 待比对
 - [ ] **M9 (Phase 2 扩展，PRD v1.8~v1.10)** 赛事卡组管线 + 统计基建：M9-1 task 027 CN mik ✅（2026-08-02）/ M9-2 task 029 统计与查询层 ✅（2026-08-02）/ M9-3 task 028 EN Limitless；统计范围=宝可梦/支援者/竞技场
 
@@ -58,9 +58,11 @@
 - **mik `isQual` 语义存疑（task 029 实测）**：3,215/3,348 名为"预赛"的赛事 isQual=false，与"预赛=瑞士轮"假设不符；已如实落库不猜，待核实。
 - ~~derive 跨系列进化解析缺口~~：**已清偿（task 019，2026-08-02）**——`resolve_evolution` 全库回退解析，401 → 5（仅剩化石道具库内无收录的合理豁免；另修正 10 条原误判豁免：化石道具卡在 SVP 有收录）。收敛报告 `reports/task019-evolution-resolution-20260802.md`。
 - **A2/A3 卡面人工比对（M8）**：**A2 ✅ 100/100 核销（2026-08-03）**；A3 清单已就绪（`reports/sampling-a3-20260802.md` 50 张——已随 task 019 复跑刷新），需用户在场比对（小程序无 API），另约协作 session。
+- **历史环境快照覆盖缺口（task 026 实测）**：快照仅 2026-07-16 起生效，西安超级赛/高级赛夏季场 988 条出战（2026-05-31~07-15）validate_deck 无覆盖快照（LookupError 如实分档）——历史环境快照补录另立项，可与 topcut 补全/赛事扩容合并评估。
 
 ## 进展日志
 
+- **2026-08-04**：**task 026 完成（M7-2 ✅ → M7 完成）**。FR-8 `validate_deck` 全链路：`legal/deck.py` 纯函数核 `validate_deck`（组合 build_pool + check_counts；合法性层 banned/not_legal 互斥、禁卡优先，逐 card_id 报告附 copies 数）+ `DeckReport` frozen schema + `engine.is_banned` 公开化；SDK 双后端同一契约（卡查找全量、合法池 active、无覆盖快照 LookupError）；CLI `deck-check --file deck.yml`（退出码 0/1/2）；卡表 YAML 格式定稿，PRD 升 **v1.12**。TDD 24 新用例（矩阵 14 / 双后端契约 5 / CLI 5），**327 测试全绿**、ruff 全净。真实赛事卡组全量校验（1,396 出战，脚本按日期缓存卡池）：快照覆盖期 **408/408 全过零违规**，988 条早于快照生效期如实 no_snapshot；负向 sanity 5 例全中（not_legal/banned 无限定/banned 特性限定/两例不命中——「阿塞萝拉」≠「阿塞萝拉的预感」、破罐破摔张=CSM1aC-060）；卡表真值人工核对 3/3 逐张一致。验收 `reports/task026-validate-deck-20260804.md`。遗留：历史环境快照补录另立项（988 条出战待覆盖）。详见 `tasks/done/026`。
 - **2026-08-01**：PRD 迭代至 v1.3（评审修订 + 外部调研：简中赛制核查、开源对标、数据基建接口设计）；建立 AGENTS.md / STATUS.md；确立 tasks/ 任务工作循环（`tasks/README.md`）。
 - **2026-08-01**：**task 001 完成（M0 ✅）**。mitmproxy 抓包官方小程序 → 判定路线 A 不可行（JWT+加密+签名四层防护）→ 验证 tcg.mik.moe `/api/v3/card/*` JSON API 完全可行 → **D1 = 路线 B（mik.moe 主源）**。产物：`docs/data-sources.md`（原 mikmoe-api.md）、`tools/capture/`（可复用抓包环境）、API 样例。M1 预算调整为 4~6 天。
 - **2026-08-01**：**task 002 完成（M1-1 ✅）**。项目骨架落地：pyproject + `.venv`、`ptcgdb/` 包（11 表 ORM 与 PRD §7 逐字段一致、PRAGMA user_version 幂等迁移、frozen Pydantic 核心模型、4 个初始词表、`ptcgdb init-db`）；pytest 2 绿、ruff 通过。下一步 task 003：mik.moe 采集器 + raw 层。

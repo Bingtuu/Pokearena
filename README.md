@@ -6,9 +6,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/Status-Phase2·A2核销完成·M7收尾-brightgreen.svg?style=flat-square)](STATUS.md)
-[![PRD](https://img.shields.io/badge/PRD-v1.11-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
-[![Tests](https://img.shields.io/badge/Tests-303%20passed-success.svg?style=flat-square)](STATUS.md)
+[![Status](https://img.shields.io/badge/Status-Phase2·M7完成·A3待比对-brightgreen.svg?style=flat-square)](STATUS.md)
+[![PRD](https://img.shields.io/badge/PRD-v1.12-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
+[![Tests](https://img.shields.io/badge/Tests-327%20passed-success.svg?style=flat-square)](STATUS.md)
 
 [产品需求文档](docs/简中PTCG卡牌数据库_PRD与技术方案.md) · [开发进展](STATUS.md) · [工程约定](AGENTS.md)
 
@@ -131,7 +131,7 @@ flowchart TB
 - ✅ **Phase 1a** schema 建库 + 全卡首批入库（129 系列 / 12,420 张）+ 校验报告
 - ✅ **Phase 1b** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出 + SDK 双后端
 - ✅ **Phase 1c** L0/L1 自动更新管线 + M4 验收 A1~A8 全过（赶在 2026-09-16 新包发售前就位）
-- 🔄 **Phase 2** —— ✅ M5 进化解析（未解析 401→5）；✅ M6 跨语言映射 EN 桥 12,337（99.3%）→ TCGdex ID 12,322（99.88%）→ JP 名 9,480（官方抽样 100%）；✅ M7-1 同名计数引擎；✅ M9-1 赛事卡组管线 CN mik + M9-2 统计可复算与查询层；✅ A2 卡面人工比对 100/100 核销 + 三件技术债清偿（卡号分母逐系列种子 / 字母能量 `alias_of` / 太晶识别 is_tera 166）；🔄 M8 A3 比对待协作；⬜ M7-2 `validate_deck` SDK；⬜ M9-3 EN Limitless 逐局胜率
+- 🔄 **Phase 2** —— ✅ M5 进化解析（未解析 401→5）；✅ M6 跨语言映射 EN 桥 12,337（99.3%）→ TCGdex ID 12,322（99.88%）→ JP 名 9,480（官方抽样 100%）；✅ M7-1 同名计数引擎；✅ M9-1 赛事卡组管线 CN mik + M9-2 统计可复算与查询层；✅ M7-2 `validate_deck` SDK 双后端 + CLI deck-check（真实卡组 408/408 全过）；✅ A2 卡面人工比对 100/100 核销 + 三件技术债清偿（卡号分母逐系列种子 / 字母能量 `alias_of` / 太晶识别 is_tera 166）；🔄 M8 A3 比对待协作；⬜ M9-3 EN Limitless 逐局胜率
 - ⬜ **Phase 3** 效果标签层，配合规则引擎
 - ⬜ **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
 
