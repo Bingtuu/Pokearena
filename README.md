@@ -6,9 +6,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/Status-Phase2·M9统计基建落地-brightgreen.svg?style=flat-square)](STATUS.md)
-[![PRD](https://img.shields.io/badge/PRD-v1.10-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
-[![Tests](https://img.shields.io/badge/Tests-293%20passed-success.svg?style=flat-square)](STATUS.md)
+[![Status](https://img.shields.io/badge/Status-Phase2·A2核销完成·M7收尾-brightgreen.svg?style=flat-square)](STATUS.md)
+[![PRD](https://img.shields.io/badge/PRD-v1.11-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
+[![Tests](https://img.shields.io/badge/Tests-303%20passed-success.svg?style=flat-square)](STATUS.md)
 
 [产品需求文档](docs/简中PTCG卡牌数据库_PRD与技术方案.md) · [开发进展](STATUS.md) · [工程约定](AGENTS.md)
 
@@ -31,7 +31,7 @@
 - **📦 十二件套导出契约** —— `manifest + cards/sets/relations/deck 四表.jsonl + legality.json + 只读 SQLite + checksums`，字段只加不删；双轨版本化（日历版本管数据，SemVer 管 schema），对齐 MTGJSON/Scryfall 惯例
 - **🔄 分级自动更新** —— L0 新卡每日增量入库、L1 赛制页变更自动生成提案、L2 勘误人工维护；新包发售 30 分钟内完成更新
 - **🛡️ 原文保真** —— `text_raw` 逐字保留绝不规范化，原文与派生字段严格分层；DB vs raw 同源自验 + 三清单日志保证数据质量
-- **🔮 机制全覆盖且前瞻** —— ex / 太晶 / ACE SPEC / 训练家宝可梦 / V-UNION / GX，词表开放，超级进化ex 等新机制直接进库
+- **🔮 机制全覆盖且前瞻** —— ex / 太晶（ptcd subtypes 印刷级识别，is_tera 166 张）/ ACE SPEC / 训练家宝可梦 / V-UNION / GX，词表开放，超级进化ex 等新机制直接进库；卡号分母逐系列种子口径（`sets.card_face_total`），字母能量双重列示以 `alias_of` 归并
 
 ## 🚀 快速预览
 
@@ -52,6 +52,7 @@ ptcgdb export --out dist/                      # 导出十二件套
 ptcgdb monitor l0 --dry-run                    # L0 新卡增量探测；monitor l1 赛制页监控 → 提案
 ptcgdb accept && ptcgdb sample                 # 一键验收 A1~A8；A2/A3 抽样比对清单
 ptcgdb map-en && ptcgdb map-tcgdex && ptcgdb map-ja   # 跨语言映射：EN 桥 → TCGdex ID → JP 名
+ptcgdb map-tera                                       # 太晶识别：ptcd EN subtypes → is_tera
 ```
 
 **SDK**
@@ -85,7 +86,7 @@ flowchart TB
         RAW[/"raw/ · append-only 原始层"/]
         NORM["normalize<br/>Pydantic 校验 + 字段归一 + 派生计算"]
         MAP["mapping<br/>EN 桥 → TCGdex ID → JP 名（置信度分档）"]
-        DB[("SQLite (WAL)<br/>draft → 校验 → active<br/>user_version=6")]
+        DB[("SQLite (WAL)<br/>draft → 校验 → active<br/>user_version=7")]
         STATS["stats<br/>canonical SQL 单一事实源<br/>物化视图 v_stat_deck_cards / v_tournament_weights"]
     end
 
@@ -129,7 +130,7 @@ flowchart TB
 - ✅ **Phase 1a** schema 建库 + 全卡首批入库（129 系列 / 12,420 张）+ 校验报告
 - ✅ **Phase 1b** 环境快照 + 合法性引擎 + 版本化/回滚 + 导出 + SDK 双后端
 - ✅ **Phase 1c** L0/L1 自动更新管线 + M4 验收 A1~A8 全过（赶在 2026-09-16 新包发售前就位）
-- 🔄 **Phase 2** —— ✅ M5 进化解析（未解析 401→5）；✅ M6 跨语言映射 EN 桥 12,337（99.3%）→ TCGdex ID 12,322（99.88%）→ JP 名 9,480（官方抽样 100%）；✅ M7-1 同名计数引擎；✅ M9-1 赛事卡组管线 CN mik + M9-2 统计可复算与查询层；🔄 M8 A2/A3 卡面人工比对（第 1 批 10/10）；⬜ M7-2 `validate_deck` SDK；⬜ M9-3 EN Limitless 逐局胜率
+- 🔄 **Phase 2** —— ✅ M5 进化解析（未解析 401→5）；✅ M6 跨语言映射 EN 桥 12,337（99.3%）→ TCGdex ID 12,322（99.88%）→ JP 名 9,480（官方抽样 100%）；✅ M7-1 同名计数引擎；✅ M9-1 赛事卡组管线 CN mik + M9-2 统计可复算与查询层；✅ A2 卡面人工比对 100/100 核销 + 三件技术债清偿（卡号分母逐系列种子 / 字母能量 `alias_of` / 太晶识别 is_tera 166）；🔄 M8 A3 比对待协作；⬜ M7-2 `validate_deck` SDK；⬜ M9-3 EN Limitless 逐局胜率
 - ⬜ **Phase 3** 效果标签层，配合规则引擎
 - ⬜ **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
 
@@ -139,7 +140,7 @@ flowchart TB
 
 | 文档 | 内容 |
 |---|---|
-| [PRD v1.10](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计、跨语言映射、赛事卡组与统计基建（FR-9 可复算性契约） |
+| [PRD v1.11](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计、跨语言映射、赛事卡组与统计基建（FR-9 可复算性契约） |
 | [数据源与接口文档](docs/data-sources.md) | 全部数据源获取方式：mik.moe 主源 API（卡牌 + 赛事）、官网赛制页、TCGdex / pokemon-tcg-data / PokéAPI、Limitless、pokemon-card.com 抽样核对 |
 | [STATUS.md](STATUS.md) | 当前阶段、里程碑进度、决策日志、技术债 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更（四段式，数据日历版本 + schema SemVer 双轨） |
