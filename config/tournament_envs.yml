@@ -1,0 +1,60 @@
+# 赛区旋转日历种子（tournament 环境推导用，PRD FR-9.1b / task 028）
+#
+# 用途：赛事表 tournaments.env 不落原始字段——EN/JP/CN 三家赛事数据源均不携带
+# 环境标号（mik CN 例外，自带 regulationMark/formatEnd），统一由
+# 「赛事日期 ∩ 本文件赛区日历段」推导落库，并以卡组最大赛制标记交叉校验。
+#
+# 维护：官方发布旋转公告 → 人工核实来源 → 追加新段（append-only，旧段不改）。
+# 本文件不驱动合法性引擎；CN 合法性快照仍以 config/legality/ 为准。
+#
+# 范围（2026-08-04 拍板）：以当前简中比赛环境（standard 2026-07-16 起，G/H/I）
+# 为收集与维护起点，历史赛事不回填、历史日历段不补录。EN 对齐窗口
+# （2025-04-11 ~ 2026-04-10，G/H/I 赛季）属「当前简中环境的参照数据」，
+# 故保留对应 EN/JP 段；窗口随简中环境演进滚动前移（下次旋转时评审）。
+
+regions:
+  cn:
+    name: 简中
+    # 历史段（F 及更早）按范围收口不补录；当前段以合法性快照种子为准。
+    legality_snapshot_ref: standard-2026-07-16   # config/legality/standard-2026-07-16.yml
+    segments:
+      - effective_from: 2026-07-16
+        allowed_marks: [G, H, I]
+        source_url: https://www.pokemon.cn/tcg-rules-regulation
+        note: 复用合法性快照种子（FR-5.2 维护链路），不单独维护 CN 段。
+
+  en:
+    name: 国际（英文）
+    segments:
+      - effective_from: 2025-04-11
+        effective_to: 2026-04-09
+        allowed_marks: [G, H, I]
+        source_url: https://www.pocketmonsters.net/news/8277
+        note: 2025 旋转公告（Scarlet & Violet—Prismatic Evolutions 起，F 标退出）。
+      - effective_from: 2026-04-10
+        allowed_marks: [H, I, J]
+        source_url: https://www.pokemon.com/us/pokemon-news/2026-pokemon-tcg-standard-format-rotation-announcement
+        note: 2026 旋转公告（2026-01-09 发布，Mega Evolution 起 G 标退出）。
+
+  ja:
+    name: 日文
+    segments:
+      - effective_from: 2025-01-24
+        effective_to: 2025-12-18
+        allowed_marks: [G, H, I]
+        source_url: https://www.pokemon-card.com/info/004764.html
+        note: 官方 2024-12-21 公告，スタンダードレギュレーション F 标退出。
+      - effective_from: 2025-12-19
+        effective_to: 2026-01-22
+        allowed_marks: [G, H, I, J]
+        source_url: https://www.pokemon-card.com/info/005262.html
+        note: 旋转过渡期，G~J 四标并行可用。
+      - effective_from: 2026-01-23
+        allowed_marks: [H, I, J]
+        source_url: https://www.pokemon-card.com/info/005262.html
+        note: 过渡期结束，G 标退出。
+
+# 推导规则（实现侧，FR-9.1b）：
+#   env = 赛事日期命中的唯一日历段（effective_from ≤ date ≤ effective_to|∞）
+#   未命中（早于收集起点 / 日历缺口）→ env = NULL + 记 monitor 异常，不猜。
+#   交叉校验：deck 内卡牌最大赛制标记 ∈ env.allowed_marks，否则告警（不拒收）。

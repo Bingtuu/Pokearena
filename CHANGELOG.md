@@ -7,6 +7,9 @@
 
 ### Added
 
+- 赛区旋转日历种子 `config/tournament_envs.yml`（task 028 设计段收尾，PRD v1.13 续 FR-9.1b）：EN 2025-04-11 G/H/I → 2026-04-10 H/I/J；JP 2025-01-24 G/H/I、过渡期 2025-12-19~2026-01-22 G~J、2026-01-23 H/I/J（均附官方公告 source_url）；CN 复用合法性快照种子不另维护；append-only，官方旋转公告核实后追加新段；`tournaments.env` 由赛事日期∩日历段推导（migration user_version 8 实现时落列）+ 卡组最大赛制标记交叉校验（不符告警不拒收）
+- 任务文档 `tasks/031` 立项（TODO）：赛事数据刷新管线——mapping_status 随卡库重算钩子 + monitor tourneys 增量子命令 + EN 赛后约 7 天重抓 + tier 词表变更触发物化视图重建（task 028 设计段审查发现的持续更新缺口）
+- EN/JP 赛事卡组调研与对齐窗口设计（task 028 设计段，PRD v1.13）：FR-9.1a 对齐与筛选口径——内容时代对齐（对齐窗口 = 国际 G/H/I 赛季 2025-04~2026-04-09 为成本先验，卡级映射 full 为最终判据）+ 质量筛选（官方系列赛 Regional/IC/Special/League Cup≥32 人 Master 组；名次 Top Cut/Cup Top 8；pairings 逐局全量保留；`basis=intl_aligned` 不与 CN 混同）；`docs/data-sources.md` 增 §7b TopDeck.gg（免费 API，rounds 逐桌含局分）/ §7c RK9.gg（对账源）/ §8b JP 卡组聚合站（PokecaBook/ポケカ飯/pokecardlab，JP 对齐二期候选）+ §2 pokemon.cn 无机读赛果确认 + §7 历史深度实测
 - FR-8 卡组校验器 `validate_deck`（M7-2，task 026，PRD v1.12）：`ptcgdb/legal/deck.py` 纯函数核 `validate_deck`（组合 build_pool + check_counts；合法性层 banned/not_legal 互斥禁卡优先，按 card_id 逐卡报告附 copies 数）；`DeckReport` frozen schema；SDK `validate_deck(deck, date, format)` 双后端同一契约（无覆盖快照抛 LookupError）；CLI `ptcgdb deck-check --file deck.yml [--date] [--format]`（ok 退出 0 / 有违规 1 / 输入错误 2）；卡表 YAML 输入格式（cards = card_id → 数量映射）
 - A2 比对三件技术债修复（task 030，PRD v1.11）：migration 007（user_version=7）——`sets.card_face_total`（卡面分母种子，F-01）+ `cards.alias_of`（mik 双重列示别名，F-02）；种子文件 `config/set_card_face_totals.yml`（实测 5 例 > TCGdex zh-cn 壳 official[sanity 门] > CBB 按包，41 套 total 型 + 1 套 packs 型播种，6 项冲突未播种如实入报告）；CLI `seed-face-totals` / `mark-aliases` / `map-tera`；`ptcgdb/mapping/tera.py`（ptcd EN 卡 subtypes 'Tera' 印刷级识别，is_tera 166 张，确诊 3 例全中、猛雷鼓ex 不误判）+ `ptcgdb/normalize/face_totals.py` / `aliases.py`；报告 `reports/mapping-tera-20260803.md`
 - 赛事卡组管线 CN mik 全链路（M9-1，task 027）：mik 赛事四端点采集器（series-list → list → rank-individual top64 → deck/detail，限速 2s、断点续传、进行中赛事 MikMoeNotReadyError 优雅跳过）+ `scrape tourneys` / `ingest-tourneys` CLI；赛事四表 tournaments / decks（卡组内容实体）/ deck_appearances（出战条目，deck_id+tournament_id+rank 复合主键）/ deck_cards（migration 004/005，user_version=5）；真实采集 3 批 1,327 raw 文件 → 26 赛 / 1,252 卡组内容 / 1,396 出战 / 38,105 卡表行（blocked=0 / unknown=0）；stat_scope 六组合派生；tier/division 开放词表 `config/vocabularies/tournament_tiers.yml`
@@ -22,6 +25,8 @@
 
 ### Changed
 
+- **赛事卡组范围收口（2026-08-04 拍板，PRD v1.13 续 FR-9.1b）**：收集与维护以当前简中比赛环境（standard 2026-07-16 起 G/H/I）为起点，历史赛事不回填、历史日历段不补录；task 026 遗留「历史环境快照补录（988 条出战）」按拍板关闭，维持 no_snapshot 如实分档；EN 对齐窗口（2025-04~2026-04-09）属当前环境参照数据保留采集，随简中环境演进滚动前移
+- PRD 升 v1.13（task 028 设计段）：FR-9.1a 新增（见 Added）+ FR-9.1 EN 备选源 TopDeck.gg / JP 对齐候选 PokecaBook 入档 + M9-3 描述改「对齐窗口接入」；任务文档 `tasks/028` 立项（TODO，待拍板实现）
 - PRD 升 v1.12（task 026）：FR-8 `validate_deck` 实装（见 Added）+ 卡表 YAML 输入格式 + DeckReport.date 类型定死为 date（与 LegalityPool 一致，原示意注记 str 作废）；`legal/engine.py` 禁卡判定 `_is_banned` 改公开 `is_banned`（build_pool 与 validate_deck 共用，语义不变）
 - **number_display 分母口径变更（F-01，破坏性语义修正）**：分母由 mik cardsNum（≠卡面分母，A2 实测翻案）改为种子口径 `sets.card_face_total`；种子未覆盖系列**只显示分子不带分母**；CBB* 宝石包按包分母（PPNN/包内卡数）。分子（cardIndex 逐字）始终不变，主键与映射不受影响
 - **is_tera 派生口径变更（F-03）**：v1.4⑤「简中暂无太晶卡样本」结论推翻——mik 源无太晶信号（判据永假），改走 mapping 层 ptcd EN 卡 subtypes 富化（`map-tera`）；rule_box_type 维持 ex 不变；text_raw 口径订正为**不含规则框文本**（mik 源不提供）

@@ -86,6 +86,7 @@
 
 - 获取方式：L1 监控（`ptcgdb monitor l1`）每日 GET 三页 → 正文提取 + hash 比对 → 变更自动生成提案（SnapshotSeed 超集，被 `legal-apply` 直接消费）；不确定项 needs_manual 不猜测。
 - 快照种子：`config/legality/`（官方赛制页 2026-07-16 版人工逐名核定，`ptcgdb legal-seed` 入库）。
+- **赛事信息核实（2026-08-04，task 028 调研）**：pokemon.cn 赛事页只有公告/报名/规则说明，**无可机读的赛果与卡组数据**——简中结构化赛事源维持 mik.moe 唯一（§1 赛事 API）。
 
 ## 3. TCGdex（跨语言映射 + 系列对账）
 
@@ -127,6 +128,18 @@
 - **主站 HTML**（limitlesstcg.com/tournaments/{id}、/decks/list/{id}）：官方线下大赛（Regional/IC 等）上位卡组人工收录——API 覆盖不到的部分；卡条目带 `data-set`/`data-number` 属性，易解析；robots.txt 全放行，无反爬条款。
 - 许可信号：官方 API 文档 + robots 全放行 + ToS 无反爬条款，风险最低；仍按 ≥1s/请求自控。
 - 参考实现：GitHub [jpbullalayao/limitless-python](https://github.com/jpbullalayao/limitless-python)（MIT，模型定义可参照）。
+- **历史深度实测（2026-08-04）**：tournaments 列表翻页可稳定回溯（实测 page=200 仍有 2026-05 赛事），覆盖多赛季，按窗口采集无技术障碍。
+- **对标简中环境的时间窗口（task 028 调研定稿，2026-08-04）**：简中 standard = G/H/I（官方赛制页 2026-07-16 版，刚退 F）；国际版 [2026-01-09 官方公告](https://www.pokemon.com/us/news/2026-pokemon-tcg-standard-format-rotation-announcement) 2026-04-10 起 G 退环境（此后 H/I/J，已进入 Mega 阶段）——**对齐窗口 = 2025 年旋转生效（约 2025-04）~ 2026-04-09 的国际 G/H/I 赛季**。窗口仅为**成本先验**：最终对齐判据是卡级映射（deck 经 name_en 桥全量映射简中卡池，mapping_status='full' 才入统计）；国际发售节奏更快（2025-09 起 Mega 阶段卡组含大量简中未发售卡），窗口后段淘汰率自然升高，映射率分布如实记录。该思路可推广：简中每个历史快照期 ↔ 同标记的国际赛季。
+
+## 7b. TopDeck.gg（EN 草根赛事，task 028 调研新发现）
+
+- **免费 API**（文档 [topdeck.gg/docs/tournaments-v2](https://topdeck.gg/docs/tournaments-v2)，2026-08-04 调研）：明确支持 **Pokemon（Standard / Expanded / Legacy / GLC）**；`POST /api/v2/tournaments` 按 game+format+日期窗查已结束赛事，返回 standings（名次/decklist/deckObj 结构化卡表/胜负战绩）+ **rounds 逐桌对阵（winner_id + winner_games/loser_games 局分）**——逐局数据结构比 Limitless pairings 更全。
+- 限速 100 req/min（429 + Retry-After）；需 API key（免费申请）+ **页面署名**（attribution 硬性条款）。
+- 覆盖以北美草根店赛为主（组织者自办），量级大；官方系列赛仍以 Limitless 为准，TopDeck 作补充源候选。
+
+## 7c. RK9.gg（官方顶级赛事对账源，task 028 调研）
+
+- Play! Pokémon 官方赛事系统（IC / Worlds / 部分 Regional）：逐轮 pairings 与 standings 公开 HTML（如 [EU IC 2025](https://rk9.gg/pairings/EU01wICdQN8zZclF7NTW)）。**无 decklist 公开**——不作卡组主源，可作顶级赛事名次/逐局对账源。
 
 ## 8. players.pokemon-card.com（JP 赛事壳，task 027 调研）
 
@@ -135,6 +148,13 @@
   - `GET /event_result_detail_search?event_holding_id={id}&offset=0&per_page=64` → JSON 名次表（rank/name/player_id/**deck_id = 官方卡组码**）。
 - **卡组内容无 JSON 端点**：卡组码在 `www.pokemon-card.com/deck/confirm.html/deckID/{码}` 由前端 JS 解码渲染，需浏览器自动化（Playwright）逐页提取——WAF 严格、成本高，**壳数据（名次+卡组码）先入，卡表渲染后置单独评估**（FR-9.1）。
 - 参考实现：GitHub [dtsong/tcg-scout](https://github.com/dtsong/tcg-scout)（2026 活跃；无 LICENSE，只读思路不抄代码）；JP 卡表亦可走 Limitless `?format=standard-jp` HTML（国际版包代码 → name_en 桥）作为替代路径。
+
+## 8b. JP 卡组聚合站（task 028 调研新发现，JP 窗口对齐路径）
+
+- **PokecaBook**（[pokecabook.com](https://pokecabook.com/)）：JP 官方大会（チャンピオンズリーグ/シティリーグ/ジムバトル）+ **海外大赛（Regional/IC）**上位卡组按 archetype 归集；[robots 几乎全放行](https://pokecabook.com/robots.txt)（仅禁搜索页），HTML 解析成本远低于 players.pokemon-card.com 的浏览器渲染路线。
+- **ポケカ飯**（pokekameshi.com）/ **pokecardlab**（pokecardlab.com）：同型 JP 卡组食谱站（Tier 表 + 赛事标注），互为印证与补漏。
+- 定位：JP 发售早于国际/简中，JP 赛季窗口与简中错位更小——**JP 对齐二期候选**；卡标识为日文卡名/编号，需 name_ja 桥（M6 已铺 9,480 条）。
+- 排除记录：ptcgstats.com（Limitless 派生聚合，不作源，可对账）、pokedata.ovh（Limitless standings 个人聚合，无增量）。
 
 ## 9. 官方小程序"宝可梦卡牌会员"（不可得，D1 否决）
 

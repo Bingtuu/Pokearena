@@ -6,8 +6,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/Status-Phase2·M7完成·A3待比对-brightgreen.svg?style=flat-square)](STATUS.md)
-[![PRD](https://img.shields.io/badge/PRD-v1.12-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
+[![Status](https://img.shields.io/badge/Status-Phase2·M9--3设计定稿·A3待比对-brightgreen.svg?style=flat-square)](STATUS.md)
+[![PRD](https://img.shields.io/badge/PRD-v1.13-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
 [![Tests](https://img.shields.io/badge/Tests-327%20passed-success.svg?style=flat-square)](STATUS.md)
 
 [产品需求文档](docs/简中PTCG卡牌数据库_PRD与技术方案.md) · [开发进展](STATUS.md) · [工程约定](AGENTS.md)
@@ -23,7 +23,7 @@
 ## ✨ 亮点
 
 - **📸 快照化合法性引擎** —— 赛制标记 + 白名单 + 禁卡表 + 视作覆盖 + 能量种类全部按生效日版本化；旧快照永不删除，可回放任意历史环境（`legal_at('2026-08-01', 'standard')`）
-- **🏆 真实赛事卡组管线** —— mik 赛事 API 全链路：26 场赛事 / 1,252 套卡组内容 / 1,396 条出战记录入库；卡组内容与出战记录分表（同一套 60 张可跨赛事、跨选手复用），`mapping_status` 分档、只统计可映射简中环境的卡组
+- **🏆 真实赛事卡组管线** —— mik 赛事 API 全链路：26 场赛事 / 1,252 套卡组内容 / 1,396 条出战记录入库；卡组内容与出战记录分表（同一套 60 张可跨赛事、跨选手复用），`mapping_status` 分档、只统计可映射简中环境的卡组；**三赛区旋转日历种子**（`config/tournament_envs.yml`）+ 赛事日期推导环境落库，CN/EN/JP 环境标号对齐有方案（FR-9.1b）
 - **📊 可复算的统计三指标** —— 加权出场率 WUR / 胜率 WR（逐局战绩与 top-cut 转化率两层口径）/ 加权胜率 WWS（贝叶斯收缩）；**公式只在 canonical SQL 文件里**（单一事实源），权重输入全量落库，任何人都能用 SQL 原样重放官方数字
 - **🔍 像写 SQL 一样查库** —— `ptcgdb query` 只读 ad-hoc SQL（mode=ro，拒写操作）；导出 DB 自带统计物化视图，口径词表 hash 版本化进 meta
 - **🌏 三语卡名映射** —— 简中卡 99.3% 挂英文桥（12,337 张），经 TCGdex + pokemon-tcg-data + PokéAPI 链路填充日文名 9,480 张；映射来源经 `external_ids` 体系逐条可溯，pokemon-card.com 官方抽样 31 张核对一致率 100%
@@ -90,7 +90,7 @@ flowchart TB
         C["官方小程序<br/>接口四层防护不可得 · 人工比对通道"]
         D["TCGdex / pokemon-tcg-data / PokéAPI<br/>跨语言映射源（EN→JA 名字级 dexId 链）"]
         E["pokemon-card.com<br/>官方卡查 · 抽样权威核对"]
-        F["Limitless TCG（EN）<br/>逐局胜率源 · ⬜ M9-3"]
+        F["Limitless TCG（EN）<br/>逐局胜率源 · M9-3 设计定稿⬜实现"]
     end
 
     subgraph PIPE["⚙️ 数据管线"]
@@ -147,7 +147,9 @@ flowchart TB
   - ✅ **M7** 同名计数引擎 + `validate_deck` SDK 双后端 + CLI deck-check（真实卡组 408/408 全过）
   - ✅ **M8（A2）** 卡面人工比对 100/100 核销 + 三件技术债清偿（卡号分母逐系列种子 / 字母能量 `alias_of` / 太晶识别 is_tera 166）
   - ✅ **M9-1/2** 赛事卡组管线 CN mik + 统计可复算与查询层
-  - 🔄 **M8（A3）** 50 张特殊卡比对，待协作 session；⬜ **M9-3** EN Limitless 逐局胜率
+  - 🔄 **M8（A3）** 50 张特殊卡比对，待协作 session
+  - 🔄 **M9-3** EN Limitless 对齐窗口接入——**设计定稿**（task 028）：只采对齐窗口（国际 G/H/I 赛季）内官方系列赛 Top Cut 卡组，卡级映射对齐简中环境；赛事环境由旋转日历种子推导落库（FR-9.1a/b）；**范围收口：以当前简中环境为起点收集维护，历史不回填**；待拍板实现
+  - ⬜ **赛事数据刷新管线**（task 031）：赛事增量入库 + mapping 随卡库重算 + EN 赛后重抓 + 词表变更重物化
 - ⬜ **Phase 3** 效果标签层，配合规则引擎
 - ⬜ **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
 
@@ -157,8 +159,8 @@ flowchart TB
 
 | 文档 | 内容 |
 |---|---|
-| [PRD v1.12](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计、跨语言映射、赛事卡组与统计基建（FR-9 可复算性契约） |
-| [数据源与接口文档](docs/data-sources.md) | 全部数据源获取方式：mik.moe 主源 API（卡牌 + 赛事）、官网赛制页、TCGdex / pokemon-tcg-data / PokéAPI、Limitless、pokemon-card.com 抽样核对 |
+| [PRD v1.13](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计、跨语言映射、赛事卡组与统计基建（FR-9 可复算性契约 / FR-9.1a 对齐筛选口径 / FR-9.1b 环境推导落库） |
+| [数据源与接口文档](docs/data-sources.md) | 全部数据源获取方式：mik.moe 主源 API（卡牌 + 赛事）、官网赛制页、TCGdex / pokemon-tcg-data / PokéAPI、Limitless / TopDeck / RK9 与 JP 卡组聚合站（task 028 调研）、pokemon-card.com 抽样核对 |
 | [STATUS.md](STATUS.md) | 当前阶段、里程碑进度、决策日志、技术债 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更（四段式，数据日历版本 + schema SemVer 双轨） |
 | [AGENTS.md](AGENTS.md) | 工程约定与技术红线（协作者/AI 共读） |
