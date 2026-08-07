@@ -7,6 +7,7 @@
 
 ### Added
 
+- validate 三维度校验扩展（code review，2026-08-04）：regulation_mark 格式（单个大写字母）/ HP 范围 [10, 340]（仅宝可梦卡）/ evolves_from_id FK 有效性（含跨系列全库兜底）；SDK `search_cards` 增 `limit`/`offset` 分页参数（默认 limit=100，不传时行为不变）；CLI `legal`/`validate`/`deck-check`/`stats`/`query`/`export` 对不存在的数据库报友好错误并退出码 2
 - 赛区旋转日历种子 `config/tournament_envs.yml`（task 028 设计段收尾，PRD v1.13 续 FR-9.1b）：EN 2025-04-11 G/H/I → 2026-04-10 H/I/J；JP 2025-01-24 G/H/I、过渡期 2025-12-19~2026-01-22 G~J、2026-01-23 H/I/J（均附官方公告 source_url）；CN 复用合法性快照种子不另维护；append-only，官方旋转公告核实后追加新段；`tournaments.env` 由赛事日期∩日历段推导（migration user_version 8 实现时落列）+ 卡组最大赛制标记交叉校验（不符告警不拒收）
 - 任务文档 `tasks/031` 立项（TODO）：赛事数据刷新管线——mapping_status 随卡库重算钩子 + monitor tourneys 增量子命令 + EN 赛后约 7 天重抓 + tier 词表变更触发物化视图重建（task 028 设计段审查发现的持续更新缺口）
 - EN/JP 赛事卡组调研与对齐窗口设计（task 028 设计段，PRD v1.13）：FR-9.1a 对齐与筛选口径——内容时代对齐（对齐窗口 = 国际 G/H/I 赛季 2025-04~2026-04-09 为成本先验，卡级映射 full 为最终判据）+ 质量筛选（官方系列赛 Regional/IC/Special/League Cup≥32 人 Master 组；名次 Top Cut/Cup Top 8；pairings 逐局全量保留；`basis=intl_aligned` 不与 CN 混同）；`docs/data-sources.md` 增 §7b TopDeck.gg（免费 API，rounds 逐桌含局分）/ §7c RK9.gg（对账源）/ §8b JP 卡组聚合站（PokecaBook/ポケカ飯/pokecardlab，JP 对齐二期候选）+ §2 pokemon.cn 无机读赛果确认 + §7 历史深度实测
@@ -25,6 +26,7 @@
 
 ### Changed
 
+- **code review 全量修复（2026-08-04，提交 f608478）**：28 项 HIGH 清零——P0 数据安全：导出 WAL checkpoint 验证 + 导出前 integrity_check / foreign_key_check（失败拒绝导出）；normalize `_to_int`/`_to_float` 非数值输入返回 None 不再抛异常；L0 `expected_count` 更新移至 activate 成功后（修复 validate 失败导致增量信号丢失/draft 卡孤立）；增量采集 cardsNum 与缓存条目数对账不符自动重抓；`seed_snapshots` 对已冻结快照拒绝覆盖（FrozenSnapshotError）；◇ 计数改跨 name_group 全局检查（修复同名组内检查漏判不同名 ◇ 组合）；deck_cards 可空 PK 按 (deck_id, raw_name) 去重防唯一约束冲突。P1 运行时：mapping 四文件 `engine.dispose()` 移入 finally（commit 失败不再泄露连接）；赛事 schema `fetched_at` 改 Optional；macOS osascript / Windows pwsh 通知内容转义（防注入与 KeyError）；JSONL 后端 v_stat_deck_cards 视图对齐迁移 006（补 cards_name_group JOIN）；MEDIUM 批量：is_qual/is_team default=False、除零守卫、YAML 静默吞错改告警、accept 冻结守卫 old_id 空指针 + V-UNION 计数虚高修复等。测试 327→416 全绿，ruff 全净
 - **赛事卡组范围收口（2026-08-04 拍板，PRD v1.13 续 FR-9.1b）**：收集与维护以当前简中比赛环境（standard 2026-07-16 起 G/H/I）为起点，历史赛事不回填、历史日历段不补录；task 026 遗留「历史环境快照补录（988 条出战）」按拍板关闭，维持 no_snapshot 如实分档；EN 对齐窗口（2025-04~2026-04-09）属当前环境参照数据保留采集，随简中环境演进滚动前移
 - PRD 升 v1.13（task 028 设计段）：FR-9.1a 新增（见 Added）+ FR-9.1 EN 备选源 TopDeck.gg / JP 对齐候选 PokecaBook 入档 + M9-3 描述改「对齐窗口接入」；任务文档 `tasks/028` 立项（TODO，待拍板实现）
 - PRD 升 v1.12（task 026）：FR-8 `validate_deck` 实装（见 Added）+ 卡表 YAML 输入格式 + DeckReport.date 类型定死为 date（与 LegalityPool 一致，原示意注记 str 作废）；`legal/engine.py` 禁卡判定 `_is_banned` 改公开 `is_banned`（build_pool 与 validate_deck 共用，语义不变）
