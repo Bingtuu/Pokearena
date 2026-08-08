@@ -737,6 +737,39 @@ def ingest_tourneys_cmd(
         raise typer.Exit(code=1)
 
 
+@app.command("ingest-limitless-site")
+def ingest_limitless_site_cmd(
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """Limitless 主站收录入库：raw limitless_site → tournaments/decks 四表（task 028 扩展）。
+
+    名次截断上位口径（regional/international/special ≤32，league_cup ≤8），
+    topcut_slots = 截断后实际入库名次数；record 三列 NULL（主站无比分，不猜）；
+    decklist→简中映射与 API 通道同链；重跑幂等；count 合计 != 60 或卡组快照缺失
+    的卡组整组拦截（FR-9.6 质量门）并以非零码退出。
+    """
+    from ptcgdb.normalize.ingest_limitless_site import ingest_limitless_site
+
+    result = ingest_limitless_site(raw_dir, db_path)
+    typer.echo(
+        f"tournaments={result.tournaments} decks={result.decks} appearances={result.appearances} "
+        f"deck_cards={result.deck_cards} truncated={result.truncated} "
+        f"blocked={len(result.blocked)} "
+        f"unknown_cards={len(result.unknown_cards)} warnings={len(result.warnings)}"
+    )
+    typer.echo(f"映射决策分布: {dict(sorted(result.mapping_rules.items()))}")
+    for b in result.blocked:
+        typer.echo(f"  ✗ {b.get('deck_id') or b.get('decklist_id')}: {b['reason']}")
+    for u in result.unknown_cards[:20]:
+        typer.echo(f"  ? 未解析卡 {u['deck_id']}: {u['raw_name']} ×{u['count']}")
+    for w in result.warnings[:20]:
+        typer.echo(f"  ? {w}")
+    if result.blocked:
+        typer.echo("有卡组被质量门拦截（60 张门/快照缺失），详见上方清单", err=True)
+        raise typer.Exit(code=1)
+
+
 @app.command("ingest-limitless")
 def ingest_limitless_cmd(
     raw_dir: Path = DEFAULT_RAW_DIR,

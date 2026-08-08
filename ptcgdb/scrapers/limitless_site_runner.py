@@ -93,7 +93,7 @@ class LimitlessSiteScrapeRunner:
             stats.aborted = True
 
         self._reconcile_missing(state)
-        return finish_run(self.raw_dir, self.db_path, run_id, started_at, stats)
+        return finish_run(self.raw_dir, self.db_path, run_id, started_at, stats, source=SOURCE)
 
     # ---- 赛季索引翻页 ----
 

@@ -6,6 +6,7 @@ deck_appearances=出战条目——mik deckId 实测为内容实体，多名选�
 """
 
 import sqlite3
+from pathlib import Path
 
 from ptcgdb.migrations import apply_migrations, available_migrations
 
@@ -250,3 +251,46 @@ def test_migration_009_views_have_basis_column(tmp_path):
 def test_migration_009_idempotent(tmp_path):
     db_path, _ = _apply(tmp_path)
     assert apply_migrations(db_path) == LATEST  # DROP/CREATE 重复执行不报错
+
+
+# ---- migration 010：视图 basis 加 limitless_site→intl_aligned（task 028 主站通道）----
+
+
+def test_migration_010_basis_limitless_site(tmp_path):
+    db_path, _ = _apply(tmp_path)
+    conn = sqlite3.connect(db_path)
+    try:
+        for source in ("mik_moe", "limitless", "limitless_site", "pokemon_card_jp"):
+            conn.execute(
+                "INSERT INTO tournaments (tournament_id, source, name, tier_coef, "
+                "participant_count) VALUES (?, ?, '测试赛', 1.0, 100)",
+                (f"{source}:t1", source),
+            )
+        conn.commit()
+        rows = dict(
+            conn.execute("SELECT tournament_id, basis FROM v_tournament_weights").fetchall()
+        )
+        assert rows["mik_moe:t1"] == "cn"  # 原有三映射不变
+        assert rows["limitless:t1"] == "intl_aligned"
+        assert rows["limitless_site:t1"] == "intl_aligned"  # 主站通道同归 EN 对齐
+        assert rows["pokemon_card_jp:t1"] == "jp"
+    finally:
+        conn.close()
+
+
+def test_migration_010_jsonldb_consistent():
+    """jsonldb 内存视图与迁移 010 逐字一致：limitless_site WHEN 行两边都在。"""
+    from ptcgdb.stats import jsonldb
+
+    migration = (
+        Path(__file__).parent.parent
+        / "ptcgdb/migrations/010_basis_limitless_site.sql"
+    ).read_text(encoding="utf-8")
+    needle = "WHEN 'limitless_site' THEN 'intl_aligned'"
+    assert migration.count(needle) == 2  # 两视图各一处
+    assert jsonldb._DDL.count(needle) == 2  # jsonldb 同步（与迁移一致）
+
+
+def test_migration_010_idempotent(tmp_path):
+    db_path, _ = _apply(tmp_path)
+    assert apply_migrations(db_path) == LATEST  # 重复执行不报错

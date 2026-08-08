@@ -233,8 +233,14 @@ def finish_run(
     run_id: str,
     started_at: datetime,
     stats: RunStats,
+    *,
+    source: str | None = None,
 ) -> RunResult:
-    """三清单落盘 + scrape_runs 运行记录（卡牌/赛事 runner 共用）。"""
+    """三清单落盘 + scrape_runs 运行记录（卡牌/赛事 runner 共用）。
+
+    source = scrape_runs.source 列（采集源标识）；None 时保持历史默认 mikmoe.SOURCE
+    （向后兼容：mik 卡牌/赛事 runner 调用点不传）。
+    """
     finished_at = datetime.now(UTC)
     lists_dir = raw_dir / "runs" / run_id
     lists_dir.mkdir(parents=True, exist_ok=True)
@@ -259,7 +265,7 @@ def finish_run(
             session.add(
                 ScrapeRun(
                     run_id=run_id,
-                    source=mikmoe.SOURCE,
+                    source=source or mikmoe.SOURCE,
                     started_at=started_at,
                     finished_at=finished_at,
                     card_count=stats.total,

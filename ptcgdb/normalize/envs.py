@@ -22,6 +22,7 @@ DEFAULT_CALENDAR_PATH = CONFIG_DIR / "tournament_envs.yml"
 SOURCE_REGION: dict[str, str] = {
     "mik_moe": "cn",
     "limitless": "en",
+    "limitless_site": "en",  # 主站 HTML 人工收录通道（task 028），同为 EN 官方系列赛
     "pokemon_card_jp": "ja",
 }
 
