@@ -32,6 +32,7 @@ TOURNAMENTS_COLUMNS = [
     ("is_team", 0),
     ("official_url", 0),
     ("fetched_at", 0),
+    ("env", 0),  # migration 008（ALTER 追加列在末尾）：日期∩日历段推导，未命中 NULL
 ]
 
 DECKS_COLUMNS = [  # 卡组内容实体（同一套 60 张清单全源一行）

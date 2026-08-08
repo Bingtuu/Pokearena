@@ -561,6 +561,7 @@ tournaments(
   format         TEXT,               -- standard / open
   regulation_mark TEXT,              -- 赛制标记区间（GHI…）→ 直连合法性快照判定语境
   format_end     TEXT,               -- 截止系列（CSV10C）
+  env            TEXT,               -- 赛制标记集合（GHI…）：赛事日期∩赛区旋转日历段推导，未命中 NULL（FR-9.1b，migration 008）
   is_qual        BOOLEAN,            -- 预赛场次（统计默认排除，--include-qual 放开）
   is_team        BOOLEAN,            -- 双卡组/团体赛制（统计默认排除，--include-team 放开）
   official_url   TEXT,               -- 官方公告链接（交叉核对）

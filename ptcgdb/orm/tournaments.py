@@ -38,6 +38,7 @@ class Tournament(Base):
     format: Mapped[str | None] = mapped_column(String)  # standard / open
     regulation_mark: Mapped[str | None] = mapped_column(String)  # 赛制标记区间（GHI…）
     format_end: Mapped[str | None] = mapped_column(String)  # 截止系列（CSV10C）
+    env: Mapped[str | None] = mapped_column(String)  # 赛制标记集合（GHI…），日期∩日历段推导
     is_qual: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")  # 预赛场次
     is_team: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")  # 双卡组赛
     official_url: Mapped[str | None] = mapped_column(String)  # 官方公告链接

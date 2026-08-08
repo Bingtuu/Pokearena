@@ -34,6 +34,7 @@ def test_orm_columns_match_prd():
         "format",
         "regulation_mark",
         "format_end",
+        "env",  # FR-9.1b（migration 008）：日期∩日历段推导，未命中 NULL
         "is_qual",
         "is_team",
         "official_url",

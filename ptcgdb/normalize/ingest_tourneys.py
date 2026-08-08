@@ -15,6 +15,9 @@ task 027。口径（PRD FR-9.1/9.2/9.3/9.6 + §7.5 v1.10 续）：
 - 幂等：tournaments/decks merge upsert；deck_cards 按 deck_id 先删后插；
   出战条目按 (deck_id, tournament_id) 先删后插。
 - tier_coef 在解析层已从词表物化（FR-9.6 事实完整性），这里原样落库。
+- env 推导（FR-9.1b）：赛事日期 ∩ 赛区旋转日历段（config/tournament_envs.yml）；
+  未命中 → env=NULL + 记异常（不猜）；落库后以卡组内卡牌最大赛制标记 ∈
+  env.allowed_marks 交叉校验，不符告警不拒收。
 """
 
 from __future__ import annotations
@@ -29,6 +32,7 @@ from sqlalchemy import create_engine, delete, select
 from sqlalchemy.orm import Session
 
 from ptcgdb.migrations import apply_migrations
+from ptcgdb.normalize.envs import SOURCE_REGION, EnvSegment, derive_env, load_calendar
 from ptcgdb.normalize.tournaments import (
     VOCAB_DIR,
     load_division_map,
@@ -162,16 +166,18 @@ def ingest_tourneys(
     vocab_dir = vocab_dir or VOCAB_DIR
     tier_map = load_tier_map(vocab_dir)
     division_map = load_division_map(vocab_dir)
+    env_calendar = load_calendar()
     result = TournamentIngestResult()
 
     apply_migrations(db_path)
     engine = create_engine(f"sqlite:///{db_path}")
     with Session(engine) as session:
-        # cards 解析索引：card_id → (card_type, trainer_subtype)
-        card_index: dict[str, tuple[str, str | None]] = {
-            r[0]: (r[1], r[2])
+        # cards 解析索引：card_id → (card_type, trainer_subtype, regulation_mark)
+        card_index: dict[str, tuple[str, str | None, str | None]] = {
+            r[0]: (r[1], r[2], r[3])
             for r in session.execute(
-                select(Card.card_id, Card.card_type, Card.trainer_subtype)
+                select(Card.card_id, Card.card_type, Card.trainer_subtype,
+                       Card.regulation_mark)
             )
         }
 
@@ -207,11 +213,23 @@ def ingest_tourneys(
                 tier_map=tier_map,
                 division_map=division_map,
             )
+            # env 推导（FR-9.1b）：日期 ∩ 日历段；未命中 → NULL + 记异常，不猜
+            env_segment = derive_env(
+                SOURCE_REGION.get(record.source), record.date, env_calendar
+            )
+            if env_segment is None:
+                result.warnings.append(
+                    f"赛事环境推导未命中（env=NULL，记 monitor 异常）: "
+                    f"{record.tournament_id} date={record.date}"
+                )
+            else:
+                record = record.model_copy(update={"env": env_segment.env})
             appearance_records = _load_appearance_records(
                 base, record.tournament_id, result
             )
             _ingest_one_tournament(
-                engine, record, appearance_records, decks_base, card_index, result
+                engine, record, appearance_records, decks_base, card_index, result,
+                env_segment=env_segment,
             )
     result.warnings.extend(str(w.message) for w in caught)
     engine.dispose()
@@ -223,8 +241,10 @@ def _ingest_one_tournament(
     record: TournamentRecord,
     appearance_records: list[AppearanceRecord],
     decks_base: Path,
-    card_index: dict[str, tuple[str, str | None]],
+    card_index: dict[str, tuple[str, str | None, str | None]],
     result: TournamentIngestResult,
+    *,
+    env_segment: EnvSegment | None = None,
 ) -> None:
     with Session(engine) as session:
         session.merge(Tournament(**record.model_dump()))
@@ -261,6 +281,7 @@ def _ingest_one_tournament(
             rows: list[DeckCard] = []
             seen_null: set[tuple[str, str]] = set()  # (deck_id, raw_name) 去重
             mapped_count = 0
+            mapped_marks: list[str] = []  # 已解析卡的赛制标记（env 交叉校验用）
             for card in cards:
                 info = card_index.get(card.card_id) if card.card_id else None
                 if info is None:
@@ -291,16 +312,26 @@ def _ingest_one_tournament(
                     )
                 else:
                     mapped_count += card.count
+                    if info[2]:
+                        mapped_marks.append(info[2])
                     rows.append(
                         DeckCard(
                             deck_id=card.deck_id,
                             card_id=card.card_id,
                             count=card.count,
                             raw_name=card.raw_name,
-                            stat_scope=derive_stat_scope(*info),
+                            stat_scope=derive_stat_scope(info[0], info[1]),
                         )
                     )
             ratio = mapped_count / total
+            # env 交叉校验（FR-9.1b）：卡组最大赛制标记 ∈ allowed_marks，不符告警不拒收
+            if env_segment is not None and mapped_marks:
+                max_mark = max(mapped_marks)
+                if max_mark not in env_segment.allowed_marks:
+                    result.warnings.append(
+                        f"env 交叉校验告警: {deck_id} 最大赛制标记 {max_mark} "
+                        f"不在 env={env_segment.env} 内（赛事 {record.tournament_id}），不拒收"
+                    )
             archetype_id, archetype_name = parse_deck_variant(data)
             # 内容实体 upsert（deck_code/variant 来自 deck/detail，内容级）
             session.merge(
