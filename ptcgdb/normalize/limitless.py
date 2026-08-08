@@ -12,7 +12,8 @@
 - ptcd 定位失败 → 回退直接用 decklist 自带 name（rule 含 "name_fallback"）；
   基本能量：ptcd 用 "Basic Psychic Energy"、CN name_en 用 "Psychic Energy"（SV 代起
   ptcd 加 Basic 前缀）→ 0 命中且名以 "Basic " 开头时去前缀重试
-  （rule 含 "basic_energy_alias"）。
+  （rule 含 "basic_energy_alias"）；ptcd 变体修饰名（"Boss's Orders (Ghetsis)"）
+  → 0 命中时剥尾部括号修饰重试（rule 含 "paren_strip"，task 028 真实 bug 修复）。
 - 0 候选 → (None, "unmapped")，不猜（FR-9.2）。
 - raw 层只读；pairings 解析（parse_pairings_entry）→ pairings 表 + topcut_slots
   反推（PRD v1.14 §7.5），winner 空串归一 None（平局/未报，不猜）。
@@ -21,6 +22,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -35,6 +37,11 @@ DECKLIST_SECTIONS = ("pokemon", "trainer", "energy")
 
 # 基本能量别名：ptcd SV 代起加 "Basic " 前缀，CN name_en 无此前缀
 BASIC_ENERGY_PREFIX = "Basic "
+
+# 尾部括号修饰（ptcd 变体名，如 "Boss's Orders (Ghetsis)"）：CN name_en 桥多为
+# 无修饰名，精确匹配失败时剥掉修饰再试（task 028 真实 bug：PAL sv2-172 误伤
+# 280 卡组）。只剥一层、仅作 0 候选时的回退，精确命中优先（不猜）。
+PAREN_SUFFIX_RE = re.compile(r"\s*\([^()]*\)\s*$")
 
 
 class PtcdSetMissingError(RuntimeError):
@@ -230,7 +237,8 @@ def map_decklist_card(
     1. ptcd (set, number) 精确定位 → 规范英文名（rule 起点 "ptcd"）；
        定位失败回退 decklist 自带 name（"name_fallback"）；
     2. 英文名 exact match CN name_en；0 命中且以 "Basic " 开头 → 去前缀重试
-       （"basic_energy_alias"）；
+       （"basic_energy_alias"）；仍 0 命中且名尾带括号修饰 → 剥 " (X)" 重试
+       （"paren_strip"，task 028：ptcd 变体名 "Boss's Orders (Ghetsis)" 误伤）；
     3. 候选裁决：唯一 → "unique"；多候选 → env 子集优先（"env"）+ 最新印刷
        （"latest"）；release_date 并列 → card_id 字典序最小者（全链确定性）；
     4. 0 候选 → (None, "unmapped")。
@@ -250,6 +258,14 @@ def map_decklist_card(
         candidates = cn_name_index.get(stripped) or []
         if candidates:
             rules.append("basic_energy_alias")
+    if not candidates:
+        # 尾部括号修饰回退：ptcd "Boss's Orders (Ghetsis)" → CN "Boss's Orders"
+        stripped = PAREN_SUFFIX_RE.sub("", en_name).strip()
+        if stripped and stripped != en_name:
+            retry = cn_name_index.get(stripped) or []
+            if retry:
+                candidates = retry
+                rules.append("paren_strip")
     if not candidates:
         return None, "unmapped"
     if len(candidates) == 1:

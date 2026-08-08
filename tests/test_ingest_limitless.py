@@ -250,6 +250,57 @@ def test_map_unmapped(tmp_path):
     assert rule == "unmapped"
 
 
+# ---- paren_strip 回退层（task 028 真实 bug：ptcd 修饰名走 CN 桥失败）----
+# 真实案例：ptcd PAL sv2-172 name = "Boss's Orders (Ghetsis)"，CN name_en 是无修饰的
+# "Boss's Orders" → 精确匹配失败误伤 280 卡组。剥离尾部括号修饰再试桥。
+
+PAL_172 = {("PAL", "172"): {"name": "Boss's Orders (Ghetsis)", "number": "172"}}
+
+
+def test_map_paren_strip_after_ptcd(tmp_path):
+    _, ptcd_index = load_test_ptcd_index(tmp_path)
+    card_index = {**ptcd_index, **PAL_172}
+    card_id, rule = map_decklist_card(
+        "PAL", "172", "Boss's Orders", card_index, CN_INDEX, ENV_GHI
+    )
+    assert card_id == "CSF-006"  # 剥掉 " (Ghetsis)" 后命中 CN 无修饰名
+    assert rule == "ptcd+paren_strip+unique"
+
+
+def test_map_paren_strip_name_fallback(tmp_path):
+    # raw name 自带括号修饰且 set 不在 ptcd：name_fallback 路径同样剥修饰再试
+    _, ptcd_index = load_test_ptcd_index(tmp_path)
+    card_id, rule = map_decklist_card(
+        "XXX", "999", "Boss's Orders (Ghetsis)", ptcd_index, CN_INDEX, ENV_GHI
+    )
+    assert card_id == "CSF-006"
+    assert rule == "name_fallback+paren_strip+unique"
+
+
+def test_map_no_paren_strip_when_exact_hits(tmp_path):
+    # CN 桥本身有修饰名：精确命中优先，不触发 paren_strip（不误剥）
+    _, ptcd_index = load_test_ptcd_index(tmp_path)
+    cn = {
+        **CN_INDEX,
+        "Boss's Orders (Ghetsis)": [CnCandidate("CSG-007", "H", date(2025, 1, 1))],
+    }
+    card_id, rule = map_decklist_card(
+        "PAL", "172", "Boss's Orders", {**ptcd_index, **PAL_172}, cn, ENV_GHI
+    )
+    assert card_id == "CSG-007"  # 精确命中修饰名本身
+    assert rule == "ptcd+unique"
+
+
+def test_map_paren_strip_still_unmapped(tmp_path):
+    # 剥修饰后仍无候选：照旧 unmapped（Mega 时代 CN 未收录卡不救）
+    _, ptcd_index = load_test_ptcd_index(tmp_path)
+    card_id, rule = map_decklist_card(
+        "XXX", "1", "Future Card (Special)", ptcd_index, CN_INDEX, ENV_GHI
+    )
+    assert card_id is None
+    assert rule == "unmapped"
+
+
 def test_parse_standings_entry_defaults():
     entry = {
         "placing": 5,
