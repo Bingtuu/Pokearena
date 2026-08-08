@@ -92,3 +92,21 @@ class DeckCardRecord(BaseModel):
     raw_name: str  # 源侧原始卡名（保真）
     stat_scope: str = "other"  # 解析段占位，入库段按 cards 表派生（FR-9.3）
     group_key: str | None = None  # 导出冗余列（FR-9.7）：免联 cards_name_group
+
+
+class PairingRecord(BaseModel):
+    """pairings 逐桌对阵解析形状（PRD §7.5 v1.14，task 028）。
+
+    phase 1=瑞士轮 2=淘汰赛；winner 空串在解析段已归一为 None（平局/未报，不猜）。
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    tournament_id: str
+    phase: int
+    round: int
+    table_no: int
+    player1: str  # 源侧选手标识（limitless 用户名）
+    player2: str
+    winner: str | None
+    fetched_at: datetime | None

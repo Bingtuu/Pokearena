@@ -46,7 +46,7 @@ ptcgdb deck-check --file deck.yml [--date --format]  # FR-8 卡组校验（ok �
 ptcgdb legal-seed                               # 快照种子入库（config/legality/）
 ptcgdb legal-apply --proposal p.yml             # 应用赛制变更提案
 ptcgdb legal-errata / rollback                  # L2 勘误导入 / 回滚
-ptcgdb export --out dist/                       # 导出十二件套（七件套 + 赛事四 JSONL）
+ptcgdb export --out dist/                       # 导出十三件套（七件套 + 赛事四 JSONL + pairings.jsonl）
 ptcgdb stats usage|winrate|wws|card <名>        # 三指标统计（裸 stats = 旧对账 overview）
 ptcgdb query "SELECT ..."                       # 只读 ad-hoc SQL（mode=ro，默认 LIMIT 500）
 ptcgdb monitor l0 [--dry-run]                   # L0 新卡增量管线

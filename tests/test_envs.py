@@ -246,6 +246,8 @@ def test_ingest_env_cross_check_warns_not_rejects(tmp_path):
 
 
 def test_ingest_env_migration_user_version_8(tmp_path):
-    """migration 008：env 列落库后 user_version=8。"""
+    """migration 008（env 列）后续迁移顺序执行：user_version = 最新迁移版本。"""
+    from ptcgdb.migrations import available_migrations
+
     db_path = tmp_path / "t.db"
-    assert apply_migrations(db_path) == 8
+    assert apply_migrations(db_path) == available_migrations()[-1][0]

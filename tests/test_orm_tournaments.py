@@ -9,11 +9,11 @@ from datetime import date, datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-from ptcgdb.orm import Base, Deck, DeckAppearance, DeckCard, Tournament
+from ptcgdb.orm import Base, Deck, DeckAppearance, DeckCard, Pairing, Tournament
 
 
 def test_orm_tables_registered():
-    assert {"tournaments", "decks", "deck_appearances", "deck_cards"} <= set(
+    assert {"tournaments", "decks", "deck_appearances", "deck_cards", "pairings"} <= set(
         Base.metadata.tables
     )
 
@@ -80,6 +80,23 @@ def test_orm_columns_match_prd():
         "raw_name",
     ]
     assert DeckCard.__table__.c.card_id.nullable is True
+    assert list(Pairing.__table__.columns.keys()) == [
+        "tournament_id",
+        "phase",
+        "round",
+        "table_no",  # 避 SQLite 关键字 table
+        "player1",
+        "player2",
+        "winner",
+        "fetched_at",
+    ]
+    assert [c.name for c in Pairing.__table__.primary_key] == [
+        "tournament_id",
+        "phase",
+        "round",
+        "table_no",
+    ]
+    assert Pairing.__table__.c.winner.nullable is True  # 平局/未报不猜
 
 
 def test_orm_round_trip(tmp_path):

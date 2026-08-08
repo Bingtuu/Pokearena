@@ -1,16 +1,18 @@
 -- card_drilldown.sql — 单卡逐赛事钻取（PRD FR-9.7 stats card）
 -- 每场赛事一行：携带出战条目数、名次权重携带份额、top-cut 携带数、最佳名次。
 -- 参数：:group_key + 标准窗口/过滤参数（:as_of :date_from :date_to :scope :division
---       :tiers :include_qual :include_team）
+--       :tiers :include_qual :include_team :basis('cn'|'intl_aligned'|'jp'|NULL=全部，v1.14)）
+--       division 过滤语义（v1.14 续）：division IS NULL 的赛事不因 :division 被排除
 WITH eligible AS (
 	SELECT tournament_id, name, tier, date, topcut_slots,
 	       static_weight * pow(0.5, (julianday(:as_of) - julianday(date)) / 90.0) AS w_t
 	FROM v_tournament_weights
 	WHERE date BETWEEN :date_from AND :date_to
-	  AND (:division IS NULL OR division = :division)
+	  AND (:division IS NULL OR division = :division OR division IS NULL)
 	  AND (:include_qual = 1 OR is_qual = 0)
 	  AND (:include_team = 1 OR is_team = 0)
 	  AND (:tiers IS NULL OR INSTR(',' || :tiers || ',', ',' || tier || ',') > 0)
+	  AND (:basis IS NULL OR basis = :basis)
 	  AND static_weight IS NOT NULL
 ),
 app AS (

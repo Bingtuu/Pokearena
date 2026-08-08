@@ -36,6 +36,7 @@ class StatsParams:
     include_qual: bool = False
     include_team: bool = False
     usage_basis: str = "decks"  # decks / copies
+    basis: str | None = "cn"  # 口径标签（v1.14）：cn / intl_aligned / jp / all（all=不过滤）
     min_n: int = 5
     mirror: str = "exclude"  # 无 pairings 表（task 028 后置），仅回显口径标签
     k_a: float = 20.0
@@ -71,6 +72,11 @@ def _connect(db: str | Path | sqlite3.Connection) -> tuple[sqlite3.Connection, b
     return conn, True
 
 
+def _basis_bind(params: StatsParams) -> str | None:
+    """'all'/None → NULL（canonical SQL 的 :basis IS NULL 分支 = 不过滤）。"""
+    return None if params.basis in (None, "all") else params.basis
+
+
 def _binds(params: StatsParams) -> dict[str, Any]:
     return {
         "as_of": params.as_of,
@@ -82,6 +88,7 @@ def _binds(params: StatsParams) -> dict[str, Any]:
         "include_qual": 1 if params.include_qual else 0,
         "include_team": 1 if params.include_team else 0,
         "usage_basis": params.usage_basis,
+        "basis": _basis_bind(params),
         "k_a": params.k_a,
         "k_b": params.k_b,
     }
@@ -100,9 +107,10 @@ def _base_meta(
     n_tournaments = conn.execute(
         "SELECT count(*) FROM v_tournament_weights "
         "WHERE date BETWEEN ? AND ? "
-        "AND (? IS NULL OR division = ?) "
+        "AND (? IS NULL OR division = ? OR division IS NULL) "
         "AND (? = 1 OR is_qual = 0) AND (? = 1 OR is_team = 0) "
         "AND (? IS NULL OR INSTR(',' || ? || ',', ',' || tier || ',') > 0) "
+        "AND (? IS NULL OR basis = ?) "
         "AND static_weight IS NOT NULL "
         "AND (? = 0 OR topcut_slots IS NOT NULL)",
         (
@@ -114,6 +122,8 @@ def _base_meta(
             1 if params.include_team else 0,
             ",".join(params.tiers) if params.tiers else None,
             ",".join(params.tiers) if params.tiers else None,
+            _basis_bind(params),
+            _basis_bind(params),
             1 if require_topcut else 0,
         ),
     ).fetchone()[0]
@@ -126,6 +136,7 @@ def _base_meta(
         "tiers": list(params.tiers) if params.tiers else None,
         "include_qual": params.include_qual,
         "include_team": params.include_team,
+        "basis": params.basis,
         "min_n": params.min_n,
         "n_tournaments": n_tournaments,
         "name_group_rules_hash": meta.get("name_group_rules_hash"),
@@ -177,9 +188,10 @@ def _resolve_layer(conn: sqlite3.Connection, params: StatsParams, layer: str) ->
         "JOIN v_tournament_weights t ON t.tournament_id = a.tournament_id "
         "WHERE a.record_wins IS NOT NULL "
         "AND t.date BETWEEN ? AND ? "
-        "AND (? IS NULL OR t.division = ?) "
+        "AND (? IS NULL OR t.division = ? OR t.division IS NULL) "
         "AND (? = 1 OR t.is_qual = 0) AND (? = 1 OR t.is_team = 0) "
         "AND (? IS NULL OR INSTR(',' || ? || ',', ',' || t.tier || ',') > 0) "
+        "AND (? IS NULL OR t.basis = ?) "
         "AND t.static_weight IS NOT NULL LIMIT 1",
         (
             params.date_from,
@@ -190,6 +202,8 @@ def _resolve_layer(conn: sqlite3.Connection, params: StatsParams, layer: str) ->
             1 if params.include_team else 0,
             ",".join(params.tiers) if params.tiers else None,
             ",".join(params.tiers) if params.tiers else None,
+            _basis_bind(params),
+            _basis_bind(params),
         ),
     ).fetchone()
     return "a" if row else "b"

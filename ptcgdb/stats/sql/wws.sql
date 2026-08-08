@@ -6,16 +6,18 @@
 --                       转化率 q0 = Σ W_t·(slots/participants) / Σ W_t 收缩（非 0.5）；
 --                       T_w/U_w/q0 只用 topcut_slots 已知的赛事（eligible_b 子范围）。
 -- 参数：:as_of :date_from :date_to :scope :division :tiers :include_qual :include_team
---       :layer('a'|'b') :k_a :k_b
+--       :layer('a'|'b') :k_a :k_b :basis('cn'|'intl_aligned'|'jp'|NULL=全部，v1.14)
+--       division 过滤语义（v1.14 续）：division IS NULL 的赛事不因 :division 被排除
 WITH eligible AS (  -- 全口径赛事范围（WUR 因子与出战条目归一化用）
 	SELECT tournament_id, topcut_slots, participant_count,
 	       static_weight * pow(0.5, (julianday(:as_of) - julianday(date)) / 90.0) AS w_t
 	FROM v_tournament_weights
 	WHERE date BETWEEN :date_from AND :date_to
-	  AND (:division IS NULL OR division = :division)
+	  AND (:division IS NULL OR division = :division OR division IS NULL)
 	  AND (:include_qual = 1 OR is_qual = 0)
 	  AND (:include_team = 1 OR is_team = 0)
 	  AND (:tiers IS NULL OR INSTR(',' || :tiers || ',', ',' || tier || ',') > 0)
+	  AND (:basis IS NULL OR basis = :basis)
 	  AND static_weight IS NOT NULL
 ),
 eligible_b AS (  -- B 层子范围：topcut 名额已知的赛事

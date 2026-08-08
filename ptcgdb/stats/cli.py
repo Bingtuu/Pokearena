@@ -41,10 +41,17 @@ ScopeOpt = Annotated[
     str, typer.Option("--scope", help="统计范围（逗号分隔 pokemon,supporter,stadium）")
 ]
 TierOpt = Annotated[str | None, typer.Option("--tier", help="tier 过滤（逗号分隔）")]
-DivisionOpt = Annotated[str, typer.Option("--division", help="组别（空串=全部）")]
+DivisionOpt = Annotated[
+    str,
+    typer.Option("--division", help="组别（空串=全部）；division 未知（NULL）的赛事不被排除"),
+]
 MinNOpt = Annotated[int, typer.Option("--min-n", help="low_confidence 样本量阈值")]
 IncludeQualOpt = Annotated[bool, typer.Option("--include-qual", help="计入预赛场次")]
 IncludeTeamOpt = Annotated[bool, typer.Option("--include-team", help="计入团队赛场次")]
+BasisOpt = Annotated[
+    str,
+    typer.Option("--basis", help="口径标签 cn|intl_aligned|jp|all（v1.14，默认 cn）"),
+]
 
 
 def _params(
@@ -164,6 +171,7 @@ def usage_cmd(
     tier: TierOpt = None,
     division: DivisionOpt = "master",
     usage_basis: Annotated[str, typer.Option("--usage-basis", help="decks|copies")] = "decks",
+    basis: BasisOpt = "cn",
     min_n: MinNOpt = 5,
     include_qual: IncludeQualOpt = False,
     include_team: IncludeTeamOpt = False,
@@ -173,7 +181,7 @@ def usage_cmd(
     """加权出场率 WUR（canonical: wur.sql）。"""
     params = _params(
         as_of, date_from, date_to, window_days, scope, tier, division, min_n,
-        include_qual, include_team, usage_basis=usage_basis,
+        include_qual, include_team, usage_basis=usage_basis, basis=basis,
     )
     stats, meta = usage(db_path, params)
     _emit_stats(meta, stats, fmt)
@@ -192,6 +200,7 @@ def winrate_cmd(
     mirror: Annotated[
         str, typer.Option("--mirror", help="exclude|include（口径标签）")
     ] = "exclude",
+    basis: BasisOpt = "cn",
     min_n: MinNOpt = 5,
     include_qual: IncludeQualOpt = False,
     include_team: IncludeTeamOpt = False,
@@ -201,7 +210,7 @@ def winrate_cmd(
     """胜率 WR（canonical: winrate_a/b.sql；A 层真实战绩 / B 层 top-cut 转化代理）。"""
     params = _params(
         as_of, date_from, date_to, window_days, scope, tier, division, min_n,
-        include_qual, include_team, mirror=mirror,
+        include_qual, include_team, mirror=mirror, basis=basis,
     )
     stats, meta = winrate(db_path, params, layer=layer)
     _emit_stats(meta, stats, fmt)
@@ -219,6 +228,7 @@ def wws_cmd(
     layer: Annotated[str, typer.Option("--layer", help="auto|a|b")] = "auto",
     k_a: Annotated[float, typer.Option("--k-a", help="A 层等效局数收缩")] = 20.0,
     k_b: Annotated[float, typer.Option("--k-b", help="B 层等效卡组收缩")] = 10.0,
+    basis: BasisOpt = "cn",
     min_n: MinNOpt = 5,
     include_qual: IncludeQualOpt = False,
     include_team: IncludeTeamOpt = False,
@@ -228,7 +238,7 @@ def wws_cmd(
     """加权胜率 WWS = WUR × 贝叶斯收缩胜率（canonical: wws.sql）。"""
     params = _params(
         as_of, date_from, date_to, window_days, scope, tier, division, min_n,
-        include_qual, include_team, k_a=k_a, k_b=k_b,
+        include_qual, include_team, k_a=k_a, k_b=k_b, basis=basis,
     )
     stats, meta = wws(db_path, params, layer=layer)
     _emit_stats(meta, stats, fmt)
@@ -244,6 +254,7 @@ def card_cmd(
     scope: ScopeOpt = "pokemon,supporter,stadium",
     tier: TierOpt = None,
     division: DivisionOpt = "master",
+    basis: BasisOpt = "cn",
     include_qual: IncludeQualOpt = False,
     include_team: IncludeTeamOpt = False,
     fmt: FmtOpt = "table",
@@ -252,7 +263,7 @@ def card_cmd(
     """单卡逐赛事钻取（canonical: card_drilldown.sql）。"""
     params = _params(
         as_of, date_from, date_to, window_days, scope, tier, division, 5,
-        include_qual, include_team,
+        include_qual, include_team, basis=basis,
     )
     rows, meta = card_drilldown(db_path, name, params)
     _emit(meta, [r.model_dump(mode="json") for r in rows], fmt)

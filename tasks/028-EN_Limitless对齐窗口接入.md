@@ -29,10 +29,10 @@
 
 - [x] 环境落库：migration user_version 8 加 `tournaments.env` 列；推导器 = 赛事日期 ∩ `config/tournament_envs.yml` 日历段（种子已建，含 EN/JP 官方公告 source_url；CN 复用合法性快照）；未命中 → NULL + monitor 异常；落库后卡组最大赛制标记交叉校验（不符告警不拒收）——2026-08-07 完成：`normalize/envs.py` + ingest 集成，真实库 user_version=8（26 赛：10 场 GHI / 16 场历史 NULL，J 标记告警 2 例），tests/test_envs.py 9 用例
 - [x] 采集器：Limitless API（赛事列表按窗口 + 名称正则归类赛事等级 → standings/decklist → pairings），限速 ≥1s/请求、断点续传、append-only raw——2026-08-07 完成：`scrapers/limitless.py`（三端点薄封装，实测校准裸数组形态，6.5s/请求对匿名 50req/5min）+ `limitless_runner.py`（窗口默认 = `envs.alignment_window()` = EN 同 CN 标记段 2025-04-11~2026-04-09，取舍决策逐场落清单）+ http.get_json + CLI `scrape limitless`；tests/test_limitless.py 28 用例；真实采集留验收段
-- [ ] 赛事等级归类：赛事名正则（Regional/International/Special/League Cup）+ 人数门 ≥32 + Master 组过滤；tier 词表 `config/vocabularies/tournament_tiers.yml` 扩 intl 档位（开放词表）
-- [ ] decklist → 简中映射管线（ptcgoCode join ptcd → name_en 桥），mapping_status 分档入库（复用赛事四表，source='limitless'）
+- [x] 赛事等级归类：赛事名正则（Regional/International/Special/League Cup）+ 人数门 ≥32 + Master 组过滤；tier 词表 `config/vocabularies/tournament_tiers.yml` 扩 intl 档位（开放词表）——2026-08-07 完成：`scrapers/limitless.py` classify_tournament（MIN_PLAYERS=32）+ 词表四档（regional=1.5 有 FR-9.4 依据；international=4.0/special=1.5/league_cup=1.0 为推断值，注释标注待确认）
+- [x] decklist → 简中映射管线（ptcgoCode join ptcd → name_en 桥），mapping_status 分档入库（复用赛事四表，source='limitless'）——2026-08-07 完成：`normalize/limitless.py`（ptcd 索引 + map_decklist_card 映射链：ptcd 定位/name_fallback → name_en 桥 → Basic 能量别名 → 多候选 env 优先+最新印刷+字典序，全链确定性）+ `ingest_limitless.py`（内容哈希 deck_id 天然跨赛事去重、A 层 record 三列、60 张门、env 推导+交叉校验、幂等）+ CLI `ingest-limitless`；12 用例
 - [ ] 质量门与对账：60 张质量门 + 与 Limitless 主站 archetype 分布对账；映射率分布报告
-- [ ] 统计层：canonical SQL 口径标签加 intl_aligned；pairings 落库（WR A 层数据，Phase 4 前置资产）
+- [x] 统计层：canonical SQL 口径标签加 intl_aligned；pairings 落库（WR A 层数据，Phase 4 前置资产）——2026-08-07 完成：migration 009（user_version=9）pairings 表 + 两物化视图加 basis 列（source→cn/intl_aligned/jp）；五 canonical SQL 加 `:basis` 参数（默认 cn 不混同）+ division 未知不排他语义；pairings 落库幂等 + topcut_slots 由 phase=2 去重选手数反推；CLI/SDK `--basis` + meta 回显；导出十三件套（+pairings.jsonl）；PRD 升 v1.14；tests/test_stats_basis.py 等 14 新用例
 - [ ] 验收：窗口采集报告 + 测试绿 + ruff + STATUS/CHANGELOG/PRD 同步
 
 ## 验收标准

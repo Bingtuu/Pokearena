@@ -19,8 +19,12 @@ mik 管线（ingest_tourneys.py，FR-9.1/9.2/9.3/9.6）：
 - tier：classify_tournament(name, players) 重判 → 词表物化 tier_coef
   （FR-9.6 事实完整性）；未命中 → tier/tier_coef None + warning（不猜）。
 - 幂等：tournaments/decks merge upsert；deck_cards 按 deck_id 先删后插；
-  出战条目按 (deck_id, tournament_id) 先删后插（同 placing 碰撞后写覆盖）。
-- pairings 解析（topcut_slots 等）留给后续步骤。
+  出战条目按 (deck_id, tournament_id) 先删后插（同 placing 碰撞后写覆盖）；
+  pairings 按 tournament_id 先删后插（PK 同键后写覆盖）。
+- pairings 落库（PRD v1.14 §7.5）：扫 limitless/tournaments/pairings/{id}.json，
+  无 pairings raw 的赛事不报错（采集层可能只抓 standings）；落库后反推
+  topcut_slots = phase=2 的 (player1 并 player2) 去重选手数；phase=2 无数据
+  → 不动（保持 NULL，不猜）。
 """
 
 from __future__ import annotations
@@ -32,7 +36,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import create_engine, delete, select
+from sqlalchemy import create_engine, delete, select, update
 from sqlalchemy.orm import Session
 
 from ptcgdb.migrations import apply_migrations
@@ -44,10 +48,11 @@ from ptcgdb.normalize.limitless import (
     StandingEntry,
     load_ptcd_index,
     map_decklist_card,
+    parse_pairings_entry,
     parse_standings_entry,
 )
 from ptcgdb.normalize.tournaments import VOCAB_DIR, load_tier_map
-from ptcgdb.orm import Card, Deck, DeckAppearance, DeckCard, Set, Tournament
+from ptcgdb.orm import Card, Deck, DeckAppearance, DeckCard, Pairing, Set, Tournament
 from ptcgdb.scrapers.limitless import (
     RAW_SUBDIR,
     SOURCE,
@@ -67,6 +72,7 @@ class LimitlessIngestResult:
     decks: int = 0  # 内容实体行
     appearances: int = 0  # 出战条目行
     deck_cards: int = 0
+    pairings: int = 0  # 逐桌对阵行（PRD v1.14）
     mapping_rules: dict[str, int] = field(default_factory=dict)  # 映射决策 rule → 次数
     blocked: list[dict[str, Any]] = field(default_factory=list)  # 60 张门
     unknown_cards: list[dict[str, Any]] = field(default_factory=list)  # card_id 未解析
@@ -170,9 +176,14 @@ def ingest_limitless(
                 if doc is None:
                     result.warnings.append(f"raw 缺失或 hash 无效，跳过: {path}")
                     continue
+                # pairings 可缺（采集层可能只抓 standings），有则随本场落库
+                pairings_file = base / "pairings" / f"{path.stem}.json"
+                pairings_doc = read_raw(pairings_file) if pairings_file.is_file() else None
+                if pairings_file.is_file() and pairings_doc is None:
+                    result.warnings.append(f"raw 缺失或 hash 无效，跳过: {pairings_file}")
                 _ingest_one_tournament(
-                    engine, path.stem, doc, list_index, tier_map, env_calendar,
-                    cn_name_index, card_index, ptcd_index, result,
+                    engine, path.stem, doc, pairings_doc, list_index, tier_map,
+                    env_calendar, cn_name_index, card_index, ptcd_index, result,
                 )
         result.warnings.extend(str(w.message) for w in caught)
     finally:
@@ -184,6 +195,7 @@ def _ingest_one_tournament(
     engine: Any,
     tid: str,
     doc: dict[str, Any],
+    pairings_doc: dict[str, Any] | None,
     list_index: dict[str, dict[str, Any]],
     tier_map: dict[str, tuple[str, float]],
     env_calendar: dict[str, Any],
@@ -234,7 +246,7 @@ def _ingest_one_tournament(
                 date=day,
                 location=None,
                 participant_count=players,
-                topcut_slots=None,  # pairings 落库步骤再补
+                topcut_slots=None,  # 有 pairings 时本函数尾部由 phase=2 反推覆盖
                 format="standard",
                 regulation_mark=None,
                 format_end=None,
@@ -260,7 +272,49 @@ def _ingest_one_tournament(
                 session, deck_id, entries, tournament_id, fetched_at, env_segment,
                 env_marks, cn_name_index, card_index, ptcd_index, result,
             )
+        if pairings_doc is not None:
+            _ingest_pairings(session, tournament_id, pairings_doc, result)
         session.commit()
+
+
+def _ingest_pairings(
+    session: Session,
+    tournament_id: str,
+    doc: dict[str, Any],
+    result: LimitlessIngestResult,
+) -> None:
+    """pairings 落库 + topcut_slots 反推（PRD v1.14 §7.5）。
+
+    幂等：按 tournament_id 先删后插（PK 同键后写覆盖）。topcut_slots =
+    phase=2 的 (player1 并 player2) 去重选手数；phase=2 无数据 → 不动
+    （保持 NULL，不猜）。
+    """
+    fetched_at = _fetched_at(doc)
+    by_key: dict[tuple[int, int, int], Any] = {}  # PK 去重（同键后写覆盖）
+    for entry in doc.get("data") or []:
+        if not isinstance(entry, dict):
+            continue
+        record = parse_pairings_entry(
+            entry, tournament_id=tournament_id, fetched_at=fetched_at
+        )
+        if record is None:
+            result.warnings.append(
+                f"pairings 条目字段缺失或不可解析，跳过: {tournament_id} entry={entry!r}"
+            )
+            continue
+        by_key[(record.phase, record.round, record.table_no)] = record
+    session.execute(delete(Pairing).where(Pairing.tournament_id == tournament_id))
+    session.add_all([Pairing(**r.model_dump()) for r in by_key.values()])
+    result.pairings += len(by_key)
+    phase2_players = {
+        p for r in by_key.values() if r.phase == 2 for p in (r.player1, r.player2)
+    }
+    if phase2_players:
+        session.execute(
+            update(Tournament)
+            .where(Tournament.tournament_id == tournament_id)
+            .values(topcut_slots=len(phase2_players))
+        )
 
 
 def _ingest_one_deck(

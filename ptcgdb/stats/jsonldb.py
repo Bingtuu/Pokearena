@@ -38,14 +38,18 @@ CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);
 CREATE VIEW v_tournament_weights AS
 SELECT tournament_id, name, tier, tier_coef, division, date,
        participant_count, topcut_slots, is_qual, is_team,
-       tier_coef * log10(participant_count) AS static_weight
+       tier_coef * log10(participant_count) AS static_weight,
+       CASE source WHEN 'mik_moe' THEN 'cn' WHEN 'limitless' THEN 'intl_aligned'
+                   WHEN 'pokemon_card_jp' THEN 'jp' ELSE source END AS basis
 FROM tournaments;
 
 CREATE VIEW v_stat_deck_cards AS
 SELECT a.tournament_id, a.deck_id, a.rank, a.points,
        a.record_wins, a.record_losses, a.record_ties,
        dc.card_id, dc.count, dc.raw_name, dc.stat_scope,
-       cng.group_key
+       cng.group_key,
+       CASE a.source WHEN 'mik_moe' THEN 'cn' WHEN 'limitless' THEN 'intl_aligned'
+                     WHEN 'pokemon_card_jp' THEN 'jp' ELSE a.source END AS basis
 FROM deck_cards dc
 JOIN decks d ON d.deck_id = dc.deck_id AND d.mapping_status = 'full'
 JOIN deck_appearances a ON a.deck_id = dc.deck_id

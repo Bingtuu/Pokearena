@@ -689,7 +689,8 @@ def ingest_limitless_cmd(
     result = ingest_limitless(raw_dir, db_path)
     typer.echo(
         f"tournaments={result.tournaments} decks={result.decks} appearances={result.appearances} "
-        f"deck_cards={result.deck_cards} blocked={len(result.blocked)} "
+        f"deck_cards={result.deck_cards} pairings={result.pairings} "
+        f"blocked={len(result.blocked)} "
         f"unknown_cards={len(result.unknown_cards)} warnings={len(result.warnings)}"
     )
     typer.echo(f"映射决策分布: {dict(sorted(result.mapping_rules.items()))}")

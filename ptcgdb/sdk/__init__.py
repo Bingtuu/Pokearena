@@ -132,7 +132,7 @@ class CardDatabase(ABC):
     @abstractmethod
     def stats_usage(self, **kwargs: Any) -> StatsResult:
         """WUR 加权出场率。参数见 StatsParams（as_of/date_from/date_to/window_days/
-        scope/division/tiers/include_qual/include_team/usage_basis/min_n）。"""
+        scope/division/tiers/include_qual/include_team/usage_basis/basis/min_n）。"""
         ...
 
     @abstractmethod

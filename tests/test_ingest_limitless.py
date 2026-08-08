@@ -27,7 +27,7 @@ from ptcgdb.normalize.limitless import (
     map_decklist_card,
     parse_standings_entry,
 )
-from ptcgdb.orm import Card, Deck, DeckAppearance, DeckCard, Set, Tournament
+from ptcgdb.orm import Card, Deck, DeckAppearance, DeckCard, Pairing, Set, Tournament
 from ptcgdb.scrapers.raw_store import write_raw
 
 NOW = datetime(2026, 8, 7, 12, 0, 0)
@@ -104,13 +104,16 @@ def make_standing(placing, player, record, deck, decklist):
     }
 
 
-def write_limitless_raw(raw_dir, list_entries=None, standings=None):
+def write_limitless_raw(raw_dir, list_entries=None, standings=None, pairings=None):
     base = raw_dir / "limitless" / "tournaments"
     if list_entries is not None:
         write_raw(base / "list" / "page-0001.json", {"data": list_entries},
                   source="limitless")
     for tid, entries in (standings or {}).items():
         write_raw(base / "standings" / f"{tid}.json", {"data": entries},
+                  source="limitless")
+    for tid, entries in (pairings or {}).items():
+        write_raw(base / "pairings" / f"{tid}.json", {"data": entries},
                   source="limitless")
 
 
@@ -289,6 +292,16 @@ LIST_A = [{
     "date": "2026-03-15T02:10:00.000Z", "format": "STANDARD",
     "id": T_A, "players": 850, "organizerId": "org-1",
 }]
+PAIRINGS_A = [
+    {"round": 1, "phase": 1, "table": 1, "winner": "alice",
+     "player1": "alice", "player2": "bob"},
+    {"round": 1, "phase": 1, "table": 2, "winner": "",  # 平局空串 → winner=None（不猜）
+     "player1": "carol", "player2": "dave"},
+    {"round": 1, "phase": 2, "table": 1, "winner": "alice",
+     "player1": "alice", "player2": "carol"},
+    {"round": 2, "phase": 2, "table": 1, "winner": "alice",
+     "player1": "alice", "player2": "bob"},
+]  # phase=2 去重选手 {alice, carol, bob} → topcut_slots=3
 STANDINGS_A = [
     make_standing(1, "alice", {"wins": 9, "losses": 1, "ties": 0},
                   {"id": "arch-1", "name": "Slowpoke Control", "icons": []}, DECK_A),
@@ -304,7 +317,10 @@ STANDINGS_A = [
 def build_full_fixture(tmp_path):
     raw_dir, db_path = tmp_path / "raw", tmp_path / "t.db"
     write_ptcd_raw(raw_dir)
-    write_limitless_raw(raw_dir, list_entries=LIST_A, standings={T_A: STANDINGS_A})
+    write_limitless_raw(
+        raw_dir, list_entries=LIST_A, standings={T_A: STANDINGS_A},
+        pairings={T_A: PAIRINGS_A},
+    )
     build_db(db_path)
     return raw_dir, db_path
 
@@ -329,7 +345,8 @@ def test_ingest_full_flow(tmp_path):
     assert tour.env == "GHI"  # 2026-03-15 命中 EN G/H/I 段
     assert tour.participant_count == 850
     assert tour.format == "standard"
-    assert tour.division is None and tour.topcut_slots is None
+    assert tour.division is None
+    assert tour.topcut_slots == 3  # pairings phase=2 去重选手 {alice,carol,bob} 反推
     assert tour.official_url == f"https://limitlesstcg.com/tournaments/{T_A}"
 
     deck_a_id = make_deck_id(DECK_A)
@@ -370,6 +387,18 @@ def test_ingest_full_flow(tmp_path):
     assert apps["carol"].rank == 3
     assert "dave" not in apps  # 60 张门拦截，出战条目不落
 
+    # pairings 落库：平局空串 → winner None；PK(tournament_id,phase,round,table_no)
+    assert result.pairings == 4
+    rows_p = {
+        (p.phase, p.round, p.table_no): p
+        for p in query_all(db_path, Pairing)
+        if p.tournament_id == f"limitless:{T_A}"
+    }
+    assert len(rows_p) == 4
+    assert rows_p[(1, 1, 2)].winner is None  # 平局（空串归一，不猜）
+    assert rows_p[(1, 1, 1)].winner == "alice"
+    assert rows_p[(2, 1, 1)].player2 == "carol"  # phase=2 淘汰赛
+
     # 警告：合并 count + env 交叉校验（J 标不在 GHI 内，不拒收）
     assert any("合并 count" in w for w in result.warnings)
     assert any("交叉校验告警" in w and "J" in w for w in result.warnings)
@@ -388,16 +417,20 @@ def test_ingest_idempotent(tmp_path):
     raw_dir, db_path = build_full_fixture(tmp_path)
     result1 = ingest_limitless(raw_dir, db_path)
     counts1 = {m.__tablename__: len(query_all(db_path, m))
-               for m in (Tournament, Deck, DeckAppearance, DeckCard)}
+               for m in (Tournament, Deck, DeckAppearance, DeckCard, Pairing)}
     result2 = ingest_limitless(raw_dir, db_path)
     counts2 = {m.__tablename__: len(query_all(db_path, m))
-               for m in (Tournament, Deck, DeckAppearance, DeckCard)}
+               for m in (Tournament, Deck, DeckAppearance, DeckCard, Pairing)}
     assert counts1 == counts2
     assert result2.tournaments == result1.tournaments
     assert result2.decks == result1.decks
     assert result2.appearances == result1.appearances
     assert result2.deck_cards == result1.deck_cards
+    assert result2.pairings == result1.pairings == 4
     assert result2.mapping_rules == result1.mapping_rules
+    # topcut_slots 反推幂等：重跑后仍 = 3（merge 置 NULL 后同轮反推覆盖）
+    tour = query_all(db_path, Tournament)[0]
+    assert tour.topcut_slots == 3
 
 
 def test_ingest_missing_list_entry_minimal(tmp_path):
@@ -409,10 +442,12 @@ def test_ingest_missing_list_entry_minimal(tmp_path):
     build_db(db_path)
     result = ingest_limitless(raw_dir, db_path)
     assert result.tournaments == 1
+    assert result.pairings == 0  # 无 pairings raw：不报错（采集层可能只抓 standings）
     tour = query_all(db_path, Tournament)[0]
     assert tour.tournament_id == f"limitless:{T_B}"
     assert tour.tier is None and tour.tier_coef is None
     assert tour.date is None and tour.env is None and tour.participant_count is None
+    assert tour.topcut_slots is None  # 无 pairings → 不反推，保持 NULL 不猜
     assert any("缺 list 条目" in w for w in result.warnings)
     assert any("tier 归类未命中" in w for w in result.warnings)
     assert any("环境推导未命中" in w for w in result.warnings)
@@ -430,5 +465,6 @@ def test_cli_ingest_limitless(tmp_path):
     assert "tournaments=1" in result.output
     assert "decks=2" in result.output
     assert "appearances=3" in result.output
+    assert "pairings=4" in result.output
     assert "blocked=1" in result.output
     assert "映射决策分布" in result.output

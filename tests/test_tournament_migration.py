@@ -67,6 +67,17 @@ DECK_CARDS_COLUMNS = [
     ("stat_scope", 1),
 ]
 
+PAIRINGS_COLUMNS = [  # migration 009（PRD v1.14 §7.5）：逐桌对阵
+    ("tournament_id", 1),
+    ("phase", 1),
+    ("round", 1),
+    ("table_no", 1),
+    ("player1", 1),
+    ("player2", 1),
+    ("winner", 0),  # NULL=平局或未报（不猜）
+    ("fetched_at", 0),
+]
+
 
 def _columns(conn, table):
     """PRAGMA table_info → [(name, notnull)]，按定义顺序。"""
@@ -193,3 +204,49 @@ def test_migration_005_idempotent_and_null_card_id(tmp_path):
         ).fetchone()[0] == 2
     finally:
         conn.close()
+
+
+# ---- migration 009：pairings 表 + 视图 basis 口径列（PRD v1.14）----
+
+
+def test_migration_009_pairings_columns_and_pk(tmp_path):
+    db_path, _ = _apply(tmp_path)
+    conn = sqlite3.connect(db_path)
+    try:
+        assert _columns(conn, "pairings") == PAIRINGS_COLUMNS
+        pk = {r[1] for r in conn.execute("PRAGMA table_info(pairings)") if r[5]}
+        assert pk == {"tournament_id", "phase", "round", "table_no"}
+        fks = {(r[2], r[3]) for r in conn.execute("PRAGMA foreign_key_list(pairings)")}
+        assert ("tournaments", "tournament_id") in fks
+    finally:
+        conn.close()
+
+
+def test_migration_009_views_have_basis_column(tmp_path):
+    db_path, _ = _apply(tmp_path)
+    conn = sqlite3.connect(db_path)
+    try:
+        for view in ("v_stat_deck_cards", "v_tournament_weights"):
+            cols = [r[1] for r in conn.execute(f"PRAGMA table_info({view})")]
+            assert cols[-1] == "basis"  # 006 定义逐字保留，basis 追加在末列
+        # source→basis 映射真值：mik_moe→cn / limitless→intl_aligned / pokemon_card_jp→jp
+        for source in ("mik_moe", "limitless", "pokemon_card_jp"):
+            conn.execute(
+                "INSERT INTO tournaments (tournament_id, source, name, tier_coef, "
+                "participant_count) VALUES (?, ?, '测试赛', 1.0, 100)",
+                (f"{source}:t1", source),
+            )
+        conn.commit()
+        rows = dict(
+            conn.execute("SELECT tournament_id, basis FROM v_tournament_weights").fetchall()
+        )
+        assert rows["mik_moe:t1"] == "cn"
+        assert rows["limitless:t1"] == "intl_aligned"
+        assert rows["pokemon_card_jp:t1"] == "jp"
+    finally:
+        conn.close()
+
+
+def test_migration_009_idempotent(tmp_path):
+    db_path, _ = _apply(tmp_path)
+    assert apply_migrations(db_path) == LATEST  # DROP/CREATE 重复执行不报错

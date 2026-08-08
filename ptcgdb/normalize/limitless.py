@@ -14,16 +14,19 @@
   ptcd 加 Basic 前缀）→ 0 命中且名以 "Basic " 开头时去前缀重试
   （rule 含 "basic_energy_alias"）。
 - 0 候选 → (None, "unmapped")，不猜（FR-9.2）。
-- raw 层只读；pairings 解析留给后续步骤（topcut_slots 落库时再做）。
+- raw 层只读；pairings 解析（parse_pairings_entry）→ pairings 表 + topcut_slots
+  反推（PRD v1.14 §7.5），winner 空串归一 None（平局/未报，不猜）。
 """
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any, NamedTuple
+
+from ptcgdb.schemas.tournaments import PairingRecord
 
 PTCD_SUBDIR = "pokemon-tcg-data"
 
@@ -129,9 +132,38 @@ def parse_standings_entry(entry: dict[str, Any]) -> StandingEntry:
     )
 
 
+def parse_pairings_entry(
+    entry: dict[str, Any], *, tournament_id: str, fetched_at: datetime | None
+) -> PairingRecord | None:
+    """Limitless pairings 条目 → PairingRecord（task 028，PRD §7.5 v1.14）。
+
+    原始形态 {"round":1,"phase":1,"table":1,"winner":"...","player1":"...","player2":"..."}：
+    - table → table_no（避 SQLite 关键字）；phase 1=瑞士轮 2=淘汰赛；
+    - winner 空串/None → None（平局或未报，不猜）；
+    - round/phase/table 不可解析或 player1/player2 缺失 → None（调用方记 warning
+      跳过，不猜）。
+    """
+    round_ = _to_int(entry.get("round"))
+    phase = _to_int(entry.get("phase"))
+    table_no = _to_int(entry.get("table"))
+    player1 = entry.get("player1")
+    player2 = entry.get("player2")
+    if round_ is None or phase is None or table_no is None or not player1 or not player2:
+        return None
+    winner = entry.get("winner") or None  # 空串 = 平局/未报 → None（不猜）
+    return PairingRecord(
+        tournament_id=tournament_id,
+        phase=phase,
+        round=round_,
+        table_no=table_no,
+        player1=str(player1),
+        player2=str(player2),
+        winner=str(winner) if winner else None,
+        fetched_at=fetched_at,
+    )
+
+
 # ---- ptcd 索引（EN 卡静态源，PTCGO set code + number → 规范英文名）----
-
-
 def load_ptcd_index(
     raw_dir: str | Path,
 ) -> tuple[dict[str, str], dict[tuple[str, str], dict[str, Any]]]:

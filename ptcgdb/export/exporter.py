@@ -1,8 +1,10 @@
-"""导出七件套（task 010，PRD FR-7）。
+"""导出十三件套（task 010 起，PRD FR-7，只加不删）。
 
 dist/ 布局：manifest.json / cards.jsonl / sets.jsonl / relations.jsonl /
-legality.json / ptcg-cn.db / checksums.sha256 / schema.md。
-序列化一律经 Pydantic 导出模型（schemas/models.py），与 SDK 返回形状同源。
+legality.json / tournaments.jsonl / decks.jsonl / deck_appearances.jsonl /
+deck_cards.jsonl / pairings.jsonl（v1.14 追加）/ ptcg-cn.db / checksums.sha256 / schema.md。
+序列化一律经 Pydantic 导出模型（schemas/models.py + schemas/tournaments.py），
+与 SDK 返回形状同源。
 """
 
 from __future__ import annotations
@@ -29,6 +31,7 @@ from ptcgdb.orm import (
     LegalitySnapshot,
     Meta,
     NameGroup,
+    Pairing,
     Set,
     Tournament,
 )
@@ -36,7 +39,12 @@ from ptcgdb.schemas.models import Card as CardSchema
 from ptcgdb.schemas.models import ErrataRecord as ErrataSchema
 from ptcgdb.schemas.models import LegalitySnapshot as SnapshotSchema
 from ptcgdb.schemas.models import Set as SetSchema
-from ptcgdb.schemas.tournaments import AppearanceRecord, DeckCardRecord, DeckRecord
+from ptcgdb.schemas.tournaments import (
+    AppearanceRecord,
+    DeckCardRecord,
+    DeckRecord,
+    PairingRecord,
+)
 from ptcgdb.schemas.tournaments import TournamentRecord as TournamentSchema
 from ptcgdb.stats.engine import SQL_DIR
 
@@ -50,6 +58,7 @@ EXPORT_FILES = [
     "decks.jsonl",
     "deck_appearances.jsonl",
     "deck_cards.jsonl",
+    "pairings.jsonl",
     "ptcg-cn.db",
     "checksums.sha256",
     "schema.md",
@@ -186,6 +195,7 @@ def export_all(db_path: Path, out_dir: Path) -> dict:
             ).model_dump(mode="json")
             for r in session.scalars(select(DeckCard)).all()
         ]
+        pairings = [_dump(PairingRecord, p) for p in session.scalars(select(Pairing)).all()]
     engine.dispose()
 
     _write_jsonl(out_dir / "cards.jsonl", cards)
@@ -195,6 +205,7 @@ def export_all(db_path: Path, out_dir: Path) -> dict:
     _write_jsonl(out_dir / "decks.jsonl", decks)
     _write_jsonl(out_dir / "deck_appearances.jsonl", appearances)
     _write_jsonl(out_dir / "deck_cards.jsonl", deck_cards)
+    _write_jsonl(out_dir / "pairings.jsonl", pairings)
 
     built_at = datetime.now(UTC).isoformat()
     schema_version = meta.get("schema_version", "1.0.0")
@@ -229,6 +240,7 @@ def export_all(db_path: Path, out_dir: Path) -> dict:
             "decks": len(decks),
             "deck_appearances": len(appearances),
             "deck_cards": len(deck_cards),
+            "pairings": len(pairings),
         },
     }
     (out_dir / "manifest.json").write_text(

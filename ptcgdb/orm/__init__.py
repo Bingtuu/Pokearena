@@ -17,7 +17,7 @@ from ptcgdb.orm.models import (
     ScrapeRun,
     Set,
 )
-from ptcgdb.orm.tournaments import Deck, DeckAppearance, DeckCard, Tournament
+from ptcgdb.orm.tournaments import Deck, DeckAppearance, DeckCard, Pairing, Tournament
 
 __all__ = [
     "Base",
@@ -32,6 +32,7 @@ __all__ = [
     "LegalitySnapshot",
     "Meta",
     "NameGroup",
+    "Pairing",
     "RulesDocument",
     "ScrapeRun",
     "Set",

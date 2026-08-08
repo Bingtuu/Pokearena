@@ -94,6 +94,27 @@ class DeckAppearance(Base):
     tournament: Mapped[Tournament] = relationship(back_populates="appearances")
 
 
+class Pairing(Base):
+    """pairings 逐桌对阵（PRD §7.5 v1.14，task 028）。
+
+    WR A 层与镜像剔除的事实源（Phase 4 前置资产）；winner NULL=平局或未报（不猜）。
+    列名 table_no 避 SQLite 关键字 table；round 同名属性显式映射列名。
+    """
+
+    __tablename__ = "pairings"
+
+    tournament_id: Mapped[str] = mapped_column(
+        ForeignKey("tournaments.tournament_id"), primary_key=True
+    )
+    phase: Mapped[int] = mapped_column(Integer, primary_key=True)  # 1=瑞士轮 2=淘汰赛
+    round: Mapped[int] = mapped_column("round", Integer, primary_key=True)
+    table_no: Mapped[int] = mapped_column(Integer, primary_key=True)  # 桌号
+    player1: Mapped[str] = mapped_column(String)  # 源侧选手标识（limitless 用户名）
+    player2: Mapped[str] = mapped_column(String)
+    winner: Mapped[str | None] = mapped_column(String)  # NULL=平局或未报（不猜）
+    fetched_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+
 class DeckCard(Base):
     """deck_cards 卡组构成（PRD §7.5）。
 
