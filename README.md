@@ -6,8 +6,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Status](https://img.shields.io/badge/Status-Phase2·M9--3实现中·A3待比对-brightgreen.svg?style=flat-square)](STATUS.md)
-[![PRD](https://img.shields.io/badge/PRD-v1.14-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
+[![Status](https://img.shields.io/badge/Status-Phase2·M9--3完成·A3待比对-brightgreen.svg?style=flat-square)](STATUS.md)
+[![PRD](https://img.shields.io/badge/PRD-v1.15-blue.svg?style=flat-square)](docs/简中PTCG卡牌数据库_PRD与技术方案.md)
 [![Tests](https://img.shields.io/badge/Tests-521%20passed-success.svg?style=flat-square)](STATUS.md)
 
 [产品需求文档](docs/简中PTCG卡牌数据库_PRD与技术方案.md) · [开发进展](STATUS.md) · [工程约定](AGENTS.md)
@@ -36,7 +36,7 @@
 
 ## 🚀 快速预览
 
-> 当前库内数据：**129 系列 / 12,420 张卡**（active，三语卡名 EN 12,337 / JA 9,480）· **34 场赛事（CN 26 + EN Limitless 8）/ 1,669 套卡组 / 1,823 条出战 / pairings 1,184 桌** · 合法卡池 standard 5,320 / open 12,413。以下接口均已可用（开发进度见 Roadmap）。
+> 当前库内数据：**129 系列 / 12,420 张卡**（active，三语卡名 EN 12,337 / JA 9,480）· **73 场赛事（CN 26 + EN Limitless API 8 + 主站 39）/ 2,592 套卡组 / 2,982 条出战 / pairings 1,184 桌** · 合法卡池 standard 5,320 / open 12,413。以下接口均已可用（开发进度见 Roadmap）。
 
 **CLI**
 
@@ -150,7 +150,7 @@ flowchart TB
   - ✅ **M8（A2）** 卡面人工比对 100/100 核销 + 三件技术债清偿（卡号分母逐系列种子 / 字母能量 `alias_of` / 太晶识别 is_tera 166）
   - ✅ **M9-1/2** 赛事卡组管线 CN mik + 统计可复算与查询层
   - 🔄 **M8（A3）** 50 张特殊卡比对，待协作 session
-  - 🔄 **M9-3** EN Limitless 对齐窗口接入（task 028，实现段）：API 通道全链路 ✅（官方系列赛归类 + 32 人门 + decklist→简中映射链 + pairings 落库，已入库 8 场 / 417 卡组 full=122，对齐窗口逻辑验证通过）；主站 HTML 收录通道（官方线下大赛 Top Cut，名次截断 SITE_CUT_LIMITS + tier 四档系数拍板）管线 ✅、全窗口采集进行中；`basis` 口径标签不与 CN 混同（FR-9.1a/b）；**范围收口：以当前简中环境为起点收集维护，历史不回填**
+  - ✅ **M9-3** EN Limitless 对齐窗口接入（task 028）：API + 主站 HTML 双通道（官方系列赛归类 + 名次截断 SITE_CUT_LIMITS + decklist→简中映射链含 paren_strip 回退 + pairings 落库），73 赛 / 2,592 卡组 / 2,982 出战，主站 923 卡组 full=425、NAIC 2025 对账 12/12；`basis` 口径标签不与 CN 混同（FR-9.1a/b）；**范围收口：以当前简中环境为起点收集维护，历史不回填**
   - ⬜ **赛事数据刷新管线**（task 031）：赛事增量入库 + mapping 随卡库重算 + EN 赛后重抓 + 词表变更重物化
 - ⬜ **Phase 3** 效果标签层，配合规则引擎
 - ⬜ **Phase 4** 对战模拟与胜率统计（独立库，主库只读）
@@ -161,7 +161,7 @@ flowchart TB
 
 | 文档 | 内容 |
 |---|---|
-| [PRD v1.14](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计、跨语言映射、赛事卡组与统计基建（FR-9 可复算性契约 / FR-9.1a 对齐筛选口径 / FR-9.1b 环境推导落库） |
+| [PRD v1.15](docs/简中PTCG卡牌数据库_PRD与技术方案.md) | 权威设计：赛制调研、数据模型、合法性引擎、导出契约、SDK 设计、跨语言映射、赛事卡组与统计基建（FR-9 可复算性契约 / FR-9.1a 对齐筛选口径 / FR-9.1b 环境推导落库） |
 | [数据源与接口文档](docs/data-sources.md) | 全部数据源获取方式：mik.moe 主源 API（卡牌 + 赛事）、官网赛制页、TCGdex / pokemon-tcg-data / PokéAPI、Limitless / TopDeck / RK9 与 JP 卡组聚合站（task 028 调研）、pokemon-card.com 抽样核对 |
 | [STATUS.md](STATUS.md) | 当前阶段、里程碑进度、决策日志、技术债 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本变更（四段式，数据日历版本 + schema SemVer 双轨） |

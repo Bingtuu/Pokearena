@@ -130,6 +130,7 @@
 - 参考实现：GitHub [jpbullalayao/limitless-python](https://github.com/jpbullalayao/limitless-python)（MIT，模型定义可参照）。
 - **历史深度实测（2026-08-04）**：tournaments 列表翻页可稳定回溯（实测 page=200 仍有 2026-05 赛事），覆盖多赛季，按窗口采集无技术障碍。
 - **对标简中环境的时间窗口（task 028 调研定稿，2026-08-04）**：简中 standard = G/H/I（官方赛制页 2026-07-16 版，刚退 F）；国际版 [2026-01-09 官方公告](https://www.pokemon.com/us/news/2026-pokemon-tcg-standard-format-rotation-announcement) 2026-04-10 起 G 退环境（此后 H/I/J，已进入 Mega 阶段）——**对齐窗口 = 2025 年旋转生效（约 2025-04）~ 2026-04-09 的国际 G/H/I 赛季**。窗口仅为**成本先验**：最终对齐判据是卡级映射（deck 经 name_en 桥全量映射简中卡池，mapping_status='full' 才入统计）；国际发售节奏更快（2025-09 起 Mega 阶段卡组含大量简中未发售卡），窗口后段淘汰率自然升高，映射率分布如实记录。该思路可推广：简中每个历史快照期 ↔ 同标记的国际赛季。
+- **实现状态（task 028 完成，2026-08-08，PRD v1.15）**：双通道均已落地。API 通道 `scrape limitless` / `ingest-limitless`（官方系列赛归类 + ≥32 人门 + pairings 落库，全窗口 accepted 5 场 / 入库 8 场 417 卡组 full=122——Limitless 本质是在线赛平台，官方线下大赛在 RK9 跑）；主站通道 `scrape limitless-site` / `ingest-limitless-site`（source='limitless_site'，索引/standings/卡组页三解析器 + SITE_CUT_LIMITS 名次截断 regional/international/special ≤32、league_cup ≤8，standings 全交表 record NULL 不猜，topcut_slots=截断名次数物化，JP 国内赛事拒收）——全窗口 accepted 39 场 / 923 卡组 full=425/partial=498，topcut_slots 39/39 覆盖；验收报告 `reports/task028-limitless-20260808.md`。
 
 ## 7b. TopDeck.gg（EN 草根赛事，task 028 调研新发现）
 

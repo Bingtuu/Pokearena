@@ -2,7 +2,7 @@
 
 | 项 | 内容 |
 |---|---|
-| 状态 | DOING（设计段 2026-08-04 定稿；实现段 2026-08-07 开工，环境落库首步完成） |
+| 状态 | DONE（2026-08-08：设计段 2026-08-04 定稿；实现段 2026-08-07 开工、2026-08-08 收尾——主站通道全窗口入库 + paren_strip 修复 + 全量验收） |
 | 关联 | PRD §FR-9.1 / FR-9.1a / FR-9.1b（v1.13 及续）、§7.5；里程碑 M9-3；`docs/data-sources.md` §7/7b/7c/8b；`config/tournament_envs.yml` |
 | 预估 | 2~3 天 |
 
@@ -33,14 +33,23 @@
 - [x] 采集器：Limitless API（赛事列表按窗口 + 名称正则归类赛事等级 → standings/decklist → pairings），限速 ≥1s/请求、断点续传、append-only raw——2026-08-07 完成：`scrapers/limitless.py`（三端点薄封装，实测校准裸数组形态，6.5s/请求对匿名 50req/5min）+ `limitless_runner.py`（窗口默认 = `envs.alignment_window()` = EN 同 CN 标记段 2025-04-11~2026-04-09，取舍决策逐场落清单）+ http.get_json + CLI `scrape limitless`；tests/test_limitless.py 28 用例；真实采集留验收段
 - [x] 赛事等级归类：赛事名正则（Regional/International/Special/League Cup）+ 人数门 ≥32 + Master 组过滤；tier 词表 `config/vocabularies/tournament_tiers.yml` 扩 intl 档位（开放词表）——2026-08-07 完成：`scrapers/limitless.py` classify_tournament（MIN_PLAYERS=32）+ 词表四档（regional=1.5 有 FR-9.4 依据；international=4.0/special=1.5/league_cup=1.0 为推断值，注释标注待确认）
 - [x] decklist → 简中映射管线（ptcgoCode join ptcd → name_en 桥），mapping_status 分档入库（复用赛事四表，source='limitless'）——2026-08-07 完成：`normalize/limitless.py`（ptcd 索引 + map_decklist_card 映射链：ptcd 定位/name_fallback → name_en 桥 → Basic 能量别名 → 多候选 env 优先+最新印刷+字典序，全链确定性）+ `ingest_limitless.py`（内容哈希 deck_id 天然跨赛事去重、A 层 record 三列、60 张门、env 推导+交叉校验、幂等）+ CLI `ingest-limitless`；12 用例
-- [ ] 质量门与对账：60 张质量门 + 与 Limitless 主站 archetype 分布对账；映射率分布报告
+- [x] 质量门与对账：60 张质量门 + 与 Limitless 主站 archetype 分布对账；映射率分布报告——2026-08-08 完成：主站全窗口采集（run 20260808T133255Z，accepted 39 场 = regional 26 / special 10 / international 3，rejected 10 逐场落清单）+ ingest-limitless-site 首跑（923 卡组 / 1,159 出战 / 29,829 卡表行，60 张门 blocked=0）；paren_strip 修复后 full=425/partial=498；**NAIC 2025（limitless_site:463）rank 1~12 archetype 与主站页逐一比对 12/12 一致**（主站 390 行全收录 → 我方 Top 32）；topcut_slots 39/39 物化；未解析 37 名全为 Mega 时代 CN 未收录卡如实记录；报告 `reports/task028-limitless-20260808.md`
 - [x] 统计层：canonical SQL 口径标签加 intl_aligned；pairings 落库（WR A 层数据，Phase 4 前置资产）——2026-08-07 完成：migration 009（user_version=9）pairings 表 + 两物化视图加 basis 列（source→cn/intl_aligned/jp）；五 canonical SQL 加 `:basis` 参数（默认 cn 不混同）+ division 未知不排他语义；pairings 落库幂等 + topcut_slots 由 phase=2 去重选手数反推；CLI/SDK `--basis` + meta 回显；导出十三件套（+pairings.jsonl）；PRD 升 v1.14；tests/test_stats_basis.py 等 14 新用例
-- [ ] 验收：窗口采集报告 + 测试绿 + ruff + STATUS/CHANGELOG/PRD 同步
+- [x] 验收：窗口采集报告 + 测试绿 + ruff + STATUS/CHANGELOG/PRD 同步——2026-08-08 完成：报告 `reports/task028-limitless-20260808.md`；525 测试全绿（+4 paren_strip 回归）、ruff 全净；PRD 升 v1.15、CHANGELOG/AGENTS/README/data-sources/STATUS 同步
 
 ## 验收标准
 
-- [ ] 只入官方系列赛 + 名次筛选生效（采集报告列明每场赛事归类与取舍）
-- [ ] 统计仅消费 full 映射卡组；intl_aligned 口径标签贯穿 CLI/SDK/导出
-- [ ] 全量测试绿、ruff 通过
+- [x] 只入官方系列赛 + 名次筛选生效（采集报告列明每场赛事归类与取舍）——API 通道 5 场 + 主站通道 accepted 39 / rejected 10 逐场落清单；SITE_CUT_LIMITS 截断生效（主站 390 行全交表 → Top 32）
+- [x] 统计仅消费 full 映射卡组；intl_aligned 口径标签贯穿 CLI/SDK/导出——basis 列物化（migration 009/010）+ `--basis` 默认 cn；`stats usage --basis intl_aligned` 冒烟 n_tournaments=44（含 senior 叠加口径）
+- [x] 全量测试绿、ruff 通过——525 passed、ruff 全净（2026-08-08）
 
 ## 完成总结（DONE 时填写）
+
+**task 028 完成（M9-3 ✅，2026-08-08）**。EN Limitless 对齐窗口双通道全链路落地：
+
+- **API 通道**：全窗口 accepted 仅 5 场（Limitless 是在线赛平台，官方线下大赛在 RK9 跑）——入库 8 场 / 417 卡组，full=122（HIJ 期卡组如预期全 partial，卡级映射对齐判据验证通过）；pairings 1,184 桌落库，topcut_slots 由 phase=2 反推（8 场中仅 1 场有 pairings 覆盖，实测 1/8）。
+- **主站 HTML 通道**（2026-08-08 拍板扩展）：全窗口 accepted 39 场（regional 26 / special 10 / international 3），rejected 10（Worlds 2025 名称未命中待拍板 / 3 场 Master Ball League / 6 场 JP·亚洲国内）；入库 923 卡组 / 1,159 出战 / 29,829 卡表行，topcut_slots 39/39 物化。
+- **paren_strip 修复**（TDD，4 回归用例）：ptcd 修饰名（"Boss's Orders (PAL 172)"）CN 桥 0 命中问题——剥尾部括号修饰回退层，full 371→425（+54）、未解析 1,697→1,416 行 / 39→37 名（Boss's Orders、Professor's Research 未解析归零，paren_strip 路径 302 行）；剩余 37 名全为 Mega 时代 CN 未收录卡，不动。
+- **对账**：NAIC 2025 rank 1~12 archetype 与主站页 12/12 逐一一致；60 张质量门 blocked=0；standings 全交表 record 三列 NULL 不猜；JP 国内赛事拒收。
+- **schema**：migration 008（tournaments.env）/ 009（pairings + basis 列）/ 010（limitless_site→intl_aligned），user_version=10；PRD v1.14→v1.15；真实库 73 赛（mik 26 + limitless 8 + limitless_site 39）/ 2,592 卡组内容 / 2,982 出战。
+- **遗留**：Worlds 2025（id=500）与亚洲联赛收录口径待拍板；division NULL + senior 叠加统计口径待议；mik 源 26 场 topcut_slots 仍 NULL；API 通道 pairings 覆盖 1/8；task 031 赛事数据刷新管线（TODO）。

@@ -2,13 +2,13 @@
 
 简中 PTCG 标准环境卡牌数据库。本地 SQLite 卡牌库 + 数据管线 + 更新机制，为下游（规则引擎 / AI 对战模拟 / 胜率统计）提供数据基建。
 
-**权威文档**：`docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.11）——一切设计以它为准。
+**权威文档**：`docs/简中PTCG卡牌数据库_PRD与技术方案.md`（v1.15）——一切设计以它为准。
 **进展记录**：`STATUS.md`——当前阶段、里程碑、决策日志，开始工作前先读。
 **数据源**：`docs/data-sources.md`——全部数据源的获取方式与端点约定（mik.moe 主源 / 官网赛制页 / TCGdex / ptcd / PokéAPI / pokemon-card.com 抽样核对）。
 
 ## 当前状态
 
-Phase 1 全部完成（2026-08-01，M4 验收 A1~A8 全过）：1a 首批入库 129 系列 / 12,420 张；1b 合法性引擎 + 导出七件套 + SDK 双后端；1c L0/L1 监控管线。D1 = 路线 B（tcg.mik.moe 主源，PRD 第 14 章）。Phase 2 进行中：M5 进化解析、M6 跨语言映射 EN+JP（name_en 12,337 / name_ja 9,480）、M7-1 同名计数引擎已完成；**M9-1 赛事卡组管线 CN mik ✅（task 027）+ M9-2 统计可复算与查询层 ✅（task 029，2026-08-02）**：赛事四表（26 赛 / 1,252 卡组内容 / 1,396 出战）+ 物化视图 v_stat_deck_cards/v_tournament_weights + canonical SQL 五文件（三指标公式单一事实源）+ CLI `stats` 子命令组 / `query` 只读 SQL + SDK `stats_*` 双后端 + 导出十二件套；已知缺口 topcut_slots 全 NULL → WR/WWS 暂空（WUR 正常），补全立项待定。**A2 三件技术债 ✅ 清偿（task 030，2026-08-03，PRD v1.11，user_version=7）**：F-01 number_display 分母改逐系列种子（`sets.card_face_total`，5 实测点全对平）、F-02 十六张字母能量条目 `alias_of` 指向数字正本、F-03 `map-tera` ptcd subtypes 识别 is_tera 166 张；顺路修复 ingest 跨系列 evolves_to 反向行顺序相关丢行（重 ingest 后 3,741/3,741 对称）。下一步 task 026 validate_deck SDK + M7 验收 / task 028 EN Limitless（M9-3）/ A3 比对。
+Phase 1 全部完成（2026-08-01，M4 验收 A1~A8 全过）：1a 首批入库 129 系列 / 12,420 张；1b 合法性引擎 + 导出七件套 + SDK 双后端；1c L0/L1 监控管线。D1 = 路线 B（tcg.mik.moe 主源，PRD 第 14 章）。Phase 2 进行中：M5 进化解析、M6 跨语言映射 EN+JP（name_en 12,337 / name_ja 9,480）、M7（同名计数引擎 + validate_deck，task 025/026）已完成；**M9-1 赛事卡组管线 CN mik ✅（task 027）+ M9-2 统计可复算与查询层 ✅（task 029，2026-08-02）**：赛事四表 + 物化视图 v_stat_deck_cards/v_tournament_weights + canonical SQL 五文件（三指标公式单一事实源）+ CLI `stats` 子命令组 / `query` 只读 SQL + SDK `stats_*` 双后端 + 导出十三件套。**M9-3 EN Limitless 对齐窗口 ✅（task 028，2026-08-08，PRD v1.15，user_version=10）**：API + 主站 HTML 双通道（migration 008 env 推导 / 009 pairings+basis / 010 limitless_site），实测 **73 赛（mik 26 + limitless 8 + limitless_site 39）/ 2,592 卡组内容 / 2,982 出战 / pairings 1,184**，主站通道 923 卡组 full=425/partial=498（paren_strip 修复后），NAIC 2025 与主站页 12/12 对账一致，报告 `reports/task028-limitless-20260808.md`；已知缺口 mik 源 topcut_slots 26 场仍 NULL（limitless 双通道已反推/物化覆盖）→ mik WR/WWS 仍空。**A2 三件技术债 ✅ 清偿（task 030，2026-08-03，PRD v1.11）**：F-01 number_display 分母改逐系列种子（`sets.card_face_total`，5 实测点全对平）、F-02 十六张字母能量条目 `alias_of` 指向数字正本、F-03 `map-tera` ptcd subtypes 识别 is_tera 166 张；顺路修复 ingest 跨系列 evolves_to 反向行顺序相关丢行（重 ingest 后 3,741/3,741 对称）。下一步 task 031 赛事数据刷新管线 / A3 比对 / Worlds 2025 收录拍板。
 代码结构已按 PRD 第 8 章落地：`ptcgdb/`（orm/schemas/migrations/scrapers/normalize/validate/legal/monitor/export/sdk/accept/mapping/stats），不要自行发明布局。
 
 ## 技术栈与约束
@@ -58,6 +58,10 @@ ptcgdb map-tera                                 # 太晶识别：ptcd EN subtype
 ptcgdb seed-face-totals / mark-aliases          # 卡面分母种子（F-01）/ 能量别名标记（F-02）
 ptcgdb scrape tourneys [--series-id 54] [--max-tournaments N]  # 采集 mik 赛事 → raw（限速 2s/请求）
 ptcgdb ingest-tourneys                          # 赛事 raw → 四表入库（60 张质量门）
+ptcgdb scrape limitless [--window A B]          # 采集 Limitless API 官方系列赛 → raw（6.5s/请求，窗口断点续传）
+ptcgdb ingest-limitless                         # Limitless API raw → 四表入库（ptcd 映射链 + pairings + basis）
+ptcgdb scrape limitless-site                    # 采集 Limitless 主站 HTML Top Cut → raw（SITE_CUT_LIMITS 截断）
+ptcgdb ingest-limitless-site                    # 主站 raw → 四表入库（source=limitless_site，record NULL 不猜）
 ```
 
 ## 工作方式
