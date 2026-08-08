@@ -12,6 +12,8 @@
 
 **范围收口（2026-08-04 拍板）**：收集与维护以**当前简中比赛环境**（standard 2026-07-16 起，G/H/I）为起点——历史赛事不回填（CN mik 2023~2026-07 场次、EN 更早赛季、历史合法性快照补录均不做）；EN 对齐窗口（2025-04~2026-04-09）日期虽在过去，但属**当前环境的参照数据**，仍是本任务采集目标；窗口随简中环境演进滚动前移（下次旋转时评审）。
 
+**主站通道扩展（2026-08-08 拍板）**：API 通道全窗口实测仅 accepted 5 场（Limitless 是在线赛平台，官方线下大赛在 RK9 上跑，Limitless 主站人工收录其 Top Cut 卡组）——样本太薄，用户拍板扩**主站 HTML 收录通道**（`limitlesstcg.com/tournaments` 官方赛索引 + 赛事页 standings + 卡组页 data-set/data-number，docs/data-sources.md §7 已评估）。口径要点：DB source='limitless_site' 双通道区分（basis 均 intl_aligned）；standings 为全交表收录（NAIC 675 行实测），**名次截断 SITE_CUT_LIMITS**（regional/international/special ≤32、league_cup ≤8，与 CN top64 上位口径同构的截断代理，采集端与入库端共用单一事实源）；record 三列 NULL 不猜（无比分）；topcut_slots=截断后名次数；raw 落解析 JSON 快照不存原始 HTML（体量口径）；JP 国内赛事（Japan Championships/Champions League 等）拒收，JP 对齐二期再议。tier 系数四档（international=4.0/special=1.5/league_cup=1.0 推断值）2026-08-08 用户拍板采纳。
+
 ## 调研结论（2026-08-04，已落 docs/data-sources.md）
 
 - **对齐窗口**：简中 standard = G/H/I（2026-07-16 刚退 F）↔ 国际 G/H/I 赛季 = **2025-04 旋转生效 ~ 2026-04-09**（2026-04-10 起国际 H/I/J 进 Mega）。窗口 = 成本先验，最终判据 = 卡级映射 full。
