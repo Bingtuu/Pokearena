@@ -4,7 +4,7 @@
 - 均 GET `https://play.limitlesstcg.com/api/...`，响应为**裸数组**（无包装）；
 - 匿名限速：响应头 `RateLimit: "50-in-5min"`（50 请求/5 分钟）→ 采集间隔 ≥6s/请求，
   由 HttpClient 限速器（DEFAULT_INTERVAL=6.5s 保险值）保证（FR-9.5 红线）；
-- `/api/tournaments?game=PTCG&format=STANDARD&limit=100&page=N`：按日期降序，
+- `/api/tournaments?game=PTCG&format=STANDARD&limit=1000&page=N`：按日期降序，
   翻页到头返回空数组；条目字段 game/name/date(UTC ISO)/format/id(24位hex)/players/organizerId；
 - `/api/tournaments/{id}/standings`：排名 + deck/decklist（卡条目 = PTCGO set code +
   number + 英文名，跨语言映射在解析层做，不归本模块）；
@@ -36,7 +36,7 @@ RAW_SUBDIR = "limitless"  # data/raw/ 下的落盘子目录
 DEFAULT_INTERVAL = 6.5
 
 ENDPOINT_TOURNAMENTS = "/api/tournaments"
-DEFAULT_PAGE_SIZE = 100  # 赛事清单页大小（实测 limit=100 可用）
+DEFAULT_PAGE_SIZE = 1000  # 赛事清单页大小（2026-08-07 实测 limit=1000 可用，减少翻页成本）
 
 # 赛事归类（FR-9.1a）：人数门 + 官方系列赛名称正则
 MIN_PLAYERS = 32  # 小于 32 人的赛事不收（样本污染）
