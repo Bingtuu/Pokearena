@@ -30,6 +30,9 @@ SLOW_INTERVAL = 5.0  # 连续出错后的降速：1 次/5 秒
 MAX_ATTEMPTS = 3  # 指数退避最多重试 3 次
 MAX_CONSECUTIVE_FAILURES = 5  # 连续 5 次失败熔断
 
+# 响应解析 callable：get_json 用 _parse_json，get_text 用 _parse_text
+ResponseParser = Callable[[httpx.Response], Any]
+
 
 class CircuitOpenError(RuntimeError):
     """熔断器断开：疑似被封禁/验证码/持续故障，必须立即中止本轮运行。"""
@@ -78,7 +81,8 @@ class RateLimiter:
 
 
 class HttpClient:
-    """带限速/退避/熔断的 JSON 客户端（POST/GET 共用同一套限速/退避/熔断语义）。"""
+    """带限速/退避/熔断的 HTTP 客户端（JSON: post_json/get_json；HTML 文本: get_text，
+    三者共用同一套限速/退避/熔断语义）。"""
 
     def __init__(
         self,
@@ -118,20 +122,28 @@ class HttpClient:
 
     def post_json(self, path: str, payload: dict[str, Any]) -> Any:
         """POST JSON，返回解析后的响应体。熔断条件满足时抛 CircuitOpenError。"""
-        return self._request(lambda: self._client.post(path, json=payload))
+        return self._request(lambda: self._client.post(path, json=payload), _parse_json)
 
     def get_json(self, path: str, params: dict[str, Any] | None = None) -> Any:
         """GET JSON，返回解析后的响应体。限速/退避/熔断语义与 post_json 完全一致。"""
-        return self._request(lambda: self._client.get(path, params=params))
+        return self._request(lambda: self._client.get(path, params=params), _parse_json)
 
-    def _request(self, send: Callable[[], httpx.Response]) -> Any:
+    def get_text(self, path: str, params: dict[str, Any] | None = None) -> tuple[int, str]:
+        """GET 文本（HTML 页面），返回 (status_code, text)。
+
+        限速/退避/熔断语义与 get_json 一致，唯二差别：不解析 JSON（HTML 页面不触发
+        "响应非 JSON" 熔断）；非 200 的 4xx（403 除外，仍熔断）原样返回，由调用方判定。
+        """
+        return self._request(lambda: self._client.get(path, params=params), _parse_text)
+
+    def _request(self, send: Callable[[], httpx.Response], parse: ResponseParser) -> Any:
         """一次请求的完整生命周期：熔断闸 → 退避重试 → 成功/失败计数。"""
         if self._consecutive_failures >= self._max_consecutive_failures:
             raise CircuitOpenError(
                 f"连续 {self._consecutive_failures} 次请求失败，熔断中止，请人工确认数据源状态"
             )
         try:
-            body = self._with_retry(send)
+            body = self._with_retry(send, parse)
         except CircuitOpenError:
             raise
         except Exception:
@@ -142,7 +154,7 @@ class HttpClient:
         self._limiter.report_success()
         return body
 
-    def _with_retry(self, send: Callable[[], httpx.Response]) -> Any:
+    def _with_retry(self, send: Callable[[], httpx.Response], parse: ResponseParser) -> Any:
         retryer = Retrying(
             retry=retry_if_exception_type(TransientHttpError),
             stop=stop_after_attempt(self._max_attempts),
@@ -151,10 +163,10 @@ class HttpClient:
         )
         for attempt in retryer:
             with attempt:
-                return self._once(send)
+                return self._once(send, parse)
         raise TransientHttpError("unreachable")  # pragma: no cover
 
-    def _once(self, send: Callable[[], httpx.Response]) -> Any:
+    def _once(self, send: Callable[[], httpx.Response], parse: ResponseParser) -> Any:
         self._limiter.wait()
         try:
             resp = send()
@@ -164,9 +176,17 @@ class HttpClient:
             raise CircuitOpenError("HTTP 403，疑似触发封禁/风控，熔断中止")
         if resp.status_code >= 500:
             raise TransientHttpError(f"HTTP {resp.status_code}")
-        try:
-            return resp.json()
-        except ValueError as exc:
-            raise CircuitOpenError(
-                f"响应非 JSON（HTTP {resp.status_code}），疑似验证码/封禁页，熔断中止"
-            ) from exc
+        return parse(resp)
+
+
+def _parse_json(resp: httpx.Response) -> Any:
+    try:
+        return resp.json()
+    except ValueError as exc:
+        raise CircuitOpenError(
+            f"响应非 JSON（HTTP {resp.status_code}），疑似验证码/封禁页，熔断中止"
+        ) from exc
+
+
+def _parse_text(resp: httpx.Response) -> tuple[int, str]:
+    return resp.status_code, resp.text

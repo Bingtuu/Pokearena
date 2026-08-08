@@ -22,6 +22,10 @@ from ptcgdb.scrapers.limitless import BASE_URL as LIMITLESS_BASE_URL
 from ptcgdb.scrapers.limitless import DEFAULT_INTERVAL as LIMITLESS_INTERVAL
 from ptcgdb.scrapers.limitless import LimitlessScraper
 from ptcgdb.scrapers.limitless_runner import LimitlessScrapeRunner
+from ptcgdb.scrapers.limitless_site import BASE_URL as LIMITLESS_SITE_BASE_URL
+from ptcgdb.scrapers.limitless_site import DEFAULT_INTERVAL as LIMITLESS_SITE_INTERVAL
+from ptcgdb.scrapers.limitless_site import LimitlessSiteScraper
+from ptcgdb.scrapers.limitless_site_runner import LimitlessSiteScrapeRunner
 from ptcgdb.scrapers.mikmoe import BASE_URL
 from ptcgdb.scrapers.mikmoe_tournament import MikMoeTournamentScraper
 from ptcgdb.scrapers.tournament_runner import TournamentScrapeRunner
@@ -624,6 +628,65 @@ def scrape_limitless(
             result = runner.scrape(
                 date_from=date_from,
                 date_to=date_to,
+                max_tournaments=max_tournaments,
+                force=force,
+            )
+    except CircuitOpenError as exc:
+        typer.echo(f"熔断中止：{exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    except ValueError as exc:
+        typer.echo(f"日期格式错误（YYYY-MM-DD）：{exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    stats = result.stats
+    accepted = sum(1 for r in stats.scraped if r["action"] == "accepted")
+    rejected = sum(1 for r in stats.scraped if r["action"] == "rejected")
+    fetched = sum(1 for r in stats.scraped if r["action"] == "fetched")
+    skipped = sum(1 for r in stats.scraped if r["action"] == "skipped")
+    typer.echo(
+        f"run_id={result.run_id} status={'aborted' if stats.aborted else 'ok'} "
+        f"accepted={accepted} rejected={rejected} fetched={fetched} skipped={skipped} "
+        f"question={len(stats.question)} missing={len(stats.missing)} lists={result.lists_path}"
+    )
+    if stats.aborted:
+        typer.echo("警告：本轮运行因熔断提前中止，已抓产物与清单已落盘", err=True)
+        raise typer.Exit(code=1)
+
+
+@scrape_app.command("limitless-site")
+def scrape_limitless_site(
+    date_from: str | None = typer.Option(
+        None, "--date-from", help="窗口起 YYYY-MM-DD（缺省 = EN 对齐窗口）"
+    ),
+    date_to: str | None = typer.Option(
+        None, "--date-to", help="窗口止 YYYY-MM-DD（缺省 = EN 对齐窗口）"
+    ),
+    seasons: str | None = typer.Option(
+        None, "--seasons", help="赛季标签逗号串（如 2425,2526；缺省 = 覆盖窗口的赛季）"
+    ),
+    max_tournaments: int | None = typer.Option(
+        None, "--max-tournaments", help="最多 accepted 的赛事场数（调试/小样用）"
+    ),
+    force: bool = typer.Option(False, "--force", help="忽略已有 raw 文件强制重抓"),
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """抓 Limitless 主站人工收录赛事：赛季索引 → 窗口过滤 → accepted 抓 standings/卡组页。
+
+    主站收录官方线下大赛（NAIC/Regional/Special Event 等）的名次+卡组，无 record/
+    pairings（与 API 通道互补）。窗口缺省 = EN 对齐窗口（FR-9.1a）。raw 落解析后
+    JSON 快照（不存原始 HTML）；断点续传：raw 文件存在且 hash 有效即跳过（零请求）。
+    限速 2.5s/请求（主站无限速头，按 ≥2s 红线自控）。
+    """
+    season_list = [s.strip() for s in seasons.split(",") if s.strip()] if seasons else None
+    try:
+        with HttpClient(
+            LIMITLESS_SITE_BASE_URL, rate_limiter=RateLimiter(interval=LIMITLESS_SITE_INTERVAL)
+        ) as http:
+            runner = LimitlessSiteScrapeRunner(raw_dir, LimitlessSiteScraper(http), db_path)
+            result = runner.scrape(
+                date_from=date_from,
+                date_to=date_to,
+                seasons=season_list,
                 max_tournaments=max_tournaments,
                 force=force,
             )

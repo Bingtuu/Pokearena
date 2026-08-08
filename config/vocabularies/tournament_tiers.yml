@@ -37,7 +37,7 @@ tiers:
     coef: 1.5
     aliases: [regional, Regional, Regional Championships]
   # ---- Limitless intl 档位（task 028，2026-08-07 追加）----
-  # international/special/league_cup 系数为推断值（2026-08-07 暂定，待用户确认）：
+  # international/special/league_cup 系数（2026-08-08 用户拍板采纳推断值）：
   # international 对标大师赛=4（IC 级）；special 对标高级赛=1.5；
   # league_cup 对标城市赛=1。regional 有 FR-9.4 依据（见上）。
   - tier: international
