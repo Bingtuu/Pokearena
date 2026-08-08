@@ -674,6 +674,36 @@ def ingest_tourneys_cmd(
         raise typer.Exit(code=1)
 
 
+@app.command("ingest-limitless")
+def ingest_limitless_cmd(
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """Limitless 赛事入库：raw limitless/tournaments → tournaments/decks 四表（task 028）。
+
+    decklist→简中映射 = ptcd 定位 → name_en exact match → env 优先/最新印刷裁决；
+    重跑幂等；count 合计 != 60 的卡组整组拦截（FR-9.6 质量门）并以非零码退出。
+    """
+    from ptcgdb.normalize.ingest_limitless import ingest_limitless
+
+    result = ingest_limitless(raw_dir, db_path)
+    typer.echo(
+        f"tournaments={result.tournaments} decks={result.decks} appearances={result.appearances} "
+        f"deck_cards={result.deck_cards} blocked={len(result.blocked)} "
+        f"unknown_cards={len(result.unknown_cards)} warnings={len(result.warnings)}"
+    )
+    typer.echo(f"映射决策分布: {dict(sorted(result.mapping_rules.items()))}")
+    for b in result.blocked:
+        typer.echo(f"  ✗ {b['deck_id']}: {b['reason']}")
+    for u in result.unknown_cards[:20]:
+        typer.echo(f"  ? 未解析卡 {u['deck_id']}: {u['raw_name']} ×{u['count']}")
+    for w in result.warnings[:20]:
+        typer.echo(f"  ? {w}")
+    if result.blocked:
+        typer.echo("有卡组被 60 张质量门拦截，详见上方清单", err=True)
+        raise typer.Exit(code=1)
+
+
 def _make_notifier(notify: bool, webhook: str | None):
     """--notify/--no-notify + --webhook 组装 on_event 通知回调。"""
     from ptcgdb.monitor.notify import Notifier, make_event_handler

@@ -33,8 +33,25 @@ tiers:
       - Ultra
   - tier: regional
     label: Regional（EN 大区赛）
+    # FR-9.4 明定 高级赛/Regional=1.5；Limitless 名称正则命中 "Regional Championship"
     coef: 1.5
-    aliases: [regional, Regional]
+    aliases: [regional, Regional, Regional Championships]
+  # ---- Limitless intl 档位（task 028，2026-08-07 追加）----
+  # international/special/league_cup 系数为推断值（2026-08-07 暂定，待用户确认）：
+  # international 对标大师赛=4（IC 级）；special 对标高级赛=1.5；
+  # league_cup 对标城市赛=1。regional 有 FR-9.4 依据（见上）。
+  - tier: international
+    label: International Championship（EN 国际赛）
+    coef: 4
+    aliases: [international, International Championships, IC]
+  - tier: special
+    label: Special Event（EN 特别赛）
+    coef: 1.5
+    aliases: [special, Special Event]
+  - tier: league_cup
+    label: League Cup（EN 联盟杯）
+    coef: 1
+    aliases: [league_cup, League Cup]
   - tier: city
     label: 城市赛
     coef: 1

@@ -28,7 +28,7 @@
 ## 步骤
 
 - [x] 环境落库：migration user_version 8 加 `tournaments.env` 列；推导器 = 赛事日期 ∩ `config/tournament_envs.yml` 日历段（种子已建，含 EN/JP 官方公告 source_url；CN 复用合法性快照）；未命中 → NULL + monitor 异常；落库后卡组最大赛制标记交叉校验（不符告警不拒收）——2026-08-07 完成：`normalize/envs.py` + ingest 集成，真实库 user_version=8（26 赛：10 场 GHI / 16 场历史 NULL，J 标记告警 2 例），tests/test_envs.py 9 用例
-- [ ] 采集器：Limitless API（赛事列表按窗口 + 名称正则归类赛事等级 → standings/decklist → pairings），限速 ≥1s/请求、断点续传、append-only raw
+- [x] 采集器：Limitless API（赛事列表按窗口 + 名称正则归类赛事等级 → standings/decklist → pairings），限速 ≥1s/请求、断点续传、append-only raw——2026-08-07 完成：`scrapers/limitless.py`（三端点薄封装，实测校准裸数组形态，6.5s/请求对匿名 50req/5min）+ `limitless_runner.py`（窗口默认 = `envs.alignment_window()` = EN 同 CN 标记段 2025-04-11~2026-04-09，取舍决策逐场落清单）+ http.get_json + CLI `scrape limitless`；tests/test_limitless.py 28 用例；真实采集留验收段
 - [ ] 赛事等级归类：赛事名正则（Regional/International/Special/League Cup）+ 人数门 ≥32 + Master 组过滤；tier 词表 `config/vocabularies/tournament_tiers.yml` 扩 intl 档位（开放词表）
 - [ ] decklist → 简中映射管线（ptcgoCode join ptcd → name_en 桥），mapping_status 分档入库（复用赛事四表，source='limitless'）
 - [ ] 质量门与对账：60 张质量门 + 与 Limitless 主站 archetype 分布对账；映射率分布报告
