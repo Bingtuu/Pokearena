@@ -58,6 +58,17 @@ DEFAULT_INTERVAL = 2.5
 INDEX_PAGE_SIZE = 100  # 索引页 show 参数上限（实测 2526 赛季 42 行，单页抓全）
 MIN_PLAYERS = 32  # 人数门沿用 FR-9.1a（索引行 data-players）
 
+# 名次截断（FR-9.1a ②）：standings 为全交表收录（实测 NAIC 675 行），采集与入库
+# 都只收上位——regional/international/special → Top 32；league_cup → Top 8。
+# 与 CN mik top64 上位口径同构的截断代理；真实 Top Cut 规模源不暴露。
+# 采集端（省请求）与入库端（ingest_limitless_site）共用此常量，单一事实源。
+SITE_CUT_LIMITS: dict[str, int] = {
+    "regional": 32,
+    "international": 32,
+    "special": 32,
+    "league_cup": 8,
+}
+
 # 主站赛事归类（FR-9.1a）：名称形态与 API 不同（"NAIC 2026, New Orleans" /
 # "Regional Indianapolis, IN" / "Special Event Turin"），故独立于
 # scrapers/limitless.py 的 TIER_PATTERNS 自带一套（SITE_ 前缀）。

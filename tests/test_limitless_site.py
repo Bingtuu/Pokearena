@@ -46,7 +46,7 @@ from ptcgdb.scrapers.limitless_site import (
     seasons_for_window,
     standings_path,
 )
-from ptcgdb.scrapers.limitless_site_runner import LimitlessSiteScrapeRunner
+from ptcgdb.scrapers.limitless_site_runner import LimitlessSiteScrapeRunner, _decklist_ids
 from ptcgdb.scrapers.raw_store import is_valid_raw, read_raw
 
 FIXTURES = Path(__file__).parent / "fixtures" / "limitless_site"
@@ -618,3 +618,25 @@ def test_cli_scrape_limitless_site_bad_date_exit_2(tmp_path, monkeypatch):
     )
     assert result.exit_code == 2
     assert "日期格式错误" in result.output
+
+
+# ---- 采集端名次截断（FR-9.1a ②，SITE_CUT_LIMITS 单一事实源）----
+
+
+def test_decklist_ids_cut_filter():
+    """standings 全交表收录：cut 非空时只取 placing ≤ cut 的上位行 decklist。"""
+    doc = {
+        "standings": [
+            {"placing": 1, "decklist_id": "a"},
+            {"placing": 8, "decklist_id": "b"},
+            {"placing": 9, "decklist_id": "c"},  # 超出 league_cup Top 8
+            {"placing": 32, "decklist_id": "d"},
+            {"placing": 33, "decklist_id": "e"},  # 超出大赛 Top 32
+            {"placing": None, "decklist_id": "f"},  # 缺 placing 不猜，截断时跳过
+            {"placing": 2, "decklist_id": "a"},  # 同表多人共用去重
+        ]
+    }
+    assert _decklist_ids(doc) == ["a", "b", "c", "d", "e", "f"]  # 不截断全取
+    assert _decklist_ids(doc, cut=8) == ["a", "b"]
+    assert _decklist_ids(doc, cut=32) == ["a", "b", "c", "d"]  # placing 9 ≤ 32 包含
+    assert _decklist_ids(None, cut=32) == []

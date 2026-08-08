@@ -30,6 +30,7 @@ from ptcgdb.normalize.envs import alignment_window
 from ptcgdb.scrapers.http import CircuitOpenError
 from ptcgdb.scrapers.limitless_site import (
     INDEX_PAGE_SIZE,
+    SITE_CUT_LIMITS,
     SOURCE,
     LimitlessSiteApiError,
     LimitlessSiteScraper,
@@ -146,11 +147,10 @@ class LimitlessSiteScrapeRunner:
         tier, reason = classify_site_tournament(name, players, entry.get("country"))
         accepted = tier is not None
         # 取舍决策逐场记录（验收：采集报告列明每场赛事归类与取舍）
-        state.stats.scraped.append(
-            {"id": tid, "action": "accepted" if accepted else "rejected",
-             "name": name, "tier": tier, "reason": reason,
-             "players": players, "date": day.isoformat()}
-        )
+        decision = {"id": tid, "action": "accepted" if accepted else "rejected",
+                    "name": name, "tier": tier, "reason": reason,
+                    "players": players, "date": day.isoformat()}
+        state.stats.scraped.append(decision)
         if not accepted:
             return
         state.stats.total += 1
@@ -165,7 +165,12 @@ class LimitlessSiteScrapeRunner:
             state,
             force=force,
         )
-        for did in _decklist_ids(standings_doc):
+        # 名次截断（FR-9.1a ②）：standings 为全交表收录，只抓 Top Cut 内卡组页
+        cut = SITE_CUT_LIMITS.get(tier) if tier else None
+        in_cut = _decklist_ids(standings_doc, cut)
+        decision["cut"] = cut
+        decision["decklists_in_cut"] = len(in_cut)
+        for did in in_cut:
             state.expected.append(("decklist", did, decklist_path(self.raw_dir, did)))
             self._ensure(
                 decklist_path(self.raw_dir, did),
@@ -259,9 +264,12 @@ def _parse_day(raw: Any) -> date | None:
         return None
 
 
-def _decklist_ids(standings_doc: dict[str, Any] | None) -> list[str]:
+def _decklist_ids(
+    standings_doc: dict[str, Any] | None, cut: int | None = None
+) -> list[str]:
     """standings raw 文档 → 去重保序的 decklist_id 列表（同表多人共用只抓一次；
-    未交表选手 decklist_id=None 跳过）。"""
+    未交表选手 decklist_id=None 跳过）。cut 非空时只取 placing ≤ cut 的上位行
+    （名次截断 FR-9.1a ②，SITE_CUT_LIMITS）。"""
     if not standings_doc:
         return []
     rows = standings_doc.get("standings")
@@ -272,6 +280,10 @@ def _decklist_ids(standings_doc: dict[str, Any] | None) -> list[str]:
     for row in rows:
         if not isinstance(row, dict):
             continue
+        if cut is not None:
+            placing = row.get("placing")
+            if not isinstance(placing, int) or isinstance(placing, bool) or placing > cut:
+                continue
         did = row.get("decklist_id")
         if isinstance(did, str) and did not in seen:
             seen.add(did)

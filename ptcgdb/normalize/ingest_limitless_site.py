@@ -49,6 +49,7 @@ from ptcgdb.normalize.tournaments import VOCAB_DIR, load_tier_map
 from ptcgdb.orm import Deck, DeckAppearance, DeckCard, Tournament
 from ptcgdb.scrapers.limitless_site import (
     RAW_SUBDIR,
+    SITE_CUT_LIMITS,
     SOURCE,
     TOURNAMENTS_DIR,
     classify_site_tournament,
@@ -57,14 +58,8 @@ from ptcgdb.scrapers.raw_store import canonical_json, read_raw
 
 OFFICIAL_URL_TEMPLATE = "https://limitlesstcg.com/tournaments/{}"
 
-# 名次截断（FR-9.1a ② 调和）：与 CN mik top64 上位口径同构的截断代理；
-# 真实 Top Cut 规模源不暴露。regional/international/special → Top 32；league_cup → Top 8。
-SITE_CUT_LIMITS: dict[str, int] = {
-    "regional": 32,
-    "international": 32,
-    "special": 32,
-    "league_cup": 8,
-}
+# 名次截断 SITE_CUT_LIMITS 由 scrapers/limitless_site.py 统一维护（采集端与入库端
+# 单一事实源）：regional/international/special → Top 32；league_cup → Top 8。
 
 
 @dataclass
