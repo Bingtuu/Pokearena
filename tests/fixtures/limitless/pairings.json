@@ -1,0 +1,5 @@
+[
+  {"round": 1, "phase": 1, "table": 1, "winner": "alice", "player1": "alice", "player2": "bob"},
+  {"round": 1, "phase": 1, "table": 2, "winner": "", "player1": "carol", "player2": "dave"},
+  {"round": 1, "phase": 2, "table": 1, "winner": "alice", "player1": "alice", "player2": "carol"}
+]

@@ -17,6 +17,11 @@ from ptcgdb.normalize import ingest_set
 from ptcgdb.normalize.ingest_tourneys import ingest_tourneys
 from ptcgdb.orm import Card, Set
 from ptcgdb.scrapers import CircuitOpenError, HttpClient, MikMoeScraper, ScrapeRunner
+from ptcgdb.scrapers.http import RateLimiter
+from ptcgdb.scrapers.limitless import BASE_URL as LIMITLESS_BASE_URL
+from ptcgdb.scrapers.limitless import DEFAULT_INTERVAL as LIMITLESS_INTERVAL
+from ptcgdb.scrapers.limitless import LimitlessScraper
+from ptcgdb.scrapers.limitless_runner import LimitlessScrapeRunner
 from ptcgdb.scrapers.mikmoe import BASE_URL
 from ptcgdb.scrapers.mikmoe_tournament import MikMoeTournamentScraper
 from ptcgdb.scrapers.tournament_runner import TournamentScrapeRunner
@@ -584,6 +589,59 @@ def scrape_tourneys(
         f"run_id={result.run_id} status={'aborted' if stats.aborted else 'ok'} "
         f"fetched={fetched} skipped={skipped} question={len(stats.question)} "
         f"missing={len(stats.missing)} lists={result.lists_path}"
+    )
+    if stats.aborted:
+        typer.echo("警告：本轮运行因熔断提前中止，已抓产物与清单已落盘", err=True)
+        raise typer.Exit(code=1)
+
+
+@scrape_app.command("limitless")
+def scrape_limitless(
+    date_from: str | None = typer.Option(
+        None, "--date-from", help="窗口起 YYYY-MM-DD（缺省 = EN 对齐窗口）"
+    ),
+    date_to: str | None = typer.Option(
+        None, "--date-to", help="窗口止 YYYY-MM-DD（缺省 = EN 对齐窗口）"
+    ),
+    max_tournaments: int | None = typer.Option(
+        None, "--max-tournaments", help="最多 accepted 的赛事场数（调试/小样用）"
+    ),
+    force: bool = typer.Option(False, "--force", help="忽略已有 raw 文件强制重抓"),
+    raw_dir: Path = DEFAULT_RAW_DIR,
+    db_path: Path = DEFAULT_DB_PATH,
+) -> None:
+    """抓 Limitless EN 赛事：清单翻页 → 对齐窗口过滤 → accepted 抓 standings/pairings。
+
+    窗口缺省 = EN 对齐窗口（成本先验 FR-9.1a，最终判据是卡级映射 full）。断点续传：
+    raw 文件存在且 hash 有效即跳过（零请求）。限速 6.5s/请求（匿名额度 50 请求/5 分钟，
+    FR-9.5 红线）。
+    """
+    try:
+        with HttpClient(
+            LIMITLESS_BASE_URL, rate_limiter=RateLimiter(interval=LIMITLESS_INTERVAL)
+        ) as http:
+            runner = LimitlessScrapeRunner(raw_dir, LimitlessScraper(http), db_path)
+            result = runner.scrape(
+                date_from=date_from,
+                date_to=date_to,
+                max_tournaments=max_tournaments,
+                force=force,
+            )
+    except CircuitOpenError as exc:
+        typer.echo(f"熔断中止：{exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    except ValueError as exc:
+        typer.echo(f"日期格式错误（YYYY-MM-DD）：{exc}", err=True)
+        raise typer.Exit(code=2) from exc
+    stats = result.stats
+    accepted = sum(1 for r in stats.scraped if r["action"] == "accepted")
+    rejected = sum(1 for r in stats.scraped if r["action"] == "rejected")
+    fetched = sum(1 for r in stats.scraped if r["action"] == "fetched")
+    skipped = sum(1 for r in stats.scraped if r["action"] == "skipped")
+    typer.echo(
+        f"run_id={result.run_id} status={'aborted' if stats.aborted else 'ok'} "
+        f"accepted={accepted} rejected={rejected} fetched={fetched} skipped={skipped} "
+        f"question={len(stats.question)} missing={len(stats.missing)} lists={result.lists_path}"
     )
     if stats.aborted:
         typer.echo("警告：本轮运行因熔断提前中止，已抓产物与清单已落盘", err=True)

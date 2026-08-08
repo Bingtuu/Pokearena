@@ -1,0 +1,47 @@
+[
+  {
+    "game": "PTCG",
+    "name": "Charlotte Regional Championship",
+    "date": "2026-03-15T02:10:00.000Z",
+    "format": "STANDARD",
+    "id": "aaaaaaaaaaaaaaaaaaaaaaa1",
+    "players": 850,
+    "organizerId": "org-1"
+  },
+  {
+    "game": "PTCG",
+    "name": "Toronto League Cup",
+    "date": "2025-11-02T18:00:00.000Z",
+    "format": "STANDARD",
+    "id": "aaaaaaaaaaaaaaaaaaaaaaa2",
+    "players": 48,
+    "organizerId": "org-2"
+  },
+  {
+    "game": "PTCG",
+    "name": "Professor Oak Casual Meetup",
+    "date": "2025-09-20T18:00:00.000Z",
+    "format": "STANDARD",
+    "id": "aaaaaaaaaaaaaaaaaaaaaaa3",
+    "players": 120,
+    "organizerId": "org-3"
+  },
+  {
+    "game": "PTCG",
+    "name": "Tiny Regional Championship",
+    "date": "2025-08-10T18:00:00.000Z",
+    "format": "STANDARD",
+    "id": "aaaaaaaaaaaaaaaaaaaaaaa4",
+    "players": 12,
+    "organizerId": "org-4"
+  },
+  {
+    "game": "PTCG",
+    "name": "Old Regional Championship",
+    "date": "2024-06-01T18:00:00.000Z",
+    "format": "STANDARD",
+    "id": "aaaaaaaaaaaaaaaaaaaaaaa5",
+    "players": 500,
+    "organizerId": "org-5"
+  }
+]

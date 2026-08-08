@@ -78,7 +78,7 @@ class RateLimiter:
 
 
 class HttpClient:
-    """带限速/退避/熔断的 JSON POST 客户端。"""
+    """带限速/退避/熔断的 JSON 客户端（POST/GET 共用同一套限速/退避/熔断语义）。"""
 
     def __init__(
         self,
@@ -118,12 +118,20 @@ class HttpClient:
 
     def post_json(self, path: str, payload: dict[str, Any]) -> Any:
         """POST JSON，返回解析后的响应体。熔断条件满足时抛 CircuitOpenError。"""
+        return self._request(lambda: self._client.post(path, json=payload))
+
+    def get_json(self, path: str, params: dict[str, Any] | None = None) -> Any:
+        """GET JSON，返回解析后的响应体。限速/退避/熔断语义与 post_json 完全一致。"""
+        return self._request(lambda: self._client.get(path, params=params))
+
+    def _request(self, send: Callable[[], httpx.Response]) -> Any:
+        """一次请求的完整生命周期：熔断闸 → 退避重试 → 成功/失败计数。"""
         if self._consecutive_failures >= self._max_consecutive_failures:
             raise CircuitOpenError(
                 f"连续 {self._consecutive_failures} 次请求失败，熔断中止，请人工确认数据源状态"
             )
         try:
-            body = self._post_with_retry(path, payload)
+            body = self._with_retry(send)
         except CircuitOpenError:
             raise
         except Exception:
@@ -134,7 +142,7 @@ class HttpClient:
         self._limiter.report_success()
         return body
 
-    def _post_with_retry(self, path: str, payload: dict[str, Any]) -> Any:
+    def _with_retry(self, send: Callable[[], httpx.Response]) -> Any:
         retryer = Retrying(
             retry=retry_if_exception_type(TransientHttpError),
             stop=stop_after_attempt(self._max_attempts),
@@ -143,13 +151,13 @@ class HttpClient:
         )
         for attempt in retryer:
             with attempt:
-                return self._post_once(path, payload)
+                return self._once(send)
         raise TransientHttpError("unreachable")  # pragma: no cover
 
-    def _post_once(self, path: str, payload: dict[str, Any]) -> Any:
+    def _once(self, send: Callable[[], httpx.Response]) -> Any:
         self._limiter.wait()
         try:
-            resp = self._client.post(path, json=payload)
+            resp = send()
         except httpx.TransportError as exc:
             raise TransientHttpError(f"网络错误: {exc}") from exc
         if resp.status_code == 403:

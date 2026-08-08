@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Alice Example",
+    "country": "US",
+    "player": "alice",
+    "placing": 1,
+    "record": {"wins": 9, "losses": 1, "ties": 0},
+    "drop": null,
+    "deck": {"id": "deck-uuid-1", "name": "Charizard ex", "icons": ["charizard-ex"]},
+    "decklist": {
+      "pokemon": [{"count": 3, "set": "SCR", "number": "57", "name": "Slowpoke"}],
+      "trainer": [{"count": 4, "set": "SVI", "number": "185", "name": "Ultra Ball"}],
+      "energy": [{"count": 7, "set": "SVE", "number": "1", "name": "Basic Fire Energy"}]
+    }
+  },
+  {
+    "name": "Bob Example",
+    "country": "CA",
+    "player": "bob",
+    "placing": 2,
+    "record": {"wins": 8, "losses": 2, "ties": 1},
+    "drop": 6,
+    "deck": null,
+    "decklist": null
+  }
+]
